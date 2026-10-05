@@ -1,0 +1,358 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "AZRAID PrepareAviationDistrict.py"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "AviationDefenseRelay",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        },
+        {
+          "material": 1,
+          "attributes": {
+            "POSITION": 3,
+            "NORMAL": 4
+          },
+          "indices": 5
+        },
+        {
+          "material": 2,
+          "attributes": {
+            "POSITION": 6,
+            "NORMAL": 7
+          },
+          "indices": 8
+        },
+        {
+          "material": 3,
+          "attributes": {
+            "POSITION": 9,
+            "NORMAL": 10
+          },
+          "indices": 11
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "ivory_panels",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.64,
+          0.66,
+          0.65,
+          1
+        ],
+        "metallicFactor": 0.06,
+        "roughnessFactor": 0.72
+      }
+    },
+    {
+      "name": "blue_black_structure",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.19,
+          0.22,
+          0.25,
+          1
+        ],
+        "metallicFactor": 0.32,
+        "roughnessFactor": 0.52
+      }
+    },
+    {
+      "name": "apron_concrete",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.3,
+          0.33,
+          0.34,
+          1
+        ],
+        "metallicFactor": 0.02,
+        "roughnessFactor": 0.85
+      }
+    },
+    {
+      "name": "safety_reflectors",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.8,
+          0.53,
+          0.17,
+          1
+        ],
+        "metallicFactor": 0.05,
+        "roughnessFactor": 0.7
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 744,
+      "type": "VEC3",
+      "min": [
+        -63.5,
+        0.5,
+        -56.1
+      ],
+      "max": [
+        61.0,
+        55.3,
+        49.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 744,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5125,
+      "count": 1260,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        743
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 480,
+      "type": "VEC3",
+      "min": [
+        -65.5,
+        1.0,
+        -56.5
+      ],
+      "max": [
+        63.0,
+        52.6,
+        51.5
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 480,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5125,
+      "count": 828,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        479
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC3",
+      "min": [
+        -66.0,
+        0.0,
+        -58.5
+      ],
+      "max": [
+        63.0,
+        25.9,
+        53.5
+      ]
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5125,
+      "count": 504,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        287
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 48,
+      "type": "VEC3",
+      "min": [
+        -20.9,
+        7.275,
+        -56.584999999999994
+      ],
+      "max": [
+        20.9,
+        7.525,
+        -46.515
+      ]
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 48,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5125,
+      "count": 72,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        47
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 8928
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8928,
+      "byteLength": 8928
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 17856,
+      "byteLength": 5040
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 22896,
+      "byteLength": 5760
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 28656,
+      "byteLength": 5760
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 34416,
+      "byteLength": 3312
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 37728,
+      "byteLength": 3456
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 41184,
+      "byteLength": 3456
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 44640,
+      "byteLength": 2016
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 46656,
+      "byteLength": 576
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 47232,
+      "byteLength": 576
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 47808,
+      "byteLength": 288
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "AviationDefenseRelay.bin",
+      "byteLength": 48096
+    }
+  ]
+}

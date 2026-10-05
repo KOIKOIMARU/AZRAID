@@ -82,13 +82,35 @@ constexpr const char* kCityBuildingLargeModelPath =
     "Exports/glTF (Godot)/Building_Large_2.gltf";
 constexpr const char* kTransitLandmarkModelPath = "free_models/transit_landmark/TransitLandmark.gltf";
 constexpr const char* kTracksideModelPath = "scenery/FlightTrackside.gltf";
+constexpr const char* kAviationDistrictModelPath = "scenery/aviation_district/AviationDistrict.gltf";
+constexpr const char* kAviationGlazingModelPath = "scenery/aviation_district/AviationGlazing.gltf";
+constexpr const char* kAviationFlightwayModelPath = "scenery/aviation_district/AviationFlightway.gltf";
+constexpr const char* kAviationDefenseModelPath = "scenery/aviation_district/AviationDefense.gltf";
+constexpr const char* kAviationDefenseGlazingModelPath = "scenery/aviation_district/AviationDefenseGlazing.gltf";
+constexpr const char* kAviationDefenseFlightwayModelPath = "scenery/aviation_district/AviationDefenseFlightway.gltf";
+constexpr const char* kAviationDefenseRelayModelPath = "scenery/aviation_district/AviationDefenseRelay.gltf";
+constexpr const char* kAviationDefenseRelayGlazingModelPath = "scenery/aviation_district/AviationDefenseRelayGlazing.gltf";
+constexpr const char* kAviationBossApronModelPath = "scenery/aviation_district/AviationBossApron.gltf";
+constexpr const char* kAviationBossApronGlazingModelPath = "scenery/aviation_district/AviationBossApronGlazing.gltf";
+constexpr const char* kAviationBossApronSurfaceModelPath = "scenery/aviation_district/AviationBossApronSurface.gltf";
+constexpr const char* kAviationBossApronFreightModelPath = "scenery/aviation_district/AviationBossApronFreight.gltf";
+constexpr const char* kAviationBossApronFreightGlazingModelPath = "scenery/aviation_district/AviationBossApronFreightGlazing.gltf";
+constexpr const char* kAviationTerrainModelPath = "scenery/aviation_district/AviationTerrain.gltf";
+constexpr float kDefenseStartWorldZ = 450.0f;
+constexpr float kPlazaStartWorldZ = 866.0f;
+constexpr float kDefenseModuleLength = 128.0f;
+constexpr int kDefenseModuleCount = 6;
+constexpr float kDefenseLoopLength = kDefenseModuleLength * kDefenseModuleCount;
+constexpr float kBossApronModuleLength = 256.0f;
+constexpr int kBossApronModuleCount = 4;
+constexpr float kBossApronLoopLength = kBossApronModuleLength * kBossApronModuleCount;
 constexpr float kTransitLandmarkWorldZ = 240.0f; // 市街地の途中に固定。撃破速度では位置を変えない。
-constexpr int kTargetPlayerBulletPoolCount = 24;
+constexpr int kTargetPlayerBulletPoolCount = 40; // 8f間隔・寿命280fのフィーバー空撃ちも起動時の固定枠で賄う。
 constexpr int kTargetEnemyBulletPoolCount = 64; // 連射・扇状弾も起動時の固定プールだけで賄う。
 // TitleSceneのPrepareScene中に通常の予備数まで作る。開始直後の大量GPU確保を避ける。
 constexpr int kInitialPlayerBulletPoolCount = kTargetPlayerBulletPoolCount;
 constexpr int kInitialEnemyBulletPoolCount = kTargetEnemyBulletPoolCount;
-constexpr int kTargetHitEffectObjectPoolCount = 120;
+constexpr int kTargetHitEffectObjectPoolCount = 320; // 編隊同時撃破＋着弾＋回収まで起動時の固定枠で賄う。
 constexpr int kInitialHitEffectObjectPoolCount = kTargetHitEffectObjectPoolCount;
 constexpr float kChargeSplashRadius = 3.4f; // 敵の中心間の距離。編隊中央なら左右へ届き、端なら反対端へ届かない。
 constexpr int kChargeSplashDamage = 3; // 小型機一機分。直撃対象には重ねず、爆風からの再誘爆もしない。
@@ -130,9 +152,11 @@ constexpr float kJustDodgeCameraLowAngle = 0.18f;
 constexpr float kJustDodgeCameraFovTighten = 0.140f;
 constexpr int kPlayerDodgeAfterimageIntervalFrames = 2;
 constexpr float kPlayerDodgeAfterimageDuration = 34.0f;
-constexpr int kSharedResourcePreloadStepCount = 17;
+constexpr int kSharedResourcePreloadStepCount = 23;
 constexpr float kSceneryNearLocalZ = -24.0f;
-constexpr float kSceneryFarLocalZ = 300.0f;
+// カメラの後方まで地表を残し、520mの遠クリップより外でだけ背景を循環させる。
+constexpr float kSceneryRecycleNearLocalZ = -64.0f;
+constexpr float kSceneryFarLocalZ = 540.0f;
 constexpr float kStageClearDistance = 365.0f;
 constexpr float kBossWarningDistance = 300.0f;
 constexpr float kBossSpawnDistance = 330.0f;
@@ -168,7 +192,7 @@ constexpr int kSniperTelegraphLeadFrames = 34;
 constexpr int kFeverGaugeMax = 100;
 constexpr int kFeverDurationFrames = 600;
 constexpr int kFeverActivationFlashFrames = 90;
-constexpr int kFeverRapidShotCooldown = 12;
+constexpr int kFeverRapidShotCooldown = 8;
 constexpr int kFeverScoreMultiplier = 3;
 constexpr int kFeverEncounterBreatherFrames = 18;
 constexpr float kFeverRailSpeedMultiplier = 2.15f;
@@ -411,16 +435,39 @@ float PseudoRandom01(int index, float salt)
     return value - std::floor(value);
 }
 
-float WrapSceneryLocalZ(float localZ, float loopLength)
+bool BoundsIntersectCamera(const Math::Vector3& minimum, const Math::Vector3& maximum,
+    const Math::Matrix4x4& worldViewProjection)
+{
+    // 同じクリップ面の外に全頂点がある箱だけを省く。カメラを跨ぐ大きな敷地も消さない。
+    unsigned int outsideEveryCorner = 0x3fu;
+    const auto& m = worldViewProjection.m;
+    for (int corner = 0; corner < 8; ++corner) {
+        const float x = corner & 1 ? maximum.x : minimum.x;
+        const float y = corner & 2 ? maximum.y : minimum.y;
+        const float z = corner & 4 ? maximum.z : minimum.z;
+        const float cx = x * m[0][0] + y * m[1][0] + z * m[2][0] + m[3][0];
+        const float cy = x * m[0][1] + y * m[1][1] + z * m[2][1] + m[3][1];
+        const float cz = x * m[0][2] + y * m[1][2] + z * m[2][2] + m[3][2];
+        const float cw = x * m[0][3] + y * m[1][3] + z * m[2][3] + m[3][3];
+        const float margin = 0.001f * std::abs(cw) + 0.001f;
+        unsigned int outside = 0;
+        if (cx < -cw - margin) { outside |= 1u; }
+        if (cx > cw + margin) { outside |= 2u; }
+        if (cy < -cw - margin) { outside |= 4u; }
+        if (cy > cw + margin) { outside |= 8u; }
+        if (cz < -margin) { outside |= 16u; }
+        if (cz > cw + margin) { outside |= 32u; }
+        outsideEveryCorner &= outside;
+        if (outsideEveryCorner == 0) { return true; }
+    }
+    return false;
+}
+
+float WrapSceneryLocalZ(float localZ, float loopLength, float nearLocalZ)
 {
     const float safeLoopLength = (std::max)(loopLength, 1.0f);
-    while (localZ < kSceneryNearLocalZ) {
-        localZ += safeLoopLength;
-    }
-    while (localZ > kSceneryFarLocalZ) {
-        localZ -= safeLoopLength;
-    }
-    return localZ;
+    const float cycle = localZ - nearLocalZ;
+    return cycle - std::floor(cycle / safeLoopLength) * safeLoopLength + nearLocalZ;
 }
 
 Math::Vector3 Lerp(const Math::Vector3& start, const Math::Vector3& end, float rate)
@@ -581,8 +628,10 @@ bool GameRuntime::PreloadSharedResourceStep(
     case 2:
         gSharedResourcePreloadLabel = "Reward and glow meshes";
         modelManager->CreateHeart("reward_heart", 48, 1.0f, "resources/human/white.png");
+        modelManager->CreateSphere("reward_energy_shard", 2, 4, 0.5f, "resources/human/white.png");
         modelManager->CreateCircle("effect_glow_core", 48, 1.0f, "resources/effects/glow_core.png");
         modelManager->CreateCircle("effect_glow_ring", 64, 1.0f, "resources/effects/glow_ring.png");
+        modelManager->CreateRing("rift_rim", 64, 1.0f, 0.94f, "resources/human/white.png");
         modelManager->CreateCircle("effect_spark_star", 48, 1.0f, "resources/effects/pal_star_spark.png");
         modelManager->CreateCircle("effect_bullet_glow", 48, 1.0f, "resources/effects/glow_core.png");
         modelManager->CreateCircle("effect_contact_shadow", 64, 1.0f, "resources/effects/glow_core.png");
@@ -594,7 +643,11 @@ bool GameRuntime::PreloadSharedResourceStep(
         modelManager->CreatePlane("effect_player_bullet_trail", 1.0f, 1.0f, "resources/effects/rail_player_bolt_trail.png");
         modelManager->CreatePlane("effect_player_charge_core", 1.0f, 1.0f, "resources/effects/rail_charge_lance_core.png");
         modelManager->CreatePlane("effect_player_charge_trail", 1.0f, 1.0f, "resources/effects/rail_charge_lance_trail.png");
-        modelManager->CreatePlane("effect_enemy_bullet_core", 1.0f, 1.0f, "resources/effects/rail_enemy_orb_core.png");
+        modelManager->CreateRing("effect_enemy_bullet_core", 48, 0.5f, 0.39f, "resources/human/white.png");
+        modelManager->CreateRing("effect_combat_shock", 64, 0.5f, 0.492f, "resources/human/white.png");
+        modelManager->CreateTriangle("effect_combat_blade", 1.0f, 1.0f, "resources/human/white.png");
+        modelManager->CreateCircle("effect_combat_disc", 48, 0.5f, "resources/human/white.png");
+        modelManager->CreateArc("effect_combat_arc", 40, 0.5f, 0.038f, 3.2f, "resources/human/white.png");
         modelManager->CreatePlane("effect_enemy_bullet_tail", 1.0f, 1.0f, "resources/effects/rail_enemy_tail.png");
         modelManager->CreatePlane("effect_impact_burst", 1.0f, 1.0f, "resources/effects/pal_impact_burst.png");
         modelManager->CreatePlane("effect_magic_shard", 1.0f, 1.0f, "resources/effects/pal_magic_shard.png");
@@ -672,6 +725,38 @@ bool GameRuntime::PreloadSharedResourceStep(
     case 16:
         gSharedResourcePreloadLabel = "Trackside model";
         modelManager->LoadModel(kTracksideModelPath);
+        break;
+    case 17:
+        gSharedResourcePreloadLabel = "Aviation district model";
+        modelManager->LoadModel(kAviationDistrictModelPath);
+        modelManager->LoadModel(kAviationGlazingModelPath);
+        modelManager->LoadModel(kAviationFlightwayModelPath);
+        break;
+    case 18:
+        gSharedResourcePreloadLabel = "Defense district model";
+        modelManager->LoadModel(kAviationDefenseModelPath);
+        modelManager->LoadModel(kAviationDefenseGlazingModelPath);
+        modelManager->LoadModel(kAviationDefenseFlightwayModelPath);
+        break;
+    case 19:
+        gSharedResourcePreloadLabel = "Boss apron model";
+        modelManager->LoadModel(kAviationBossApronModelPath);
+        modelManager->LoadModel(kAviationBossApronGlazingModelPath);
+        modelManager->LoadModel(kAviationBossApronSurfaceModelPath);
+        break;
+    case 20:
+        gSharedResourcePreloadLabel = "Communications court model";
+        modelManager->LoadModel(kAviationDefenseRelayModelPath);
+        modelManager->LoadModel(kAviationDefenseRelayGlazingModelPath);
+        break;
+    case 21:
+        gSharedResourcePreloadLabel = "Freight apron model";
+        modelManager->LoadModel(kAviationBossApronFreightModelPath);
+        modelManager->LoadModel(kAviationBossApronFreightGlazingModelPath);
+        break;
+    case 22:
+        gSharedResourcePreloadLabel = "Continuous terrain model";
+        modelManager->LoadModel(kAviationTerrainModelPath);
         break;
     default:
         gSharedResourcesPreloaded = true;
@@ -781,7 +866,9 @@ void GameRuntime::Initialize(PlayMode mode)
     bossDefeatPosition_ = {};
     resultTransitionTimer_ = -1;
     railDistance_ = 0.0f;
-    sceneryCanyonStartZ_ = sceneryPlazaStartZ_ = -1.0f;
+    // 地形は開始時から固定する。撃破速度による区間確定で視界内の施設を出現・変形させない。
+    sceneryCanyonStartZ_ = IsTutorial() ? -1.0f : kDefenseStartWorldZ;
+    sceneryPlazaStartZ_ = IsTutorial() ? -1.0f : kPlazaStartWorldZ;
     railSpeed_ = IsTutorial() ? 0.145f : 0.235f;
     targetRailSpeed_ = railSpeed_;
     previousFlightTimeScale_ = 1.0f;
@@ -882,6 +969,10 @@ void GameRuntime::Initialize(PlayMode mode)
     effectEnemyBulletCoreModel_ = ModelManager::GetInstance()->FindModel("effect_enemy_bullet_core");
     effectEnemyBulletTailModel_ = ModelManager::GetInstance()->FindModel("effect_enemy_bullet_tail");
     effectImpactBurstModel_ = ModelManager::GetInstance()->FindModel("effect_impact_burst");
+    effectCombatShockModel_ = ModelManager::GetInstance()->FindModel("effect_combat_shock");
+    effectCombatBladeModel_ = ModelManager::GetInstance()->FindModel("effect_combat_blade");
+    effectCombatDiscModel_ = ModelManager::GetInstance()->FindModel("effect_combat_disc");
+    effectCombatArcModel_ = ModelManager::GetInstance()->FindModel("effect_combat_arc");
     effectMagicShardModel_ = ModelManager::GetInstance()->FindModel("effect_magic_shard");
     effectExplosionFireballModel_ = ModelManager::GetInstance()->FindModel("effect_explosion_fireball");
     effectExplosionSmokeModel_ = ModelManager::GetInstance()->FindModel("effect_explosion_smoke");
@@ -937,6 +1028,7 @@ void GameRuntime::Initialize(PlayMode mode)
     InitializePlayerExhaustParticles();
     InitializeContactShadows();
     InitializePhantomRaid();
+    InitializeRifts();
 
     musicLevels_.fill(0.0f);
     musicTrack_ = -1;
@@ -992,6 +1084,11 @@ void GameRuntime::Initialize(PlayMode mode)
 
 void GameRuntime::Finalize()
 {
+    ResetRifts();
+    for (auto& rift : rifts_) {
+        rift.rim.reset();
+        rift.glow.reset();
+    }
     for (auto& slash : phantomSlashes_) {
         slash.ghost.reset();
     }
@@ -1050,6 +1147,10 @@ void GameRuntime::Finalize()
     effectEnemyBulletCoreModel_ = nullptr;
     effectEnemyBulletTailModel_ = nullptr;
     effectImpactBurstModel_ = nullptr;
+    effectCombatShockModel_ = nullptr;
+    effectCombatBladeModel_ = nullptr;
+    effectCombatDiscModel_ = nullptr;
+    effectCombatArcModel_ = nullptr;
     effectMagicShardModel_ = nullptr;
     effectExplosionFireballModel_ = nullptr;
     effectExplosionSmokeModel_ = nullptr;
@@ -1098,6 +1199,7 @@ void GameRuntime::Update()
             std::clamp(dxCommon_->GetDeltaTime(), 0.0f, 0.10f);
     }
 
+    const Math::Vector3 previousRiftPlayerPosition = player_ ? player_->GetTranslate() : Math::Vector3{};
     UpdateRailProgress();
     UpdatePlayerAndCamera();
     UpdateFever();
@@ -1112,6 +1214,7 @@ void GameRuntime::Update()
 
     UpdateWorldEntities();
     UpdateGameplayCollisions();
+    if (player_) { UpdateRifts(previousRiftPlayerPosition, player_->GetTranslate()); }
     UpdateTutorialLesson();
     UpdateDefeatChain();
     AdvanceEnemyWaveIfCleared();
@@ -1545,6 +1648,7 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
     justDodgedEnemyBullets_.clear();
     enemies_.clear();
     ResetPhantomRaid();
+    ResetRifts();
 
     while (!playerBullets_.empty()) {
         playerBulletPool_.push_back(std::move(playerBullets_.front()));
@@ -1560,8 +1664,8 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
 
     stageProgress_ = targetProgress;
     // 明示的なデバッグ移動だけは、対象街区の中から始める。通常の遷移は前方から行う。
-    sceneryCanyonStartZ_ = targetProgress >= 104.0f ? railDistance_ - 600.0f : -1.0f;
-    sceneryPlazaStartZ_ = targetProgress >= 230.0f ? railDistance_ - 400.0f : -1.0f;
+    sceneryCanyonStartZ_ = targetProgress >= 104.0f ? railDistance_ - 600.0f : kDefenseStartWorldZ;
+    sceneryPlazaStartZ_ = targetProgress >= 230.0f ? railDistance_ - 400.0f : kPlazaStartWorldZ;
     stageTimelineSpeed_ = 0.0f;
     stageTimelineWasBlocked_ = false;
     stageEncounterBreatherTimer_ = 0;
@@ -2058,7 +2162,7 @@ void GameRuntime::InitializeRewardHearts()
     rewardHearts_.clear();
 
     Model* heartModel =
-        ModelManager::GetInstance()->FindModel("reward_heart");
+        ModelManager::GetInstance()->FindModel("reward_energy_shard");
     if (!heartModel || !object3dCommon_) {
         return;
     }
@@ -2073,7 +2177,7 @@ void GameRuntime::InitializeRewardHearts()
         heart.object->SetScale({ 0.0f, 0.0f, 1.0f });
         heart.object->SetTextureFilePath("resources/human/white.png");
         heart.object->SetColor({ 1.0f, 0.18f, 0.44f, 0.0f });
-        heart.object->SetLightingMode(0);
+        heart.object->SetLightingMode(1);
         heart.object->SetEnvironmentCoefficient(0.0f);
         heart.object->SetAlphaReference(0.01f);
         heart.object->Update();
@@ -2204,8 +2308,8 @@ void GameRuntime::UpdateRewardHearts()
 
         heart.object->SetTranslate(heart.position);
         heart.object->SetRotate(rotate);
-        heart.object->SetScale({ scale, scale, 1.0f });
-        heart.object->SetColor({ 1.0f, 0.18f, 0.46f, 0.95f });
+        heart.object->SetScale({ scale * 1.15f, scale * 2.1f, scale * 1.15f });
+        heart.object->SetColor({ 1.12f, 0.65f, 0.16f, 0.95f });
         heart.object->Update();
     }
 }
@@ -2405,6 +2509,11 @@ void GameRuntime::InitializeRailScenery()
             }
 
             const std::string modelPathText = modelPath ? modelPath : "";
+            const bool isAviation = modelPathText.find("scenery/aviation_district/") == 0;
+            const bool isGlazing = isAviation && modelPathText.find("Glazing") != std::string::npos;
+            const bool isPaving = modelPathText == kAviationFlightwayModelPath ||
+                modelPathText == kAviationDefenseFlightwayModelPath || modelPathText == kAviationBossApronSurfaceModelPath ||
+                modelPathText == kAviationTerrainModelPath;
             RailSceneryObject scenery;
             scenery.object = std::make_unique<Object3d>();
             scenery.object->Initialize(object3dCommon_.get());
@@ -2416,7 +2525,8 @@ void GameRuntime::InitializeRailScenery()
             scenery.object->SetLightingMode(lightingMode);
             scenery.object->SetEnvironmentCoefficient(environmentCoefficient);
             scenery.object->SetShadowReceiveStrength(0.9f);
-            if (modelPathText.find("Street") != std::string::npos) {
+            if (modelPathText.find("Street") != std::string::npos || isPaving) {
+                scenery.object->SetShadowReceiveStrength(0.76f);
                 scenery.object->SetShininess(24.0f);
                 scenery.object->SetSpecularColor({ 0.035f, 0.038f, 0.042f });
                 scenery.object->SetRoughness(0.84f);
@@ -2426,11 +2536,22 @@ void GameRuntime::InitializeRailScenery()
                 scenery.object->SetSpecularColor({ 0.065f, 0.070f, 0.080f });
                 scenery.object->SetRoughness(0.76f);
                 scenery.object->SetMetallic(0.0f);
+            } else if (isGlazing) {
+                scenery.object->SetShininess(110.0f);
+                scenery.object->SetSpecularColor({ 0.14f, 0.18f, 0.20f });
+                scenery.object->SetRoughness(0.22f);
+                scenery.object->SetMetallic(0.35f);
             } else {
                 scenery.object->SetShininess(32.0f);
                 scenery.object->SetSpecularColor({ 0.09f, 0.095f, 0.105f });
                 scenery.object->SetRoughness(0.68f);
                 scenery.object->SetMetallic(0.05f);
+            }
+            if ((isAviation && !isGlazing && !isPaving) || modelPathText == kTransitLandmarkModelPath) {
+                // 施設だけを既存の柔らかい拡散光へ合わせ、陰側の窓・扉・段差も残す。
+                scenery.object->SetLightingMode(2);
+                scenery.object->SetShadowReceiveStrength(0.70f);
+                scenery.object->SetEnvironmentCoefficient(0.055f);
             }
             scenery.object->SetAlphaReference(0.01f);
             scenery.object->Update();
@@ -2445,17 +2566,47 @@ void GameRuntime::InitializeRailScenery()
             scenery.currentLocalZ = anchor.z;
             scenery.isBuilding = modelPathText.find("Building") != std::string::npos;
             scenery.isRoad = modelPathText.find("Street") != std::string::npos;
+            scenery.isRoadDetail = modelPathText.find("Manhole") != std::string::npos ||
+                modelPathText.find("Drain") != std::string::npos;
             scenery.isBackRow = scenery.isBuilding && std::abs(anchor.x) > 40.0f;
-            scenery.isLandmark = modelPathText == kTransitLandmarkModelPath;
+            scenery.isLandmark = modelPathText == kTransitLandmarkModelPath ||
+                modelPathText == kAviationDistrictModelPath || modelPathText == kAviationGlazingModelPath ||
+                modelPathText == kAviationFlightwayModelPath;
             scenery.isTrackside = modelPathText == kTracksideModelPath;
-            scenery.halfDepth = scenery.isLandmark ? 54.0f : scenery.isTrackside ? 18.0f : 0.0f;
+            scenery.isTerrain = modelPathText == kAviationTerrainModelPath;
+            scenery.isDefenseDistrict = modelPathText == kAviationDefenseModelPath ||
+                modelPathText == kAviationDefenseGlazingModelPath || modelPathText == kAviationDefenseFlightwayModelPath ||
+                modelPathText == kAviationDefenseRelayModelPath || modelPathText == kAviationDefenseRelayGlazingModelPath;
+            scenery.isBossApron = modelPathText == kAviationBossApronModelPath ||
+                modelPathText == kAviationBossApronGlazingModelPath || modelPathText == kAviationBossApronSurfaceModelPath ||
+                modelPathText == kAviationBossApronFreightModelPath || modelPathText == kAviationBossApronFreightGlazingModelPath;
+            scenery.castsShadow = !isGlazing && !isPaving &&
+                (scenery.isBuilding || scenery.isLandmark || scenery.isTrackside ||
+                    scenery.isDefenseDistrict || scenery.isBossApron);
+            scenery.halfDepth = (modelPathText == kAviationDistrictModelPath ||
+                modelPathText == kAviationGlazingModelPath || modelPathText == kAviationFlightwayModelPath) ? 250.0f :
+                scenery.isLandmark ? 54.0f : scenery.isTrackside ? 18.0f : 0.0f;
+            if (scenery.isDefenseDistrict) { scenery.halfDepth = kDefenseModuleLength * 0.5f; }
+            if (scenery.isBossApron) { scenery.halfDepth = kBossApronModuleLength * 0.5f; }
+            if (scenery.isTerrain) { scenery.halfDepth = 128.0f; }
+            const auto transform = Math::MakeAffineMatrix(scale, rotate, {});
+            for (const auto& vertex : model->GetVertices()) {
+                const Math::Vector3 v{ vertex.position.x, vertex.position.y, vertex.position.z };
+                scenery.boundsMin = { (std::min)(scenery.boundsMin.x, v.x),
+                    (std::min)(scenery.boundsMin.y, v.y), (std::min)(scenery.boundsMin.z, v.z) };
+                scenery.boundsMax = { (std::max)(scenery.boundsMax.x, v.x),
+                    (std::max)(scenery.boundsMax.y, v.y), (std::max)(scenery.boundsMax.z, v.z) };
+                if (scenery.isBuilding || scenery.isRoad || scenery.isRoadDetail) {
+                    // 回転後の実際の端を含める。中心だけで判定すると建物の手前側が突然出る。
+                    const auto position = TransformCoord({ vertex.position.x, vertex.position.y, vertex.position.z }, transform);
+                    scenery.halfDepth = (std::max)(scenery.halfDepth, std::abs(position.z));
+                }
+            }
             scenery.drawFarLocalZ = kSceneryFarLocalZ;
-            if (modelPathText.find("Building") != std::string::npos) {
-                const bool isBackRow = std::abs(anchor.x) > 40.0f;
-                scenery.drawFarLocalZ = isBackRow ? 178.0f : 220.0f;
-            } else if (
-                modelPathText.find("Manhole") != std::string::npos ||
-                modelPathText.find("Drain") != std::string::npos) {
+            if (IsTutorial()) {
+                scenery.drawFarLocalZ = scenery.isBuilding ? (scenery.isBackRow ? 178.0f : 220.0f) : 300.0f;
+            }
+            if (scenery.isRoadDetail) {
                 scenery.drawFarLocalZ = 140.0f;
             }
             scenery.isVisible = true;
@@ -2481,13 +2632,17 @@ void GameRuntime::InitializeRailScenery()
                 0.04f);
         };
 
-    constexpr float kCityLoopLength = 324.0f;
+    constexpr float kCityLayoutLength = 324.0f;
+    const int cityCycleCount = IsTutorial() ? 1 : 2;
+    const float cityLoopLength = kCityLayoutLength * static_cast<float>(cityCycleCount);
     constexpr float kRoadY = -3.05f;
     constexpr float kSurfaceDetailY = kRoadY - 0.135f;
     constexpr float kBuildingY = kRoadY - 0.15f;
+    // 元の道路の最下面もkBuildingYと同じ高さ。基盤は下へ離して面の競合を防ぐ。
+    constexpr float kTerrainY = kBuildingY - 0.30f;
     constexpr float kHalfPi = 1.57079632679f;
 
-    for (int i = 0; i < 18; ++i) {
+    for (int i = 0; i < 18 * cityCycleCount; ++i) {
         const float segmentZ = 18.0f * static_cast<float>(i);
         addSceneryStyled(
             kCityStreet4LaneModelPath,
@@ -2496,7 +2651,7 @@ void GameRuntime::InitializeRailScenery()
             // 90度回して進行方向へ18mずつ連結。歩道が横断帯として反復しないようにする。
             { 3.0f, 1.0f, 14.0f / 3.0f },
             { 0.0f, kHalfPi, 0.0f },
-            kCityLoopLength,
+            cityLoopLength,
             0.0f,
             { 0.78f, 0.82f, 0.86f, 1.0f },
             2,
@@ -2576,14 +2731,16 @@ void GameRuntime::InitializeRailScenery()
 
     constexpr size_t kCityBuildingCount =
         sizeof(cityBuildings) / sizeof(cityBuildings[0]);
-    for (size_t index = 0; index < kCityBuildingCount; ++index) {
-        const CityBuildingPlacement& building = cityBuildings[index];
+    for (size_t index = 0; index < kCityBuildingCount * cityCycleCount; ++index) {
+        const CityBuildingPlacement& building = cityBuildings[index % kCityBuildingCount];
+        Math::Vector3 buildingAnchor = building.anchor;
+        buildingAnchor.z += kCityLayoutLength * static_cast<float>(index / kCityBuildingCount);
         addSceneryStyled(
             building.modelPath,
-            building.anchor,
+            buildingAnchor,
             building.scale,
             building.rotate,
-            kCityLoopLength,
+            cityLoopLength,
             0.0f,
             building.color,
             2,
@@ -2592,17 +2749,14 @@ void GameRuntime::InitializeRailScenery()
         if (!keepFarPair) {
             continue;
         }
-        Math::Vector3 farAnchor = building.anchor;
-        farAnchor.z += kCityLoopLength * 0.5f;
-        if (farAnchor.z > kSceneryFarLocalZ) {
-            farAnchor.z -= kCityLoopLength;
-        }
+        Math::Vector3 farAnchor = buildingAnchor;
+        farAnchor.z += kCityLayoutLength * 0.5f;
         addSceneryStyled(
             building.modelPath,
             farAnchor,
             building.scale,
             building.rotate,
-            kCityLoopLength,
+            cityLoopLength,
             0.0f,
             building.color,
             2,
@@ -2630,8 +2784,8 @@ void GameRuntime::InitializeRailScenery()
 
     constexpr size_t kCityBackRowCount =
         sizeof(cityBackRows) / sizeof(cityBackRows[0]);
-    for (size_t index = 0; index < kCityBackRowCount; ++index) {
-        const CityBackRowPlacement& row = cityBackRows[index];
+    for (size_t index = 0; index < kCityBackRowCount * cityCycleCount; ++index) {
+        const CityBackRowPlacement& row = cityBackRows[index % kCityBackRowCount];
         for (int sideIndex = 0; sideIndex < 2; ++sideIndex) {
             const float side = sideIndex == 0 ? -1.0f : 1.0f;
             const float stagger = side > 0.0f ? 21.0f : 0.0f;
@@ -2640,10 +2794,10 @@ void GameRuntime::InitializeRailScenery()
             scale.z *= side > 0.0f ? 1.02f : 1.0f;
             addSceneryStyled(
                 row.modelPath,
-                { side * kBackRowX, kBuildingY - 0.03f, row.z + stagger },
+                { side * kBackRowX, kBuildingY - 0.03f, row.z + stagger + kCityLayoutLength * static_cast<float>(index / kCityBackRowCount) },
                 scale,
                 { 0.0f, side < 0.0f ? kHalfPi : -kHalfPi, 0.0f },
-                kCityLoopLength,
+                cityLoopLength,
                 0.0f,
                 row.color,
                 2,
@@ -2651,37 +2805,88 @@ void GameRuntime::InitializeRailScenery()
         }
     }
 
-    for (int i = 0; i < 4; ++i) {
-        const float detailZ = 18.0f + 42.0f * static_cast<float>(i);
+    for (int i = 0; i < 4 * cityCycleCount; ++i) {
+        const float detailZ = 18.0f + 42.0f * static_cast<float>(i % 4) + kCityLayoutLength * static_cast<float>(i / 4);
         addScenery(
             kCityManholeCoverModelPath,
             { -1.6f, kSurfaceDetailY, detailZ },
             { 1.15f, 1.15f, 1.15f },
             { 0.0f, 0.22f * static_cast<float>(i), 0.0f },
-            kCityLoopLength,
+            cityLoopLength,
             0.0f);
         addScenery(
             kCityDrainModelPath,
             { 4.2f, kSurfaceDetailY, detailZ + 8.0f },
             { 1.2f, 1.2f, 1.2f },
             { 0.0f, 0.0f, 0.0f },
-            kCityLoopLength,
+            cityLoopLength,
             0.0f);
     }
     if (!IsTutorial()) {
-        // 路面と同じ324m周期。9ブロックを初期化時に確保し、実行中に増やさない。
+        // 路面と同じ648m周期。全遠景を初期化時に確保し、実行中に増やさない。
         // 自機の可動域(±8.9m)の外へ配置し、戦闘の中央には障害物を足さない。
-        for (int index = 0; index < 9; ++index) {
+        for (int index = 0; index < 18; ++index) {
             addSceneryStyled(kTracksideModelPath,
                 { 0.0f, kRoadY, 18.0f + 36.0f * static_cast<float>(index) },
-                { 1.0f, 1.0f, 1.0f }, {}, kCityLoopLength, 0.0f,
+                { 1.0f, 1.0f, 1.0f }, {}, cityLoopLength, 0.0f,
                 { 0.94f, 0.96f, 0.97f, 1.0f }, 2, 0.015f);
+        }
+        // 路面・歩道・建物の敷地の隙間を含む地表。四枚が端で接続し、視界外でだけ循環する。
+        for (int index = 0; index < 4; ++index) {
+            addSceneryStyled(kAviationTerrainModelPath,
+                { 0.0f, kTerrainY, 256.0f * static_cast<float>(index) },
+                { 1.0f, 1.0f, 1.0f }, {}, 1024.0f, 0.0f,
+                { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
         }
         // 地上から約15mより上に橋桁、支柱は左右22mより外。敵と自機の飛行域は塞がない。
         // 部品はオフラインで8材質へ結合済み。プレイ中にモデルやGPU資源を追加しない。
         addSceneryStyled(kTransitLandmarkModelPath,
             { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
-            0.0f, 0.0f, { 0.98f, 0.98f, 0.96f, 1.0f }, 2, 0.035f);
+            0.0f, 0.0f, { 0.86f, 0.90f, 0.93f, 1.0f }, 1, 0.025f);
+        // 進入設備、運航棟、管制塔、退出側の整備場を同じ固定敷地へまとめる。
+        // 元の高架へ接続する形状をオフラインで7材質に結合。飛行域の左右17mは空ける。
+        addSceneryStyled(kAviationDistrictModelPath,
+            { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
+            0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.025f);
+        // 窓だけを別の材質設定にする。既存の不透明パスで描き、追加の描画先やSRVは使わない。
+        addSceneryStyled(kAviationGlazingModelPath,
+            { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
+            0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.16f);
+        // 序盤の飛行進入路だけを敷地へ固定。地表の誘導線は自動車用の車線へ重ねない。
+        addSceneryStyled(kAviationFlightwayModelPath,
+            { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
+            0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
+        // 近景と遠景を含む六つの共有敷地を起動時に確保。視界外で循環する。
+        for (int index = 0; index < kDefenseModuleCount; ++index) {
+            const Math::Vector3 anchor{ 0.0f, kBuildingY,
+                kDefenseModuleLength * (static_cast<float>(index) + 0.5f) };
+            const Math::Vector3 rotate{ 0.0f, index % 4 >= 2 ? kHalfPi * 2.0f : 0.0f, 0.0f };
+            const bool relay = index % 2 != 0;
+            addSceneryStyled(relay ? kAviationDefenseRelayModelPath : kAviationDefenseModelPath,
+                anchor, { 1.0f, 1.0f, 1.0f }, rotate,
+                kDefenseLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.025f);
+            addSceneryStyled(relay ? kAviationDefenseRelayGlazingModelPath : kAviationDefenseGlazingModelPath,
+                anchor, { 1.0f, 1.0f, 1.0f }, rotate,
+                kDefenseLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.16f);
+            // 舗装だけは同じ向きへ固定し、継ぎ目でアスファルトの粒を反転させない。
+            addSceneryStyled(kAviationDefenseFlightwayModelPath, anchor, { 1.0f, 1.0f, 1.0f }, {},
+                kDefenseLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
+        }
+        // 低い外周施設と広い舗装面。ボス戦が長引いても同じ固定プールで続ける。
+        for (int index = 0; index < kBossApronModuleCount; ++index) {
+            const Math::Vector3 anchor{ 0.0f, kBuildingY,
+                kBossApronModuleLength * (static_cast<float>(index) + 0.5f) };
+            const bool freight = index % 3 == 1;
+            const Math::Vector3 rotate{ 0.0f, index % 3 == 2 ? kHalfPi * 2.0f : 0.0f, 0.0f };
+            addSceneryStyled(freight ? kAviationBossApronFreightModelPath : kAviationBossApronModelPath,
+                anchor, { 1.0f, 1.0f, 1.0f }, rotate,
+                kBossApronLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.025f);
+            addSceneryStyled(freight ? kAviationBossApronFreightGlazingModelPath : kAviationBossApronGlazingModelPath,
+                anchor, { 1.0f, 1.0f, 1.0f }, rotate,
+                kBossApronLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.16f);
+            addSceneryStyled(kAviationBossApronSurfaceModelPath, anchor, { 1.0f, 1.0f, 1.0f }, {},
+                kBossApronLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
+        }
     }
     transparentSceneryDrawOrder_.reserve(railSceneryObjects_.size());
 }
@@ -2697,32 +2902,65 @@ Math::Vector2 GameRuntime::GetSceneryDistrictWeights(float worldZ) const
     return { blend(sceneryCanyonStartZ_, 96.0f), blend(sceneryPlazaStartZ_, 144.0f) };
 }
 
+float GameRuntime::GetBossApronStartZ() const
+{
+    if (IsTutorial() || sceneryPlazaStartZ_ == -1.0f) { return -1.0f; }
+    const float defenseStartZ = sceneryCanyonStartZ_ >= 0.0f ?
+        (std::max)(sceneryCanyonStartZ_, 450.0f) : sceneryCanyonStartZ_;
+    // 中盤の128m敷地の端へ接続。境界の確定時には全ての変更対象が描画範囲より先にある。
+    return defenseStartZ + std::ceil((sceneryPlazaStartZ_ + 96.0f - defenseStartZ) /
+        kDefenseModuleLength) * kDefenseModuleLength;
+}
+
 void GameRuntime::UpdateRailScenery()
 {
-    if (!IsTutorial()) {
-        // 描画範囲（建物220、道路300）より先へ配置し、建物をその場で動かさず街区へ入る。
-        if (sceneryCanyonStartZ_ == -1.0f && stageProgress_ >= 28.0f) {
-            sceneryCanyonStartZ_ = railDistance_ + 310.0f;
-        }
-        if (sceneryPlazaStartZ_ == -1.0f && stageProgress_ >= 160.0f) {
-            sceneryPlazaStartZ_ = (std::max)(railDistance_ + 310.0f, sceneryCanyonStartZ_ + 180.0f);
-        }
-    }
+    // 序盤の敷地（Z=396まで）と路面（Z=450まで）を終えてから中盤へ入る。
+    // 負の原点は明示的なDebugフェーズ移動だけで使用する。
+    const float defenseStartZ = sceneryCanyonStartZ_ >= 0.0f ?
+        (std::max)(sceneryCanyonStartZ_, 450.0f) : sceneryCanyonStartZ_;
+    const float bossApronStartZ = GetBossApronStartZ();
+    const float nearLocalZ = IsTutorial() ? kSceneryNearLocalZ : kSceneryRecycleNearLocalZ;
     visibleSceneryCount_ = 0;
     for (RailSceneryObject& scenery : railSceneryObjects_) {
         if (!scenery.object) {
             continue;
         }
 
-        const float localZ = scenery.isLandmark ? scenery.anchor.z - railDistance_ : WrapSceneryLocalZ(
+        float localZ = scenery.isLandmark ? scenery.anchor.z - railDistance_ : WrapSceneryLocalZ(
             scenery.anchor.z -
                 railDistance_ * scenery.speedMultiplier +
                 scenery.phase + scenery.halfDepth,
-            scenery.loopLength) - scenery.halfDepth;
+            scenery.loopLength, nearLocalZ) - scenery.halfDepth;
+        if (scenery.isDefenseDistrict || scenery.isBossApron) {
+            const float startZ = scenery.isBossApron ? bossApronStartZ : defenseStartZ;
+            if (startZ == -1.0f) {
+                scenery.isVisible = false;
+                continue;
+            }
+            // 原点は区画の境界へ固定する。周期全体を保持し、近・遠クリップの外でだけ循環。
+            const float cycle = startZ + scenery.anchor.z - railDistance_ +
+                scenery.halfDepth - nearLocalZ;
+            localZ = cycle - std::floor(cycle / scenery.loopLength) * scenery.loopLength +
+                nearLocalZ - scenery.halfDepth;
+        }
         scenery.currentLocalZ = localZ;
         scenery.isVisible =
-            localZ + scenery.halfDepth >= kSceneryNearLocalZ &&
+            localZ + scenery.halfDepth >= nearLocalZ &&
             localZ - scenery.halfDepth <= scenery.drawFarLocalZ;
+        if (scenery.isDefenseDistrict) {
+            const float worldZ = railDistance_ + localZ;
+            // 広場の舗装面へ隙間なく接続し、建物の敷地同士は重ねない。
+            scenery.isVisible &= worldZ - scenery.halfDepth >= defenseStartZ - 0.01f &&
+                (bossApronStartZ == -1.0f || worldZ + scenery.halfDepth <= bossApronStartZ + 0.01f);
+        } else if (scenery.isBossApron) {
+            scenery.isVisible &= railDistance_ + localZ - scenery.halfDepth >= bossApronStartZ - 0.01f;
+        }
+        if (bossApronStartZ != -1.0f && (scenery.isRoad || scenery.isTrackside ||
+            scenery.isRoadDetail)) {
+            // 舗装は専用面で繋がっている。18m道路片の端まで判定し、最後の歩道が広場へ突き出さない。
+            const float halfDepth = scenery.isRoad ? 9.0f : scenery.halfDepth;
+            scenery.isVisible &= railDistance_ + localZ + halfDepth < bossApronStartZ;
+        }
         if (scenery.isVisible) {
             ++visibleSceneryCount_;
         }
@@ -2775,6 +3013,36 @@ void GameRuntime::UpdateRailScenery()
                 position.x += side * setback * (scenery.isBackRow ? 8.0f : 13.0f);
                 // 建物ごとの元の高さの差は残す。ボス広場は低い街並みと空でシルエットを抜く。
                 scale.y *= scenery.isBackRow ? value(0.95f, 1.65f, 0.90f) : value(0.80f, 1.65f, 0.72f);
+                // 序盤だけを運航区画として構成する。ワールド位置に固定し、表示中には動かさない。
+                const float openingT = std::clamp((position.z - 390.0f) / 90.0f, 0.0f, 1.0f);
+                const float opening = 1.0f - openingT * openingT * (3.0f - 2.0f * openingT);
+                const float defenseEndT = bossApronStartZ == -1.0f ? 0.0f :
+                    std::clamp((position.z - bossApronStartZ) / 128.0f, 0.0f, 1.0f);
+                const float defense = district.x * (1.0f - defenseEndT * defenseEndT * (3.0f - 2.0f * defenseEndT));
+                const float bossApronT = bossApronStartZ == -1.0f ? 0.0f :
+                    std::clamp((position.z - bossApronStartZ + 96.0f) / 96.0f, 0.0f, 1.0f);
+                const float bossApron = bossApronT * bossApronT * (3.0f - 2.0f * bossApronT);
+                const float campus = (std::max)(opening, (std::max)(defense, bossApron));
+                const float cluster = 0.5f + 0.5f * std::sin(position.z * 0.045f + side * 1.1f);
+                const float hubT = std::clamp(1.0f - facilityDistance / 116.0f, 0.0f, 1.0f);
+                const float hubSetback = hubT * hubT * (3.0f - 2.0f * hubT);
+                const float apronT = std::clamp(1.0f - std::abs(position.z - 351.0f) / 74.0f, 0.0f, 1.0f);
+                const float openingX = scenery.isBackRow ?
+                    128.0f + cluster * 18.0f + hubSetback * 12.0f + apronT * 18.0f :
+                    94.0f + cluster * 16.0f + hubSetback * 13.0f + apronT * 22.0f;
+                const float defenseX = scenery.isBackRow ? 138.0f + cluster * 18.0f : 106.0f + cluster * 12.0f;
+                const float bossApronX = scenery.isBackRow ? 151.0f + cluster * 18.0f : 123.0f + cluster * 12.0f;
+                const float campusX = Lerp(defenseX, bossApronX, bossApron);
+                position.x = Lerp(position.x, side * Lerp(campusX, openingX, opening), campus);
+                // 元の階高・窓の縦横比を戻し、管制塔の輪郭を一般の街並みより上へ抜く。
+                const float openingScale = scenery.scale.x * (scenery.isBackRow ? 1.02f : 1.0f);
+                scale.y = Lerp(scale.y, openingScale * Lerp(1.0f, 0.72f, bossApron), campus);
+                scale.z = Lerp(scale.z, scenery.scale.x, campus);
+                const Math::Vector4 districtColor = scenery.isBackRow ?
+                    Math::Vector4{ 0.79f, 0.83f, 0.88f, 1.0f } : Math::Vector4{ 0.91f, 0.93f, 0.94f, 1.0f };
+                scenery.object->SetColor({ Lerp(scenery.color.x, districtColor.x, campus),
+                    Lerp(scenery.color.y, districtColor.y, campus),
+                    Lerp(scenery.color.z, districtColor.z, campus), 1.0f });
             } else if (scenery.isRoad) {
                 // 回転後の道幅はローカルZ。長さXを変えると連結部に隙間ができる。
                 scale.z *= value(14.8f, 12.0f, 24.0f) / 14.0f;
@@ -2784,6 +3052,8 @@ void GameRuntime::UpdateRailScenery()
         scenery.object->SetRotate(rotate);
         scenery.object->SetScale(scale);
         scenery.object->Update();
+        scenery.isInView = !camera_ || BoundsIntersectCamera(scenery.boundsMin, scenery.boundsMax,
+            Math::Multiply(scenery.object->GetWorldMatrix(), camera_->GetViewProjectionMatrix()));
     }
 }
 
@@ -2803,7 +3073,7 @@ void GameRuntime::DrawRailScenery(ModelDrawPass drawPass)
     if (transparent) {
         transparentSceneryDrawOrder_.clear();
         for (const RailSceneryObject& scenery : railSceneryObjects_) {
-            if (scenery.object && scenery.isVisible && scenery.object->HasTransparentMaterials()) {
+            if (scenery.object && scenery.isVisible && scenery.isInView && scenery.object->HasTransparentMaterials()) {
                 transparentSceneryDrawOrder_.push_back(&scenery);
             }
         }
@@ -2819,7 +3089,7 @@ void GameRuntime::DrawRailScenery(ModelDrawPass drawPass)
         }
     } else {
         for (const RailSceneryObject& scenery : railSceneryObjects_) {
-            if (scenery.object && scenery.isVisible) {
+            if (scenery.object && scenery.isVisible && scenery.isInView) {
                 scenery.object->Draw(drawPass);
             }
         }
@@ -2857,7 +3127,8 @@ void GameRuntime::RenderShadowMap()
     // 画面外の建物も道路へ影を落とすため、色描画のisVisibleとは別に範囲を判定する。
     // 路面・窓ガラスは投影しない。描画数は初期化済みの街モデル数で上限が決まる。
     for (const RailSceneryObject& scenery : railSceneryObjects_) {
-        if (scenery.object && (scenery.isBuilding || scenery.isLandmark || scenery.isTrackside) &&
+        if ((scenery.isDefenseDistrict || scenery.isBossApron || scenery.isTrackside) && !scenery.isVisible) { continue; }
+        if (scenery.object && scenery.castsShadow &&
             scenery.currentLocalZ + scenery.halfDepth >= -45.0f &&
             scenery.currentLocalZ - scenery.halfDepth <= 240.0f) {
             scenery.object->DrawShadow(lightViewProjection);
@@ -3223,6 +3494,7 @@ void GameRuntime::Draw()
     // 不透明な背景・機体を描き終えてから、窓ガラスだけを合成する。
     DrawRailScenery(ModelDrawPass::Transparent);
     DrawBulletEffectObjects();
+    DrawRiftObjects();
     DrawHitEffectObjects();
     DrawPhantomRaidObjects();
     if (gpuPlayerExhaustEnabled_ && camera_) {
@@ -3271,7 +3543,7 @@ std::unique_ptr<Bullet> GameRuntime::CreatePooledPlayerBullet()
         effectBulletGlowModel_ ? effectBulletGlowModel_ : effectPlayerBulletCoreModel_,
         { 0.66f, 1.0f, 1.0f, 0.88f },
         { 0.72f, 1.75f, 1.0f },
-        nullptr,
+        effectPlayerBulletTrailModel_,
         { 0.54f, 0.96f, 1.0f, 0.64f },
         { 0.42f, 3.50f, 1.0f },
         1.78f,
@@ -3300,7 +3572,7 @@ std::unique_ptr<Bullet> GameRuntime::CreatePooledEnemyBullet()
         effectEnemyBulletCoreModel_ ? effectEnemyBulletCoreModel_ : effectBulletGlowModel_,
         { 1.0f, 0.12f, 0.50f, 0.80f },
         { 0.86f, 0.86f, 1.0f },
-        nullptr,
+        effectEnemyBulletTailModel_,
         { 1.0f, 0.10f, 0.44f, 0.44f },
         { 0.28f, 2.55f, 1.0f },
         1.50f,
@@ -3398,8 +3670,8 @@ void GameRuntime::FirePlayerBullet()
         }
     }
     Math::Vector3 velocity = aimDirection * playerBulletSpeed_;
-    Math::Vector4 color{ 0.24f, 0.72f, 1.0f, 0.92f };
-    Math::Vector3 scale{ 0.44f, 0.44f, 1.04f };
+    Math::Vector4 color{ 1.10f, 1.24f, 1.40f, 1.0f };
+    Math::Vector3 scale{ 0.34f, 0.34f, 4.0f };
     float collisionRadius = 0.42f;
     int lifeTimer = 180;
     int hitLimit = 1;
@@ -3427,16 +3699,16 @@ void GameRuntime::FirePlayerBullet()
 
     if (isCharged) {
         velocity = aimDirection * lockBulletSpeed_ * chargedBulletSpeedMultiplier_;
-        color = { 0.40f, 0.84f, 1.0f, 0.98f };
-        scale = { 0.74f, 0.74f, 1.70f };
+        color = { 1.38f, 1.48f, 1.62f, 1.0f };
+        scale = { 0.72f, 0.72f, 7.5f };
         collisionRadius = 1.00f;
         lifeTimer = 260;
         hitLimit = 1;
     }
     if (isFeverShot) {
         velocity = aimDirection * lockBulletSpeed_ * chargedBulletSpeedMultiplier_ * 1.18f;
-        color = { feverRed, feverGreen, feverBlue, 1.0f };
-        scale = { 0.82f, 0.82f, 1.86f };
+        color = { 1.18f + feverRed * 0.26f, 1.18f + feverGreen * 0.26f, 1.18f + feverBlue * 0.26f, 1.0f };
+        scale = { 0.56f, 0.56f, 6.2f };
         collisionRadius = 1.04f;
         lifeTimer = 280;
         hitLimit = 3;
@@ -3451,7 +3723,7 @@ void GameRuntime::FirePlayerBullet()
         return;
     }
     Model* coreModel =
-        effectPlayerBulletCoreModel_ ? effectPlayerBulletCoreModel_ : effectBulletGlowModel_;
+        isCharged && effectSparkStarModel_ ? effectSparkStarModel_ : effectGlowCoreModel_;
     bullet->Initialize(
         object3dCommon_.get(),
         bulletModel_,
@@ -3470,22 +3742,22 @@ void GameRuntime::FirePlayerBullet()
                 0.62f + feverBlue * 0.38f,
                 1.0f } :
         isCharged ?
-            Math::Vector4{ 0.48f, 0.92f, 1.0f, 1.0f } :
-            Math::Vector4{ 0.16f, 0.70f, 1.0f, 0.94f },
+            Math::Vector4{ 0.66f, 0.72f, 1.40f, 0.92f } :
+            Math::Vector4{ 0.28f, 0.62f, 1.20f, 0.76f },
         isFeverShot ?
-            Math::Vector3{ 1.82f, 3.90f, 1.0f } :
+            Math::Vector3{ 0.85f, 0.85f, 1.0f } :
         isCharged ?
-            Math::Vector3{ 1.55f, 3.35f, 1.0f } :
-            Math::Vector3{ 0.88f, 2.05f, 1.0f },
+            Math::Vector3{ 1.0f, 1.0f, 1.0f } :
+            Math::Vector3{ 0.46f, 0.46f, 1.0f },
+        effectPlayerBulletTrailModel_,
+        isCharged ?
+            Math::Vector4{ 0.64f, 0.74f, 1.40f, 0.94f } :
+            Math::Vector4{ 0.22f, 0.60f, 1.25f, 0.82f },
+        isCharged ?
+            Math::Vector3{ 0.48f, 9.0f, 1.0f } :
+            Math::Vector3{ 0.28f, 5.5f, 1.0f },
+        isFeverShot ? 8.0f : isCharged ? 9.0f : 5.5f,
         nullptr,
-        isCharged ?
-            Math::Vector4{ 0.28f, 0.78f, 1.0f, 0.88f } :
-            Math::Vector4{ 0.10f, 0.46f, 1.0f, 0.66f },
-        isCharged ?
-            Math::Vector3{ 0.92f, 7.80f, 1.0f } :
-            Math::Vector3{ 0.42f, 3.50f, 1.0f },
-        isCharged ? 4.50f : 1.78f,
-        isFeverShot || isCharged ? effectSparkStarModel_ : nullptr,
         isFeverShot ?
             Math::Vector4{ feverRed, feverGreen, feverBlue, 0.92f } :
         isCharged ?
@@ -3536,12 +3808,12 @@ void GameRuntime::FireEnemyBullet(
     Math::Vector3 spawnPosition = position;
     spawnPosition.z -= 1.0f;
 
-    Math::Vector4 bodyColor{ 1.0f, 0.76f, 0.90f, 1.0f };
+    Math::Vector4 bodyColor{ 1.32f, 1.02f, 0.90f, 1.0f };
     Math::Vector3 bodyScale{ 0.34f, 0.34f, 0.68f };
-    Math::Vector4 glowColor{ 1.0f, 0.12f, 0.50f, 0.80f };
-    Math::Vector3 glowScale{ 0.86f, 0.86f, 1.0f };
-    Math::Vector4 trailColor{ 1.0f, 0.10f, 0.44f, 0.44f };
-    Math::Vector3 trailScale{ 0.28f, 2.55f, 1.0f };
+    Math::Vector4 glowColor{ 1.10f, 0.06f, 0.10f, 0.90f };
+    Math::Vector3 glowScale{ 0.96f, 0.96f, 1.0f };
+    Math::Vector4 trailColor{ 1.0f, 0.06f, 0.10f, 0.48f };
+    Math::Vector3 trailScale{ 0.16f, 2.55f, 1.0f };
     float trailOffset = 1.50f;
     float speedScale = IsTutorial() ? 1.0f : 1.25f;
     float collisionRadius = 0.48f;
@@ -3550,11 +3822,11 @@ void GameRuntime::FireEnemyBullet(
 
     switch (style) {
     case EnemyBulletStyle::Crossfire:
-        bodyColor = { 0.82f, 0.54f, 1.0f, 1.0f };
+        bodyColor = { 1.32f, 0.98f, 1.06f, 1.0f };
         bodyScale = { 0.24f, 0.24f, 1.15f };
-        glowColor = { 0.72f, 0.18f, 1.0f, 0.92f };
+        glowColor = { 1.06f, 0.06f, 0.20f, 0.92f };
         glowScale = { 0.72f, 1.05f, 1.0f };
-        trailColor = { 0.54f, 0.12f, 1.0f, 0.62f };
+        trailColor = { 1.0f, 0.06f, 0.18f, 0.56f };
         trailScale = { 0.20f, 3.30f, 1.0f };
         trailOffset = 1.90f;
         speedScale = IsTutorial() ? 1.12f : 1.40f;
@@ -3575,11 +3847,11 @@ void GameRuntime::FireEnemyBullet(
         damage = 14;
         break;
     case EnemyBulletStyle::ShieldOrb:
-        bodyColor = { 0.48f, 1.20f, 1.45f, 1.0f };
+        bodyColor = { 1.36f, 1.16f, 0.84f, 1.0f };
         bodyScale = { 0.62f, 0.62f, 0.62f };
-        glowColor = { 0.10f, 0.92f, 1.0f, 0.94f };
+        glowColor = { 1.12f, 0.36f, 0.08f, 0.94f };
         glowScale = { 1.42f, 1.42f, 1.0f };
-        trailColor = { 0.08f, 0.76f, 1.0f, 0.48f };
+        trailColor = { 1.0f, 0.30f, 0.06f, 0.48f };
         trailScale = { 0.34f, 1.42f, 1.0f };
         trailOffset = 0.78f;
         speedScale = IsTutorial() ? 0.78f : 0.95f;
@@ -3654,7 +3926,7 @@ void GameRuntime::FireEnemyBullet(
         effectEnemyBulletCoreModel_ ? effectEnemyBulletCoreModel_ : effectBulletGlowModel_,
         glowColor,
         glowScale,
-        nullptr,
+        effectEnemyBulletTailModel_,
         trailColor,
         trailScale,
         trailOffset,
@@ -3759,6 +4031,8 @@ void GameRuntime::SpawnStageEnemy(
         maxHpOverride,
         scaleMultiplier,
         textureOverride);
+    enemy->SetRiftCarrier(!IsTutorial() && behavior == Enemy::Behavior::Formation &&
+        (entryStyle != Enemy::EntryStyle::TightFormation || std::abs(x) < 1.0f));
     enemies_.push_back(std::move(enemy));
     ++spawnSequenceIndex_;
     ++spawnedEnemyCountInWave_;
@@ -4089,6 +4363,33 @@ bool GameRuntime::TryProjectToScreen(
     return true;
 }
 
+void GameRuntime::AddCombatBurstVisuals(HitEffect& effect, bool fever)
+{
+    const auto position = effect.worldPosition;
+    const float seed = static_cast<float>(defeatChainCount_ % 7) * 0.17f;
+    // 暗い一拍を白い刃で断つ。明るい空の上でも爆心と方向が読める。
+    AddHitEffectVisual(effect, effectCombatDiscModel_, position,
+        { 0.018f, 0.012f, 0.045f, 0.86f }, 2.1f, -0.62f, 0, 0, 1.0f, 0.85f, {}, false, 0.09f);
+    for (int side = 0; side < 2; ++side) {
+        AddHitEffectVisual(effect, effectCombatBladeModel_, position,
+            { 1.70f, 1.55f, 1.90f, 0.96f }, fever ? 1.3f : 1.0f, -0.60f,
+            0.06f, 0, 0.19f, fever ? 7.8f : 6.8f, {}, true, 0.23f,
+            1.22f + seed + static_cast<float>(side) * kContactShadowHalfPi * 2.0f);
+    }
+    AddHitEffectVisual(effect, effectCombatArcModel_, position,
+        fever ? Math::Vector4{ 1.10f, 0.56f, 1.50f, 0.82f } : Math::Vector4{ 0.94f, 1.05f, 1.35f, 0.72f },
+        0.95f, 2.8f, -0.35f, 0.02f, 1.7f, 0.70f, {}, true, 0.32f, 0.32f + seed * 0.25f);
+    const int rayCount = (std::min)(4, 2 + defeatChainCount_ / kDefeatChainScoreTierSize);
+    for (int index = 0; index < rayCount; ++index) {
+        const float angle = kTwoPi * static_cast<float>(index) / static_cast<float>(rayCount) + seed + 0.62f;
+        const float speed = 0.34f + 0.045f * static_cast<float>(index % 2);
+        AddHitEffectVisual(effect, effectCombatBladeModel_, position,
+            fever ? Math::Vector4{ 1.35f, 0.72f, 1.75f, 0.92f } : Math::Vector4{ 1.45f, 1.15f, 0.60f, 0.94f },
+            0.85f, -0.66f, 0.08f, 0.02f, 0.15f, 3.1f,
+            { std::cos(angle) * speed, std::sin(angle) * speed, -0.01f }, true, 0.68f, 0, 0.035f);
+    }
+}
+
 void GameRuntime::AddEnemyHitEffect(
     const Math::Vector3& worldPosition,
     float strength)
@@ -4096,53 +4397,54 @@ void GameRuntime::AddEnemyHitEffect(
     HitEffect effect{};
     effect.worldPosition = worldPosition;
     const bool isHeavyExplosion = strength >= 1.7f;
-    effect.duration = isHeavyExplosion ? 78 : 58;
-    effect.strength = strength * (isHeavyExplosion ? 1.36f : 1.16f);
+    effect.duration = isHeavyExplosion ? 58 : 40;
+    const float chainPower = 1.35f + 0.10f * static_cast<float>((std::min)(defeatChainCount_ / 4, 3));
+    effect.strength = strength * (isHeavyExplosion ? 1.25f : chainPower);
     effect.scoreValue = 100;
     effect.type = HitEffectType::EnemyDestroy;
 
     Model* fireballModel = effectExplosionFireballModel_ ? effectExplosionFireballModel_ : effectImpactBurstModel_;
     Model* smokeModel = effectExplosionSmokeModel_ ? effectExplosionSmokeModel_ : effectGlowCoreModel_;
     Model* sparksModel = effectExplosionSparksModel_ ? effectExplosionSparksModel_ : effectSparkStarModel_;
-    Model* debrisModel = effectMagicShardModel_ ? effectMagicShardModel_ : effectSparkStarModel_;
+    Model* debrisModel = effectCombatBladeModel_;
 
     AddHitEffectVisual(effect, smokeModel, worldPosition,
-        { 0.42f, 0.39f, 0.34f, 0.72f }, 1.18f, 2.15f, 0.18f, 0.06f, 1.12f, 0.92f,
+        { 0.32f, 0.31f, 0.29f, 0.46f }, 0.92f, 1.50f, 0.18f, 0.10f, 1.12f, 0.92f,
         { -0.014f, 0.038f, -0.004f }, false);
     AddHitEffectVisual(effect, smokeModel, worldPosition,
-        { 0.32f, 0.30f, 0.27f, 0.62f }, 1.04f, 2.42f, -0.14f, 0.12f, 0.86f, 1.05f,
+        { 0.24f, 0.23f, 0.22f, 0.42f }, 0.82f, 1.75f, -0.14f, 0.16f, 0.86f, 1.05f,
         { 0.038f, 0.028f, -0.006f }, false);
     AddHitEffectVisual(effect, smokeModel, worldPosition,
-        { 0.46f, 0.43f, 0.38f, 0.48f }, 0.82f, 2.70f, 0.10f, 0.20f, 1.22f, 0.78f,
+        { 0.34f, 0.32f, 0.29f, 0.32f }, 0.68f, 1.80f, 0.10f, 0.22f, 1.22f, 0.78f,
         { -0.052f, 0.012f, -0.002f }, false);
     AddHitEffectVisual(effect, smokeModel, worldPosition,
-        { 0.24f, 0.23f, 0.22f, 0.50f }, 0.70f, 2.32f, -0.22f, 0.24f, 0.90f, 0.82f,
+        { 0.20f, 0.20f, 0.19f, 0.30f }, 0.62f, 1.65f, -0.22f, 0.28f, 0.90f, 0.82f,
         { 0.060f, -0.002f, -0.002f }, false);
 
     AddHitEffectVisual(effect, fireballModel, worldPosition,
-        { 1.0f, 0.72f, 0.34f, 1.0f }, 1.24f, 0.88f, 0.34f, 0.00f, 1.08f, 0.92f, {});
+        { 1.55f, 0.86f, 0.32f, 1.0f }, 2.05f, 0.94f, 0.34f, 0.00f, 1.08f, 0.92f, {}, true, 0.70f);
     AddHitEffectVisual(effect, fireballModel, worldPosition,
-        { 1.0f, 0.36f, 0.12f, 0.82f }, 0.92f, 1.18f, -0.44f, 0.04f, 0.88f, 1.06f,
-        { 0.018f, 0.010f, 0.0f });
-    AddHitEffectVisual(effect, effectGlowRingModel_ ? effectGlowRingModel_ : effectGlowCoreModel_, worldPosition,
-        { 0.72f, 0.94f, 1.0f, 0.76f }, 0.62f, 4.10f, 0.0f, 0.0f, 1.34f, 0.68f, {});
-    AddHitEffectVisual(effect, effectGlowRingModel_ ? effectGlowRingModel_ : effectGlowCoreModel_, worldPosition,
-        { 1.0f, 0.58f, 0.18f, 0.42f }, 0.92f, 2.80f, 0.0f, 0.0f, 1.14f, 0.72f, {});
+        { 1.35f, 0.32f, 0.07f, 0.90f }, 1.55f, 1.04f, -0.44f, 0.04f, 0.88f, 1.06f,
+        { 0.018f, 0.010f, 0.0f }, true, 0.55f);
+    AddHitEffectVisual(effect, effectSparkStarModel_, worldPosition,
+        { 1.90f, 1.72f, 1.42f, 1.0f }, 1.60f, -0.55f, 0.0f, 0.0f, 1.0f, 1.0f, {}, true, 0.16f);
+    AddHitEffectVisual(effect, effectCombatShockModel_, worldPosition,
+        { 1.45f, 1.20f, 0.68f, 0.74f }, 1.15f, 4.50f, 0.0f, 0.0f, 1.38f, 0.70f, {}, true, 0.28f);
     AddHitEffectVisual(effect, sparksModel, worldPosition,
-        { 1.0f, 0.82f, 0.38f, 1.0f }, 0.74f, 0.86f, 0.32f, 0.00f, 1.0f, 1.0f, {});
+        { 1.0f, 0.82f, 0.38f, 0.90f }, 0.74f, 0.60f, 0.32f, 0.00f, 1.0f, 1.0f, {}, true, 0.56f);
 
     AddHitEffectVisual(effect, debrisModel, worldPosition,
-        { 1.0f, 0.72f, 0.26f, 1.0f }, 0.40f, 0.76f, 2.40f, 0.00f, 0.38f, 1.44f,
-        { -0.185f, 0.108f, 0.016f });
+        { 1.50f, 1.18f, 0.60f, 1.0f }, 0.80f, -0.55f, 0.18f, 0.00f, 0.13f, 3.20f,
+        { -0.29f, 0.22f, 0.016f }, true, 0.76f, 0, 0.025f);
     AddHitEffectVisual(effect, debrisModel, worldPosition,
-        { 1.0f, 0.55f, 0.18f, 0.92f }, 0.38f, 0.72f, -2.15f, 0.02f, 0.40f, 1.28f,
-        { 0.198f, 0.076f, 0.014f });
+        { 1.45f, 0.80f, 0.28f, 0.92f }, 0.76f, -0.50f, -0.16f, 0.02f, 0.14f, 3.10f,
+        { 0.32f, 0.15f, 0.014f }, true, 0.72f, 0, 0.028f);
     AddHitEffectVisual(effect, debrisModel, worldPosition,
-        { 1.0f, 0.66f, 0.24f, 0.86f }, 0.34f, 0.68f, 1.74f, 0.04f, 0.36f, 1.18f,
-        { -0.126f, -0.148f, 0.010f });
+        { 1.35f, 1.15f, 0.65f, 0.90f }, 0.68f, -0.62f, 0.12f, 0.04f, 0.12f, 2.80f,
+        { -0.24f, -0.28f, 0.010f }, true, 0.74f, 0, 0.025f);
     AddHitEffectVisual(effect, debrisModel, worldPosition,
-        { 1.0f, 0.84f, 0.42f, 0.82f }, 0.32f, 0.64f, -1.92f, 0.05f, 0.38f, 1.08f,
-        { 0.144f, -0.132f, 0.010f });
+        { 1.50f, 1.30f, 0.80f, 0.86f }, 0.72f, -0.60f, -0.18f, 0.05f, 0.12f, 3.10f,
+        { 0.28f, -0.25f, 0.010f }, true, 0.68f, 0, 0.030f);
     AddHitEffectVisual(effect, sparksModel, worldPosition,
         { 1.0f, 0.94f, 0.58f, 0.88f }, 0.38f, 0.95f, 1.15f, 0.02f, 1.0f, 1.0f,
         { -0.104f, 0.154f, 0.006f });
@@ -4152,6 +4454,7 @@ void GameRuntime::AddEnemyHitEffect(
     AddHitEffectVisual(effect, sparksModel, worldPosition,
         { 1.0f, 0.42f, 0.14f, 0.64f }, 0.28f, 0.82f, 0.92f, 0.08f, 1.0f, 1.0f,
         { 0.026f, -0.172f, 0.004f });
+    AddCombatBurstVisuals(effect, false);
     if (effect.visualCount > 0) {
         hitEffects_.push_back(std::move(effect));
     }
@@ -4163,71 +4466,69 @@ void GameRuntime::AddFeverEnemyHitEffect(
 {
     HitEffect effect{};
     effect.worldPosition = worldPosition;
-    effect.duration = 52;
-    effect.strength = strength * 1.20f;
+    effect.duration = 46;
+    effect.strength = strength * (1.50f + 0.10f * static_cast<float>((std::min)(defeatChainCount_ / 4, 3)));
     effect.scoreValue = 100;
     effect.type = HitEffectType::EnemyDestroy;
 
     Model* ringModel =
-        effectGlowRingModel_ ? effectGlowRingModel_ : effectGlowCoreModel_;
+        effectCombatShockModel_ ? effectCombatShockModel_ : effectGlowRingModel_;
     Model* coreModel =
         effectImpactBurstModel_ ? effectImpactBurstModel_ : effectGlowCoreModel_;
     Model* shardModel =
-        effectMagicShardModel_ ? effectMagicShardModel_ : effectSparkStarModel_;
+        effectCombatBladeModel_;
     Model* starModel =
         effectSparkStarModel_ ? effectSparkStarModel_ : effectGlowCoreModel_;
-    const std::array<Math::Vector4, 6> rainbowColors = {
-        Math::Vector4{ 1.00f, 0.26f, 0.42f, 0.94f },
-        Math::Vector4{ 1.00f, 0.70f, 0.20f, 0.94f },
-        Math::Vector4{ 0.72f, 1.00f, 0.30f, 0.94f },
-        Math::Vector4{ 0.22f, 1.00f, 0.82f, 0.94f },
-        Math::Vector4{ 0.28f, 0.72f, 1.00f, 0.94f },
-        Math::Vector4{ 0.84f, 0.34f, 1.00f, 0.94f }
+    const std::array<Math::Vector4, 4> rainbowColors = {
+        Math::Vector4{ 1.35f, 0.56f, 1.55f, 0.96f },
+        Math::Vector4{ 1.55f, 1.20f, 0.55f, 0.96f },
+        Math::Vector4{ 0.72f, 1.20f, 1.65f, 0.96f },
+        Math::Vector4{ 1.60f, 1.52f, 1.80f, 0.96f }
     };
 
     AddHitEffectVisual(
         effect,
         ringModel,
         worldPosition,
-        { 0.92f, 1.0f, 1.0f, 0.94f },
+        { 1.45f, 1.35f, 1.75f, 0.94f },
         0.72f,
         4.50f,
         0.0f,
         0.0f,
         1.26f,
         0.72f,
-        {});
+        {}, true, 0.30f);
     AddHitEffectVisual(
         effect,
         ringModel,
         worldPosition,
-        { 1.0f, 0.34f, 0.82f, 0.72f },
+        { 1.20f, 0.34f, 1.45f, 0.78f },
         0.50f,
         3.45f,
         1.25f,
         0.02f,
         0.82f,
         1.22f,
-        {});
+        {}, true, 0.42f);
     AddHitEffectVisual(
         effect,
         coreModel,
         worldPosition,
-        { 1.0f, 1.0f, 0.96f, 1.0f },
-        0.92f,
-        0.56f,
+        { 1.80f, 1.65f, 1.90f, 1.0f },
+        1.60f,
+        -0.45f,
         -0.72f,
         0.0f,
         1.12f,
         0.90f,
-        {});
+        {}, true, 0.24f);
 
     constexpr int kShardCount = 8;
     for (int index = 0; index < kShardCount; ++index) {
         const float angle =
             kTwoPi * static_cast<float>(index) /
             static_cast<float>(kShardCount) + 0.18f;
-        const float speed = 0.13f + 0.025f * static_cast<float>(index % 3);
+        const float speed = 0.25f + 0.03f * static_cast<float>(index % 3);
         const Math::Vector3 velocity{
             std::cos(angle) * speed,
             std::sin(angle) * speed,
@@ -4238,13 +4539,13 @@ void GameRuntime::AddFeverEnemyHitEffect(
             shardModel,
             worldPosition,
             rainbowColors[static_cast<size_t>(index) % rainbowColors.size()],
-            0.34f + 0.04f * static_cast<float>(index % 2),
-            0.30f,
-            (index % 2 == 0 ? 2.8f : -2.8f),
+            0.68f + 0.10f * static_cast<float>(index % 2),
+            -0.55f,
+            (index % 2 == 0 ? 0.25f : -0.25f),
             0.01f * static_cast<float>(index % 3),
-            0.34f,
-            1.65f,
-            velocity);
+            0.12f,
+            2.8f,
+            velocity, true, 0.72f, 0, 0.032f);
     }
     AddHitEffectVisual(
         effect,
@@ -4271,6 +4572,7 @@ void GameRuntime::AddFeverEnemyHitEffect(
         1.0f,
         { 0.066f, -0.076f, 0.0f });
 
+    AddCombatBurstVisuals(effect, true);
     if (effect.visualCount > 0) {
         hitEffects_.push_back(std::move(effect));
     }
@@ -4283,48 +4585,54 @@ void GameRuntime::AddEnemyImpactEffect(
     HitEffect effect{};
     effect.worldPosition = worldPosition;
     const bool isHeavyImpact = strength >= 1.35f;
-    effect.duration = isHeavyImpact ? 24 : 18;
+    effect.duration = isHeavyImpact ? 20 : 14;
     effect.strength = strength * (isHeavyImpact ? 1.08f : 0.96f);
     effect.type = HitEffectType::EnemyImpact;
 
     Model* burstModel =
         effectImpactBurstModel_ ? effectImpactBurstModel_ : effectGlowCoreModel_;
     Model* shardModel =
-        effectMagicShardModel_ ? effectMagicShardModel_ : effectSparkStarModel_;
+        effectCombatBladeModel_;
 
     AddHitEffectVisual(
         effect, burstModel, worldPosition,
         { 1.0f, 0.97f, 0.86f, 0.96f },
-        isHeavyImpact ? 0.56f : 0.42f,
-        -0.22f, 0.0f, 0.0f, 1.45f, 0.62f, {});
+        isHeavyImpact ? 1.05f : 0.72f,
+        -0.22f, 0.0f, 0.0f, 1.45f, 0.62f, {}, true, 0.36f);
     AddHitEffectVisual(
         effect, burstModel, worldPosition,
-        { 0.36f, 0.86f, 1.0f, 0.66f },
-        isHeavyImpact ? 0.48f : 0.36f,
+        { 1.05f, 0.88f, 0.62f, 0.62f },
+        isHeavyImpact ? 0.85f : 0.55f,
         isHeavyImpact ? 0.82f : 0.62f,
-        -2.6f, 0.0f, 1.62f, 0.34f, {});
+        -0.4f, 0.0f, 1.62f, 0.34f, {}, true, 0.55f);
 
-    constexpr int kImpactShardCount = 5;
+    for (int side = 0; side < 2; ++side) {
+        AddHitEffectVisual(effect, effectCombatBladeModel_, worldPosition,
+            { 1.55f, 1.35f, 1.62f, 0.94f }, isHeavyImpact ? 1.0f : 0.65f,
+            -0.70f, 0, 0, 0.13f, 4.2f, {}, true, 0.42f,
+            1.1f + static_cast<float>(side) * kContactShadowHalfPi * 2.0f);
+    }
+    constexpr int kImpactShardCount = 6;
     for (int index = 0; index < kImpactShardCount; ++index) {
         const float angle =
             kTwoPi * static_cast<float>(index) /
             static_cast<float>(kImpactShardCount) + 0.28f;
         const float speed =
-            (isHeavyImpact ? 0.15f : 0.11f) + 0.012f * static_cast<float>(index % 2);
+            (isHeavyImpact ? 0.26f : 0.20f) + 0.018f * static_cast<float>(index % 2);
         AddHitEffectVisual(
             effect,
             shardModel,
             worldPosition,
             index % 2 == 0 ?
-                Math::Vector4{ 1.0f, 0.74f, 0.28f, 0.92f } :
-                Math::Vector4{ 0.62f, 0.94f, 1.0f, 0.84f },
-            isHeavyImpact ? 0.25f : 0.19f,
-            0.20f,
-            index % 2 == 0 ? 2.4f : -2.4f,
+                Math::Vector4{ 1.55f, 1.20f, 0.60f, 0.96f } :
+                Math::Vector4{ 1.20f, 1.30f, 1.60f, 0.90f },
+            isHeavyImpact ? 0.45f : 0.30f,
+            -0.55f,
+            index % 2 == 0 ? 0.18f : -0.18f,
             0.0f,
-            0.28f,
-            1.72f,
-            { std::cos(angle) * speed, std::sin(angle) * speed, 0.004f });
+            0.12f,
+            2.4f,
+            { std::cos(angle) * speed, std::sin(angle) * speed, 0.004f }, true, 0.88f, 0, 0.04f);
     }
 
     if (effect.visualCount > 0) {
@@ -4343,40 +4651,40 @@ void GameRuntime::AddFeverEnemyImpactEffect(
     effect.type = HitEffectType::EnemyImpact;
 
     Model* ringModel =
-        effectGlowRingModel_ ? effectGlowRingModel_ : effectGlowCoreModel_;
+        effectCombatShockModel_ ? effectCombatShockModel_ : effectGlowRingModel_;
     Model* starModel =
         effectSparkStarModel_ ? effectSparkStarModel_ : effectGlowCoreModel_;
     Model* shardModel =
-        effectMagicShardModel_ ? effectMagicShardModel_ : starModel;
+        effectCombatBladeModel_;
     AddHitEffectVisual(
         effect,
         ringModel,
         worldPosition,
-        { 0.46f, 1.0f, 0.90f, 0.86f },
-        0.38f,
+        { 1.25f, 0.62f, 1.60f, 0.90f },
+        0.65f,
         2.75f,
         0.0f,
         0.0f,
         1.20f,
         0.72f,
-        {});
+        {}, true, 0.62f);
     AddHitEffectVisual(
         effect,
         effectGlowCoreModel_,
         worldPosition,
-        { 1.0f, 0.96f, 0.72f, 0.92f },
-        0.44f,
+        { 1.70f, 1.55f, 1.80f, 0.96f },
+        0.78f,
         0.34f,
         0.0f,
         0.0f,
         1.0f,
         1.0f,
-        {});
+        {}, true, 0.40f);
     AddHitEffectVisual(
         effect,
         starModel,
         worldPosition,
-        { 1.0f, 0.32f, 0.76f, 0.88f },
+        { 1.40f, 0.56f, 1.70f, 0.92f },
         0.29f,
         0.58f,
         1.5f,
@@ -4408,6 +4716,13 @@ void GameRuntime::AddFeverEnemyImpactEffect(
         0.38f,
         1.45f,
         { -0.068f, -0.040f, 0.0f });
+    for (int index = 0; index < 5; ++index) {
+        const float angle = kTwoPi * static_cast<float>(index) / 5.0f + 0.32f;
+        AddHitEffectVisual(effect, shardModel, worldPosition,
+            { 1.45f, 1.15f, 1.70f, 0.94f }, 0.48f, -0.60f, 0.12f, 0,
+            0.12f, 2.8f, { std::cos(angle) * 0.27f, std::sin(angle) * 0.27f, 0 },
+            true, 0.84f, 0, 0.035f);
+    }
     if (effect.visualCount > 0) {
         hitEffects_.push_back(std::move(effect));
     }
@@ -4417,14 +4732,14 @@ void GameRuntime::AddEnemyMuzzleFlashEffect(const Math::Vector3& worldPosition)
 {
     HitEffect effect{};
     effect.worldPosition = worldPosition;
-    effect.duration = 14;
+    effect.duration = 8;
     effect.strength = 0.76f;
     effect.type = HitEffectType::EnemyImpact;
 
     AddHitEffectVisual(effect, effectGlowCoreModel_, worldPosition,
-        { 1.0f, 0.06f, 0.40f, 0.62f }, 0.42f, 0.18f, 0.0f, 0.0f, 1.20f, 0.86f, {});
+        { 1.12f, 0.10f, 0.08f, 0.70f }, 0.42f, 0.18f, 0.0f, 0.0f, 1.20f, 0.86f, {});
     AddHitEffectVisual(effect, effectSparkStarModel_, worldPosition,
-        { 1.0f, 0.22f, 0.68f, 0.54f }, 0.24f, 0.42f, 1.35f, 0.02f, 0.76f, 1.24f, { 0.0f, 0.0f, -0.018f });
+        { 1.25f, 0.84f, 0.68f, 0.68f }, 0.24f, 0.42f, 0.0f, 0.02f, 0.76f, 1.24f, { 0.0f, 0.0f, -0.018f });
     hitEffects_.push_back(std::move(effect));
 }
 
@@ -4434,15 +4749,15 @@ void GameRuntime::AddMuzzleFlashEffect(
 {
     HitEffect effect{};
     effect.worldPosition = worldPosition;
-    effect.duration = isCharged ? 18 : 12;
-    effect.strength = isCharged ? 1.15f : 0.78f;
+    effect.duration = isCharged ? 10 : 6;
+    effect.strength = isCharged ? 1.30f : 0.90f;
     effect.type = HitEffectType::EnemyImpact;
 
     AddHitEffectVisual(effect, effectImpactBurstModel_ ? effectImpactBurstModel_ : effectGlowCoreModel_, worldPosition,
         isCharged ?
-            Math::Vector4{ 0.36f, 0.86f, 1.0f, 0.76f } :
-            Math::Vector4{ 0.18f, 0.64f, 1.0f, 0.58f },
-        isCharged ? 0.46f : 0.28f,
+            Math::Vector4{ 1.45f, 1.55f, 1.65f, 0.84f } :
+            Math::Vector4{ 1.08f, 1.20f, 1.36f, 0.74f },
+        isCharged ? 0.68f : 0.40f,
         isCharged ? 0.22f : 0.14f,
         0.0f,
         0.0f,
@@ -4461,6 +4776,12 @@ void GameRuntime::AddMuzzleFlashEffect(
         0.58f,
         {});
 
+    for (int side = 0; side < 2; ++side) {
+        AddHitEffectVisual(effect, effectCombatBladeModel_, worldPosition,
+            { 1.40f, 1.50f, 1.80f, 0.90f }, 0.65f, -0.76f,
+            0, 0, 0.11f, isCharged ? 4.5f : 2.8f, {}, true, 0.55f,
+            kContactShadowHalfPi + static_cast<float>(side) * kContactShadowHalfPi * 2.0f);
+    }
     hitEffects_.push_back(std::move(effect));
 }
 
@@ -4625,10 +4946,10 @@ void GameRuntime::TriggerPlayerImpactMoment(
 
     AddCameraShake(
         isBossHit ? (isDestroyed ? 0.32f : 0.12f) :
-            (isDestroyed ? (isCharged ? 0.070f : 0.045f) :
+            (isDestroyed ? (isCharged ? 0.145f : 0.095f) :
                 (isCharged ? 0.052f : 0.018f)),
         isBossHit ? (isDestroyed ? 42 : 14) :
-            (isDestroyed ? (isCharged ? 9 : 6) :
+            (isDestroyed ? (isCharged ? 12 : 8) :
                 (isCharged ? 7 : 3)));
 }
 
@@ -4693,7 +5014,10 @@ void GameRuntime::AddHitEffectVisual(
     float aspectX,
     float aspectY,
     const Math::Vector3& velocity,
-    bool additive)
+    bool additive,
+    float lifeEnd,
+    float roll,
+    float drag)
 {
     if (!object3dCommon_ || !model) {
         return;
@@ -4725,6 +5049,9 @@ void GameRuntime::AddHitEffectVisual(
     visual.growth = growth;
     visual.spin = spin;
     visual.popDelay = popDelay;
+    visual.lifeEnd = std::clamp(lifeEnd, popDelay + 0.001f, 1.0f);
+    visual.roll = roll;
+    visual.drag = (std::max)(drag, 0.0f);
     visual.aspectX = aspectX;
     visual.aspectY = aspectY;
     visual.velocity = velocity;
@@ -4742,6 +5069,13 @@ void GameRuntime::UpdateHitEffects()
 
     for (auto iterator = hitEffects_.begin(); iterator != hitEffects_.end();) {
         iterator->age += effectFrameStep;
+        // 短い閃光の枠は煙の終了を待たず返す。連続撃破時の枠不足を防ぐ。
+        for (size_t index = 0; index < iterator->visualCount; ++index) {
+            auto& visual = iterator->visuals[index];
+            if (visual.object && iterator->age >= visual.lifeEnd * static_cast<float>(iterator->duration)) {
+                hitEffectObjectPool_.push_back(std::move(visual.object));
+            }
+        }
         if (iterator->age >= static_cast<float>(iterator->duration)) {
             RecycleHitEffectVisuals(*iterator);
             iterator = hitEffects_.erase(iterator);
@@ -5474,6 +5808,178 @@ void GameRuntime::DrawPlayerDodgeAfterimages()
     object3dCommon_->CommonDrawSetting();
 }
 
+void GameRuntime::InitializeRifts()
+{
+    ResetRifts();
+    Model* rimModel = ModelManager::GetInstance()->FindModel("rift_rim");
+    if (IsTutorial() || !object3dCommon_ || !rimModel || !effectGlowRingModel_) { return; }
+    for (auto& rift : rifts_) {
+        rift.rim = std::make_unique<Object3d>();
+        rift.glow = std::make_unique<Object3d>();
+        rift.rim->Initialize(object3dCommon_.get());
+        rift.glow->Initialize(object3dCommon_.get());
+        rift.rim->SetModel(rimModel);
+        rift.glow->SetModel(effectGlowRingModel_);
+        for (Object3d* object : { rift.rim.get(), rift.glow.get() }) {
+            object->SetLightingMode(0);
+            object->SetEnvironmentCoefficient(0.0f);
+            object->SetShadowReceiveStrength(0.0f);
+        }
+    }
+}
+
+void GameRuntime::ResetRifts()
+{
+    for (auto& rift : rifts_) { rift.active = false; rift.age = 0.0f; }
+    riftSpawnCount_ = 0;
+    riftPassCount_ = 0;
+    riftNoticeTimer_ = 0;
+    riftRecoveredFrames_ = 0;
+}
+
+void GameRuntime::SpawnRift(const Math::Vector3& position)
+{
+    if (IsTutorial() || isGameOver_ || isGameClear_ || !player_ ||
+        position.z <= player_->GetTranslate().z + 1.0f) { return; }
+    for (auto& rift : rifts_) {
+        if (rift.active || !rift.rim || !rift.glow) { continue; }
+        // 奥行きも撃破位置のまま残す。前方の敵へ早く当てるほど操縦の猶予が増える。
+        rift.position = position;
+        rift.age = 0.0f;
+        rift.lifetime = std::clamp(
+            (position.z - railDistance_) / (std::max)(railSpeed_, 0.15f) + 120.0f, 120.0f, 480.0f);
+        rift.active = true;
+        ++riftSpawnCount_;
+        return;
+    }
+}
+
+void GameRuntime::UpdateRifts(const Math::Vector3& previous, const Math::Vector3& current)
+{
+    if (isPaused_ || IsTutorial()) { return; }
+    if (isGameOver_ || isGameClear_ || !player_ || player_->IsDead()) {
+        for (auto& rift : rifts_) { rift.active = false; }
+        riftNoticeTimer_ = 0;
+        return;
+    }
+    if (riftNoticeTimer_ > 0) { --riftNoticeTimer_; }
+    const float advance = current.z - previous.z;
+    for (auto& rift : rifts_) {
+        if (!rift.active) { continue; }
+        rift.age += GetCinematicWorldTimeScale();
+        // 高速飛行・横回避でも、通過した瞬間のXYを補間して判定する。
+        if (advance > 0.0001f && previous.z < rift.position.z && current.z >= rift.position.z) {
+            const float rate = (rift.position.z - previous.z) / advance;
+            const float x = (Lerp(previous.x, current.x, rate) - rift.position.x) / kRiftRadiusX;
+            const float y = (Lerp(previous.y, current.y, rate) - rift.position.y) / kRiftRadiusY;
+            rift.active = false; // 命中・報酬とも一度だけ。外してもペナルティは付けない。
+            if (x * x + y * y <= 1.0f) {
+                ++riftPassCount_;
+                riftRecoveredFrames_ = 0;
+                if (feverTimer_ > 0) {
+                    const int before = feverTimer_;
+                    feverTimer_ = (std::min)(feverTimer_ + kRiftFeverRecoveryFrames, kFeverDurationFrames);
+                    riftRecoveredFrames_ = feverTimer_ - before;
+                } else {
+                    AddFeverGauge(kRiftGaugeReward);
+                }
+                chargeTimer_ = kChargeShotMax;
+                shootCooldown_ = (std::min)(shootCooldown_, 4); // 通過直後の攻撃へつなげる。
+                if (defeatChainCount_ > 0) { defeatChainTimer_ = kDefeatChainDurationFrames; }
+                riftNoticeTimer_ = 54;
+                AddRewardHeartCollectEffect(current);
+                AddCameraShake(0.055f, 8);
+            }
+        } else if (current.z > rift.position.z + 2.0f || rift.age >= rift.lifetime) {
+            rift.active = false;
+        }
+    }
+}
+
+void GameRuntime::DrawRiftObjects()
+{
+    if (!object3dCommon_ || !player_ ||
+        std::none_of(rifts_.begin(), rifts_.end(), [](const RiftGate& rift) { return rift.active; })) { return; }
+    const BlendMode previousBlend = object3dCommon_->GetBlendMode();
+    const DepthDrawMode previousDepth = object3dCommon_->GetDepthDrawMode();
+    object3dCommon_->SetBlendMode(BlendMode::Add);
+    object3dCommon_->SetDepthDrawMode(DepthDrawMode::ReadOnly);
+    object3dCommon_->CommonDrawSetting();
+    for (auto& rift : rifts_) {
+        if (!rift.active || !rift.rim || !rift.glow) { continue; }
+        const float lead = rift.position.z - player_->GetTranslate().z;
+        // 最後の1mだけ薄くして、カメラ手前に巨大な輪が残らないようにする。
+        const float fade = std::clamp(lead, 0.0f, 1.0f);
+        const float birth = 0.65f + 0.35f * std::clamp(rift.age / 12.0f, 0.0f, 1.0f);
+        const float pulse = 1.0f + 0.025f * std::sin(rift.age * 0.09f);
+        const float scale = birth * pulse;
+        rift.rim->SetTranslate(rift.position);
+        rift.rim->SetRotate({ 0.0f, 0.0f, 0.0f });
+        rift.rim->SetScale({ 1.80f * scale, 1.46f * scale, 1.0f });
+        rift.rim->SetColor({ 1.8f, 0.94f, 0.24f, 0.90f * fade });
+        rift.rim->Update();
+        rift.rim->Draw();
+        rift.glow->SetTranslate(rift.position);
+        rift.glow->SetRotate({ 0.0f, 0.0f, 0.0f });
+        rift.glow->SetScale({ 2.15f * scale, 1.74f * scale, 1.0f });
+        rift.glow->SetColor({ 1.6f, 0.62f, 0.13f, 0.46f * fade });
+        rift.glow->Update();
+        rift.glow->Draw();
+    }
+    object3dCommon_->SetBlendMode(previousBlend);
+    object3dCommon_->SetDepthDrawMode(previousDepth);
+    object3dCommon_->CommonDrawSetting();
+}
+
+void GameRuntime::DrawRiftHud()
+{
+    if (IsTutorial() || isGameOver_ || isGameClear_ || !player_) { return; }
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    const ImU32 gold = CombatHud::GaugeGold;
+    for (const auto& enemy : enemies_) {
+        if (!enemy || enemy->IsDead() || !enemy->IsTargetable() || !enemy->IsRiftCarrier()) { continue; }
+        auto position = enemy->GetAimPosition();
+        position.y += enemy->GetAimRadius() + 0.55f;
+        Math::Vector2 screen{};
+        if (!TryProjectToScreen(position, screen)) { continue; }
+        // 金色の小さな二重矢印で、裂け目を残す敵を射撃前から識別できる。
+        for (float offset : { -5.0f, 0.0f }) {
+            drawList->AddLine({ screen.x - 5.0f, screen.y + offset },
+                { screen.x, screen.y + offset + 4.0f }, gold, 2.0f);
+            drawList->AddLine({ screen.x, screen.y + offset + 4.0f },
+                { screen.x + 5.0f, screen.y + offset }, gold, 2.0f);
+        }
+    }
+    const RiftGate* nearest = nullptr;
+    for (const auto& rift : rifts_) {
+        if (rift.active && (!nearest || rift.position.z < nearest->position.z)) { nearest = &rift; }
+    }
+    if (nearest && nearest->position.z > railDistance_ + 6.0f) {
+        auto position = nearest->position;
+        position.y -= 1.75f;
+        Math::Vector2 screen{};
+        if (TryProjectToScreen(position, screen)) {
+            const char* text = feverTimer_ > 0 ? "通過でフィーバー延長" : "通過でチャージ";
+            const float width = CombatHud::ReadoutWidth(text, 14.0f);
+            CombatHud::Readout(drawList, { screen.x - width * 0.5f, screen.y }, 14.0f, gold, text);
+        }
+    }
+    if (riftNoticeTimer_ > 0) {
+        Math::Vector2 min{}, size{};
+        GetEffectiveHudViewportRect(min, size);
+        char text[64]{};
+        if (riftRecoveredFrames_ > 0) {
+            std::snprintf(text, sizeof(text), "突破  +%.1f秒", static_cast<float>(riftRecoveredFrames_) / 60.0f);
+        } else {
+            std::snprintf(text, sizeof(text), "突破  チャージ獲得");
+        }
+        const int alpha = (std::min)(255, riftNoticeTimer_ * 18);
+        const float width = CombatHud::ReadoutWidth(text, 23.0f);
+        CombatHud::Readout(drawList, { min.x + size.x * 0.5f - width * 0.5f, min.y + size.y * 0.78f },
+            23.0f, IM_COL32(255, 214, 126, alpha), text);
+    }
+}
+
 void GameRuntime::DrawBulletEffectObjects()
 {
     if (!object3dCommon_ || !camera_) {
@@ -5483,19 +5989,19 @@ void GameRuntime::DrawBulletEffectObjects()
     const BlendMode previousBlendMode = object3dCommon_->GetBlendMode();
     const DepthDrawMode previousDepthMode = object3dCommon_->GetDepthDrawMode();
 
-    object3dCommon_->SetDepthDrawMode(DepthDrawMode::Normal);
+    object3dCommon_->SetDepthDrawMode(DepthDrawMode::ReadOnly);
     object3dCommon_->SetBlendMode(BlendMode::Add);
     object3dCommon_->CommonDrawSetting();
 
-    const Math::Vector3 cameraRotate = camera_->GetRotate();
+    const Math::Matrix4x4& cameraWorld = camera_->GetWorldMatrix();
     for (const auto& bullet : playerBullets_) {
         if (bullet) {
-            bullet->DrawGlow(cameraRotate);
+            bullet->DrawGlow(cameraWorld);
         }
     }
     for (const auto& bullet : enemyBullets_) {
         if (bullet) {
-            bullet->DrawGlow(cameraRotate);
+            bullet->DrawGlow(cameraWorld);
         }
     }
 
@@ -5513,7 +6019,7 @@ void GameRuntime::DrawHitEffectObjects()
     const BlendMode previousBlendMode = object3dCommon_->GetBlendMode();
     const DepthDrawMode previousDepthMode = object3dCommon_->GetDepthDrawMode();
 
-    object3dCommon_->SetDepthDrawMode(DepthDrawMode::Overlay);
+    object3dCommon_->SetDepthDrawMode(DepthDrawMode::ReadOnly);
 
     auto drawVisualPass = [&](bool additivePass) {
         object3dCommon_->SetBlendMode(additivePass ? BlendMode::Add : BlendMode::Normal);
@@ -5532,11 +6038,11 @@ void GameRuntime::DrawHitEffectObjects()
                 if (!visual.object || visual.additive != additivePass) {
                     continue;
                 }
-                if (rate < visual.popDelay) {
+                if (rate < visual.popDelay || rate >= visual.lifeEnd) {
                     continue;
                 }
                 const float localRate = (std::clamp)(
-                    (rate - visual.popDelay) / (std::max)(1.0f - visual.popDelay, 0.001f),
+                    (rate - visual.popDelay) / (std::max)(visual.lifeEnd - visual.popDelay, 0.001f),
                     0.0f,
                     1.0f);
                 const float fade = 1.0f - localRate;
@@ -5552,12 +6058,25 @@ void GameRuntime::DrawHitEffectObjects()
                     fade * (0.78f + 0.22f * fade);
                 color.w *= alphaCurve;
 
-                Math::Vector3 rotate = camera_ ? camera_->GetRotate() : Math::Vector3{};
-                rotate.z += localRate * visual.spin;
+                float roll = visual.roll + localRate * visual.spin;
+                if (camera_ && visual.aspectY > visual.aspectX * 1.8f &&
+                    std::abs(visual.velocity.x) + std::abs(visual.velocity.y) > 0.001f) {
+                    const auto& cameraWorld = camera_->GetWorldMatrix();
+                    const float x = visual.velocity.x * cameraWorld.m[0][0] +
+                        visual.velocity.y * cameraWorld.m[0][1] + visual.velocity.z * cameraWorld.m[0][2];
+                    const float y = visual.velocity.x * cameraWorld.m[1][0] +
+                        visual.velocity.y * cameraWorld.m[1][1] + visual.velocity.z * cameraWorld.m[1][2];
+                    roll += std::atan2(-x, y);
+                }
+                const Math::Vector3 rotate = camera_ ?
+                    Bullet::CalculateBillboardRotation(camera_->GetWorldMatrix(), roll) : Math::Vector3{ 0, 0, roll };
+                const float activeAge = (std::max)(0.0f, effect.age - visual.popDelay * static_cast<float>(effect.duration));
+                const float travel = visual.drag > 0.001f ?
+                    (1.0f - std::exp(-visual.drag * activeAge)) / visual.drag : activeAge;
                 Math::Vector3 translate = effect.worldPosition;
-                translate.x += visual.velocity.x * effect.age;
-                translate.y += visual.velocity.y * effect.age;
-                translate.z += visual.velocity.z * effect.age;
+                translate.x += visual.velocity.x * travel;
+                translate.y += visual.velocity.y * travel;
+                translate.z += visual.velocity.z * travel;
 
                 visual.object->SetTranslate(translate);
                 visual.object->SetScale({
@@ -5953,9 +6472,9 @@ void GameRuntime::DrawEditorOverlayGuiRich()
             chargedBulletSpeedMultiplier_ = 1.12f;
             enemyBulletSpeed_ = 0.36f;
             lockRadius_ = 118.0f;
-            chargeShotThreshold_ = 88;
-            normalShootCooldown_ = 17;
-            chargedShootCooldown_ = 30;
+            chargeShotThreshold_ = 72;
+            normalShootCooldown_ = 14;
+            chargedShootCooldown_ = 22;
             enemyShotInterval_ = 64;
             waveStartDelay_ = 90;
             editorStatusMessage_ = "ゲーム調整をリセットしました。";
@@ -6749,6 +7268,7 @@ void GameRuntime::DrawHud()
     DrawFlightSpeedOverlay();
     DrawFeverBackdrop();
     DrawEnemyTypeTelegraphs();
+    DrawRiftHud();
 
     ImDrawList* drawList = ImGui::GetForegroundDrawList();
     Math::Vector2 hudMin{};
@@ -7874,22 +8394,24 @@ Math::Vector3 GameRuntime::CalculateAimDirection(const Math::Vector3& origin) co
         TransformCoord({ ndcX, ndcY, 0.0f }, inverseViewProjection);
     const Math::Vector3 farPoint =
         TransformCoord({ ndcX, ndcY, 1.0f }, inverseViewProjection);
-    Math::Vector3 direction = Math::Normalize({
+    const Math::Vector3 cameraRay = Math::Normalize({
         farPoint.x - nearPoint.x,
         farPoint.y - nearPoint.y,
         farPoint.z - nearPoint.z
     });
-    if (std::abs(direction.x) + std::abs(direction.y) + std::abs(direction.z) <= 0.001f) {
-        direction = Math::Normalize({
-            nearPoint.x - origin.x,
-            nearPoint.y - origin.y,
-            nearPoint.z - origin.z
-        });
-    }
-    if (std::abs(direction.x) + std::abs(direction.y) + std::abs(direction.z) <= 0.001f) {
+    if (cameraRay.z <= 0.001f) {
         return { 0.0f, 0.0f, 1.0f };
     }
-    return direction;
+    // カメラの視線と平行に撃つと、横移動した銃口からの弾道が照準を外れる。
+    // 敵が近くにいる場合はその深度、空中は45m先で照準へ収束させる。
+    const float aimDepth = lockedEnemy_ && !lockedEnemy_->IsDead() ?
+        (std::max)(origin.z + 4.0f, lockedEnemy_->GetAimPosition().z) : origin.z + 45.0f;
+    const float rayDistance = (aimDepth - nearPoint.z) / cameraRay.z;
+    const Math::Vector3 aimPoint{
+        nearPoint.x + cameraRay.x * rayDistance,
+        nearPoint.y + cameraRay.y * rayDistance,
+        aimDepth };
+    return Math::Normalize({ aimPoint.x - origin.x, aimPoint.y - origin.y, aimPoint.z - origin.z });
 }
 
 const Enemy* GameRuntime::FindHomingTargetForBullet(const Bullet& bullet) const
@@ -8037,12 +8559,12 @@ void GameRuntime::ApplyChargeSplash(const Enemy& directTarget, const Math::Vecto
     effect.duration = 22;
     effect.type = HitEffectType::EnemyImpact;
     // 薄い衝撃波だけを広げる。白い面で敵弾や後ろの狙撃機を隠さない。
-    AddHitEffectVisual(effect, effectGlowRingModel_, center,
-        { 1.0f, 0.72f, 0.32f, 0.58f }, 0.65f, kChargeSplashRadius / 0.65f - 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f, {});
+    AddHitEffectVisual(effect, effectCombatShockModel_, center,
+        { 0.86f, 0.62f, 1.65f, 0.88f }, 0.85f, kChargeSplashRadius / 0.85f - 1.0f,
+        0.0f, 0.0f, 1.4f, 0.78f, {}, true, 0.64f, -0.15f);
     AddHitEffectVisual(effect, effectImpactBurstModel_, center,
-        { 1.0f, 0.95f, 0.80f, 0.80f }, 0.85f, -0.55f,
-        0.0f, 0.0f, 1.70f, 0.42f, {});
+        { 1.60f, 1.40f, 1.85f, 0.96f }, 1.20f, -0.55f,
+        0.0f, 0.0f, 3.20f, 0.25f, {}, true, 0.40f);
     if (effect.visualCount > 0) { hitEffects_.push_back(std::move(effect)); }
 
     bool destroyedAny = false;
@@ -8061,6 +8583,7 @@ void GameRuntime::OnEnemyDestroyed(Enemy& enemy, bool charged, bool fever)
     // 弾とスキルで撃破数・報酬・ボスクリア処理が食い違わないよう共有する。
     const bool boss = enemy.IsBoss();
     const Math::Vector3 position = enemy.GetAimPosition();
+    if (enemy.IsRiftCarrier() && !boss && !IsTutorial()) { SpawnRift(position); }
     RegisterEnemyDefeatChain();
     if (fever) {
         AddFeverEnemyHitEffect(position, boss ? 1.72f : 1.08f);

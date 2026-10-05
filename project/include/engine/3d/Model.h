@@ -188,6 +188,12 @@ public:
         float outerRadius,
         float innerRadius,
         const std::string& textureFilePath);
+    static ModelData CreateArcData(
+        uint32_t divideCount,
+        float outerRadius,
+        float width,
+        float arcRadians,
+        const std::string& textureFilePath);
     static ModelData CreateSphereData(
         uint32_t latDivideCount,
         uint32_t lonDivideCount,

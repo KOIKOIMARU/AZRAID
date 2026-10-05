@@ -116,6 +116,7 @@ void Enemy::Initialize(
     sniperBracePosition_ = {};
     sniperBraced_ = false;
     trainingTarget_ = false;
+    riftCarrier_ = false;
     attackTelegraphRate_ = 0.0f;
     bossRecoveryRate_ = 0.0f;
 

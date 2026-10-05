@@ -1,0 +1,438 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "AZRAID PrepareAviationDistrict.py"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "AviationBossApron",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        },
+        {
+          "material": 1,
+          "attributes": {
+            "POSITION": 3,
+            "NORMAL": 4
+          },
+          "indices": 5
+        },
+        {
+          "material": 2,
+          "attributes": {
+            "POSITION": 6,
+            "NORMAL": 7
+          },
+          "indices": 8
+        },
+        {
+          "material": 3,
+          "attributes": {
+            "POSITION": 9,
+            "NORMAL": 10
+          },
+          "indices": 11
+        },
+        {
+          "material": 4,
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13
+          },
+          "indices": 14
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "ivory_panels",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.64,
+          0.66,
+          0.65,
+          1
+        ],
+        "metallicFactor": 0.06,
+        "roughnessFactor": 0.72
+      }
+    },
+    {
+      "name": "blue_black_structure",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.19,
+          0.22,
+          0.25,
+          1
+        ],
+        "metallicFactor": 0.32,
+        "roughnessFactor": 0.52
+      }
+    },
+    {
+      "name": "oxide_red_identification",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.36,
+          0.07,
+          0.09,
+          1
+        ],
+        "metallicFactor": 0.08,
+        "roughnessFactor": 0.65
+      }
+    },
+    {
+      "name": "apron_concrete",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.3,
+          0.33,
+          0.34,
+          1
+        ],
+        "metallicFactor": 0.02,
+        "roughnessFactor": 0.85
+      }
+    },
+    {
+      "name": "safety_reflectors",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.8,
+          0.53,
+          0.17,
+          1
+        ],
+        "metallicFactor": 0.05,
+        "roughnessFactor": 0.7
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 624,
+      "type": "VEC3",
+      "min": [
+        -92.0,
+        0.44999999999999996,
+        -128.0
+      ],
+      "max": [
+        91.0,
+        20.15,
+        128.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 624,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5125,
+      "count": 1068,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        623
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 1536,
+      "type": "VEC3",
+      "min": [
+        -93.0,
+        0.0,
+        -111.65
+      ],
+      "max": [
+        93.0,
+        18.700000000000003,
+        115.65
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 1536,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5125,
+      "count": 2496,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1535
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 72,
+      "type": "VEC3",
+      "min": [
+        -50.65,
+        12.875,
+        -71.5
+      ],
+      "max": [
+        -50.449999999999996,
+        13.524999999999999,
+        21.5
+      ]
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 72,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5125,
+      "count": 108,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        71
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 216,
+      "type": "VEC3",
+      "min": [
+        -93.0,
+        0.0,
+        -128.0
+      ],
+      "max": [
+        93.5,
+        12.3,
+        128.0
+      ]
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 216,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5125,
+      "count": 348,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        215
+      ]
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 96,
+      "type": "VEC3",
+      "min": [
+        -39.05,
+        6.6499999999999995,
+        -110.485
+      ],
+      "max": [
+        39.05,
+        6.95,
+        113.585
+      ]
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 96,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5125,
+      "count": 144,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        95
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 7488
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 7488,
+      "byteLength": 7488
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 14976,
+      "byteLength": 4272
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 19248,
+      "byteLength": 18432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 37680,
+      "byteLength": 18432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 56112,
+      "byteLength": 9984
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 66096,
+      "byteLength": 864
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 66960,
+      "byteLength": 864
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 67824,
+      "byteLength": 432
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 68256,
+      "byteLength": 2592
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 70848,
+      "byteLength": 2592
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 73440,
+      "byteLength": 1392
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 74832,
+      "byteLength": 1152
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 75984,
+      "byteLength": 1152
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 77136,
+      "byteLength": 576
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "AviationBossApron.bin",
+      "byteLength": 77712
+    }
+  ]
+}

@@ -80,18 +80,22 @@ float CalculateDirectionalShadow(float3 worldPosition, float3 normal, float3 lig
         gDirectionalLight.shadowNormalBias;
     float receiverDepth = lightNdc.z - gDirectionalLight.shadowBias - normalBias;
 
-    // 3x3 PCF。固定の小さな半影にし、街の影をぼかしすぎず輪郭のジャギーだけ落とす。
+    // 境界の深度は遮蔽物と背景が混ざるため、そこからぼかし幅を決めると
+    // 移動のたびに影が締まったり膨らんだりする。固定幅の密なPCFで境界を保つ。
+    // 既存の光空間texelスナップと合わせ、追加パスや描画資源は使わない。
     float visibility = 0.0f;
+    float totalWeight = 0.0f;
     [unroll]
-    for (int y = -1; y <= 1; ++y) {
+    for (int y = -2; y <= 2; ++y) {
         [unroll]
-        for (int x = -1; x <= 1; ++x) {
-            // 深度そのものではなく比較結果を線形補間し、移動中の境界の段差をなくす。
+        for (int x = -2; x <= 2; ++x) {
+            float weight = float((3 - abs(x)) * (3 - abs(y)));
             visibility += gShadowMap.SampleCmpLevelZero(gShadowSampler,
-                shadowUv + float2(x, y) * texelSize * 1.25f, receiverDepth);
+                shadowUv + float2(x, y) * texelSize * 0.75f, receiverDepth) * weight;
+            totalWeight += weight;
         }
     }
-    visibility /= 9.0f;
+    visibility /= totalWeight;
     // 影マップの外周を段差なく抜く。遠景で四角い影の終端を見せない。
     float edge = max(abs(shadowUv.x - 0.5f), abs(shadowUv.y - 0.5f)) * 2.0f;
     float coverage = 1.0f - smoothstep(0.82f, 0.98f, edge);

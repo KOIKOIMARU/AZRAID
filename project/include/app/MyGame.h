@@ -18,6 +18,8 @@ struct SmokeTestOptions {
     bool phantomPreview = false; // 映像確認用。代表フレームで止め、NEXTボタンで再開する。
     bool chargeShot = false; // Debug専用。チャージ爆風の境界・重複命中・本編編隊への実射を検証。
     bool chargePreview = false;
+    bool rift = false; // Debug専用。照準・実射・裂け目通過・延長・固定プールを検証。
+    bool riftPreview = false;
     bool boss = false; // Debug専用。全攻撃・固定照準・反撃時間・音楽切替を検証。
     bool bossPreview = false;
     double gameplaySeconds = 15.0;

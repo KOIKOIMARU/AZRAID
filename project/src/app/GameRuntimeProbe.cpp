@@ -1,4 +1,4 @@
-// 通常起動やReleaseには自動操作を含めない。--smoke-playthrough時だけ使用。
+// 通常起動やReleaseには自動操作を含めない。明示したDebug試験だけで使用。
 #ifdef _DEBUG
 #include "app/GameRuntime.h"
 #include "engine/io/Input.h"
@@ -12,6 +12,56 @@
 #include <cstdlib>
 
 namespace {
+void CheckProjectileVisualProjection()
+{
+    const auto require = [](bool ok, const char* message) {
+        if (!ok) { throw std::runtime_error(message); }
+    };
+    const auto identity = Math::MakeIdentity4x4();
+    require(Bullet::CalculateTrailVisual({ 0, 0, 20 }, { 0, 0, 1 }, 4, identity).length == 0.0f,
+        "Head-on shot acquired a fake vertical trail");
+    require(Bullet::CalculateTrailVisual({ 0, 0, -1 }, { 0, 0, 1 }, 4, identity).length == 0.0f,
+        "Projectile behind camera retained a trail");
+    const auto nearTrail = Bullet::CalculateTrailVisual({ 1, 0, 0.1f }, { 0, 0, 1 }, 4, identity);
+    require(std::isfinite(nearTrail.length) && nearTrail.length <= 0.076f,
+        "Near-camera projectile produced an unbounded trail");
+    for (const Math::Vector3 velocity : { Math::Vector3{ 1, 2, 3 },
+        Math::Vector3{ -1, -0.3f, -4 }, Math::Vector3{ 0, 2, 0 } }) {
+        const auto body = Math::MakeAffineMatrix({ 1, 1, 1 }, Bullet::CalculateBodyRotation(velocity), {});
+        const auto direction = Math::Normalize(velocity);
+        require(body.m[2][0] * direction.x + body.m[2][1] * direction.y + body.m[2][2] * direction.z > 0.9999f,
+            "Projectile body did not follow its flight direction");
+    }
+    // 俯角・旋回・バンク・カメラ移動を含め、軌跡の両端が本当の弾道へ重なるか検証。
+    const auto camera = Math::MakeAffineMatrix({ 1, 1, 1 }, Math::Vector3{ 0.16f, -0.12f, 0.11f }, { 3, -1, -5 });
+    const auto toWorld = [&](const Math::Vector3& p, float w) {
+        return Math::Vector3{ p.x * camera.m[0][0] + p.y * camera.m[1][0] + p.z * camera.m[2][0] + w * camera.m[3][0],
+            p.x * camera.m[0][1] + p.y * camera.m[1][1] + p.z * camera.m[2][1] + w * camera.m[3][1],
+            p.x * camera.m[0][2] + p.y * camera.m[1][2] + p.z * camera.m[2][2] + w * camera.m[3][2] };
+    };
+    const auto head = toWorld({ 6, 3, 40 }, 1);
+    const auto velocity = toWorld({ 0.14f, -0.06f, 1.2f }, 0);
+    const auto direction = Math::Normalize(velocity);
+    const Math::Vector3 tail{ head.x - direction.x * 3, head.y - direction.y * 3, head.z - direction.z * 3 };
+    const auto trail = Bullet::CalculateTrailVisual(head, velocity, 3, camera);
+    const auto transform = Math::MakeAffineMatrix({ 1, 1, 1 }, trail.rotate, trail.center);
+    const Math::Vector3 drawnHead{ trail.center.x + transform.m[1][0] * trail.length * 0.5f,
+        trail.center.y + transform.m[1][1] * trail.length * 0.5f,
+        trail.center.z + transform.m[1][2] * trail.length * 0.5f };
+    const Math::Vector3 drawnTail{ trail.center.x - transform.m[1][0] * trail.length * 0.5f,
+        trail.center.y - transform.m[1][1] * trail.length * 0.5f,
+        trail.center.z - transform.m[1][2] * trail.length * 0.5f };
+    const auto view = Math::Inverse(camera);
+    const auto project = [&](const Math::Vector3& p) {
+        const float z = p.x * view.m[0][2] + p.y * view.m[1][2] + p.z * view.m[2][2] + view.m[3][2];
+        return Math::Vector2{ (p.x * view.m[0][0] + p.y * view.m[1][0] + p.z * view.m[2][0] + view.m[3][0]) / z,
+            (p.x * view.m[0][1] + p.y * view.m[1][1] + p.z * view.m[2][1] + view.m[3][1]) / z };
+    };
+    const auto a = project(head), b = project(drawnHead), c = project(tail), d = project(drawnTail);
+    require(std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(c.x - d.x) + std::abs(c.y - d.y) < 0.0002f,
+        "Billboard trail detached from projectile under camera pitch/bank");
+}
+
 void CheckSniperPosture(Object3dCommon* common, Model* model)
 {
     const auto require = [](bool ok, const char* message) {
@@ -192,6 +242,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     static int delayedEscapeEvents = 0;
     static unsigned int sceneryCoverage = 0;
     static unsigned int sceneryPreviewSeen = 0;
+    static bool bossApronSeen = false;
     static bool flightReleaseSeen = false;
     static float maximumFlightSpeed = 0.0f;
     static float minimumCameraBank = 0.0f;
@@ -205,7 +256,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         std::free(value);
         return mode;
     }();
-    const bool sceneryPreview = sceneryPreviewMode > 0;
+    const bool sceneryPreview = sceneryPreviewMode > 0 && sceneryPreviewMode != 8;
     struct ScenerySnapshot {
         Math::Vector3 position{};
         Math::Vector3 scale{};
@@ -225,7 +276,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         if (player_->GetHp() != 100 || score_ != 0 || feverGauge_ != 0 ||
             feverTimer_ != 0 || feverActivationCount_ != 0 ||
             playerShotsFired_ != 0 || !enemies_.empty() ||
-            sceneryCanyonStartZ_ != -1.0f || sceneryPlazaStartZ_ != -1.0f ||
+            sceneryCanyonStartZ_ != 450.0f || sceneryPlazaStartZ_ != 866.0f ||
             flightReleaseKick_ != 0.0f || previousFlightTimeScale_ != 1.0f || sfxAccentUntil_ != 0.0f ||
             // 再入場後の最初の通常Updateは実行済み。初速への小さな反応だけを許容する。
             flightCameraMotion_.blurStrength > 0.02f || std::abs(flightCameraMotion_.acceleration) > 0.03f ||
@@ -259,8 +310,75 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         throw std::runtime_error("Scenery object count changed during play");
     }
     if (std::count_if(railSceneryObjects_.begin(), railSceneryObjects_.end(),
-        [](const auto& object) { return object.isTrackside; }) != 9) {
-        throw std::runtime_error("Flight trackside pool must contain exactly nine shared modules");
+        [](const auto& object) { return object.isTrackside; }) != 18) {
+        throw std::runtime_error("Flight trackside pool must contain exactly eighteen shared modules");
+    }
+    // 地表の実際の表示範囲を毎フレーム検証する。街区到達やビルド成功では穴を検出できない。
+    constexpr float kTerrainSurfaceY = -3.5f;
+    std::array<Math::Vector2, 4> terrainIntervals{};
+    size_t terrainCount = 0;
+    for (const auto& scenery : railSceneryObjects_) {
+        if (scenery.isRoad && scenery.object && scenery.isVisible &&
+            kTerrainSurfaceY >= scenery.object->GetTranslate().y +
+                scenery.boundsMin.y * scenery.object->GetScale().y - 0.05f) {
+            throw std::runtime_error("Terrain overlaps the road's lowest surface; depth fighting possible");
+        }
+        if (!scenery.isTerrain || !scenery.object || !scenery.isVisible) { continue; }
+        if (terrainCount >= terrainIntervals.size() || scenery.object->HasTransparentMaterials() ||
+            scenery.halfDepth != 128.0f || std::abs(scenery.object->GetTranslate().y - kTerrainSurfaceY) > 0.001f) {
+            throw std::runtime_error("Terrain is not an opaque, flush, bounded ground plane");
+        }
+        const float z = scenery.object->GetTranslate().z;
+        terrainIntervals[terrainCount++] = { z - scenery.halfDepth, z + scenery.halfDepth };
+    }
+    std::sort(terrainIntervals.begin(), terrainIntervals.begin() + terrainCount,
+        [](const auto& a, const auto& b) { return a.x < b.x; });
+    float coveredUntil = railDistance_ - 40.0f;
+    for (size_t index = 0; index < terrainCount; ++index) {
+        const auto& interval = terrainIntervals[index];
+        if (interval.y < coveredUntil) { continue; }
+        if (interval.x > coveredUntil + 0.01f) {
+            throw std::runtime_error("Visible ground has a gap between terrain tiles");
+        }
+        coveredUntil = (std::max)(coveredUntil, interval.y);
+    }
+    if (coveredUntil < railDistance_ + 500.0f) {
+        throw std::runtime_error("Terrain ended before the camera's visible distance");
+    }
+    // 実カメラの左右端・上下端・中央から地面へ向かう視線も確認する。
+    // カメラの傾き/FOVが変わっても、画面の下や横に空が抜ける場所を作らない。
+    const auto inverseViewProjection = Math::Inverse(camera_->GetViewProjectionMatrix());
+    const auto unproject = [&](float x, float y, float z) {
+        const auto& m = inverseViewProjection.m;
+        const float w = x * m[0][3] + y * m[1][3] + z * m[2][3] + m[3][3];
+        if (std::abs(w) < 0.000001f) { throw std::runtime_error("Ground ray has an invalid camera projection"); }
+        return Math::Vector3{
+            (x * m[0][0] + y * m[1][0] + z * m[2][0] + m[3][0]) / w,
+            (x * m[0][1] + y * m[1][1] + z * m[2][1] + m[3][1]) / w,
+            (x * m[0][2] + y * m[1][2] + z * m[2][2] + m[3][2]) / w };
+    };
+    for (float x : { -1.0f, 0.0f, 1.0f }) {
+        for (float y : { -1.0f, 0.0f, 1.0f }) {
+            const auto nearPoint = unproject(x, y, 0.0f);
+            const auto farPoint = unproject(x, y, 1.0f);
+            const float heightDifference = farPoint.y - nearPoint.y;
+            if (std::abs(heightDifference) < 0.001f) { continue; }
+            const float t = (kTerrainSurfaceY - nearPoint.y) / heightDifference;
+            if (t < 0.0f || t > 1.0f) { continue; }
+            const Math::Vector3 hit{
+                nearPoint.x + (farPoint.x - nearPoint.x) * t,
+                nearPoint.y + (farPoint.y - nearPoint.y) * t,
+                nearPoint.z + (farPoint.z - nearPoint.z) * t };
+            const bool groundCovered = std::abs(hit.x) <= 800.0f &&
+                std::any_of(railSceneryObjects_.begin(), railSceneryObjects_.end(), [&](const auto& scenery) {
+                    if (!scenery.isTerrain || !scenery.object || !scenery.isVisible || !scenery.isInView) { return false; }
+                    const float z = scenery.object->GetTranslate().z;
+                    return hit.z >= z - scenery.halfDepth - 0.01f && hit.z <= z + scenery.halfDepth + 0.01f;
+                });
+            if (!groundCovered) {
+                throw std::runtime_error("Camera saw sky through an uncovered ground ray");
+            }
+        }
     }
     maximumFlightSpeed = (std::max)(maximumFlightSpeed, railSpeed_);
     minimumCameraBank = (std::min)(minimumCameraBank, cameraRotate_.z);
@@ -279,7 +397,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     }
     for (size_t i = 0; i < railSceneryObjects_.size(); ++i) {
         const auto& scenery = railSceneryObjects_[i];
-        if (scenery.isTrackside && (scenery.halfDepth != 18.0f || scenery.loopLength != 324.0f)) {
+        if (scenery.isTrackside && (scenery.halfDepth != 18.0f || scenery.loopLength != 648.0f)) {
             throw std::runtime_error("Trackside wrap does not include full module depth");
         }
         if (scenery.isLandmark && scenery.object) {
@@ -290,9 +408,30 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
                 throw std::runtime_error("Landmark recycled or culled without its full bounds");
             }
         }
-        if (!scenery.object || (!scenery.isBuilding && !scenery.isRoad)) { continue; }
+        if (!scenery.object) { continue; }
+        const float bossApronStartZ = GetBossApronStartZ();
+        if (scenery.isVisible && bossApronStartZ != -1.0f &&
+            (scenery.isRoad || scenery.isTrackside || scenery.isRoadDetail) &&
+            scenery.object->GetTranslate().z + (scenery.isRoad ? 9.0f : scenery.halfDepth) >= bossApronStartZ) {
+            throw std::runtime_error("Car road or trackside equipment continued into boss apron");
+        }
+        if (scenery.isBossApron && scenery.isVisible &&
+            std::abs(scenery.object->GetTranslate().z - railDistance_) < scenery.halfDepth) {
+            bossApronSeen = true;
+        }
+        if (!scenery.isBuilding && !scenery.isRoad && !scenery.isDefenseDistrict &&
+            !scenery.isBossApron && !scenery.isTerrain) { continue; }
         const ScenerySnapshot current{ scenery.object->GetTranslate(), scenery.object->GetScale(), scenery.isVisible };
         const auto& previous = previousScenery[i];
+        if (frame > 1 && !previous.visible && current.visible &&
+            current.position.z - scenery.halfDepth < railDistance_ + 500.0f &&
+            current.position.z + scenery.halfDepth > railDistance_ - 40.0f) {
+            throw std::runtime_error("Scenery appeared inside the visible flight corridor");
+        }
+        if ((scenery.isDefenseDistrict || scenery.isBossApron || scenery.isTerrain) && previous.visible && current.visible &&
+            std::abs(current.position.z - previous.position.z) > 1.0f) {
+            throw std::runtime_error("Aviation district recycled while visible");
+        }
         if (previous.visible && current.visible && std::abs(current.position.z - previous.position.z) < 0.05f &&
             (std::abs(current.position.x - previous.position.x) > 0.01f ||
                 std::abs(current.scale.x - previous.scale.x) > 0.01f ||
@@ -313,11 +452,50 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     // 明示指定されたDebug試験だけ、各街区で画面確認用に停止する。通常起動/Releaseには入らない。
     // モード2は新施設の接近・通過・退出を同じ通常プレイ経路で確認する。
     // モード3は左右・下降・フィーバーのカメラを通常入力で確認する専用プレビュー。
-    const unsigned int previewBit = sceneryPreviewMode == 3 ?
+    // モード4は中盤の敷地への進入・中央・退出を通常プレイの同じ経路で確認する。
+    // モード5は広場への進入・広場内・実際のボス戦を通常経路で確認する。
+    const float defenseStartZ = sceneryCanyonStartZ_ >= 0.0f ?
+        (std::max)(sceneryCanyonStartZ_, 450.0f) : sceneryCanyonStartZ_;
+    const float bossApronStartZ = GetBossApronStartZ();
+    unsigned int previewBit = sceneryPreviewMode == 3 ?
         (frame == 351 ? 1u : frame == 401 ? 2u : frame == 451 ? 4u :
             feverTimer_ > 0 && flightCameraMotion_.blurStrength > 0.32f ? 8u : 0u) : sceneryPreviewMode == 2 ?
         (railDistance_ >= 325.0f ? 8u : railDistance_ >= 245.0f ? 4u :
-            railDistance_ >= 185.0f ? 2u : railDistance_ >= 100.0f ? 1u : 0u) : districtBit;
+            railDistance_ >= 185.0f ? 2u : railDistance_ >= 100.0f ? 1u : 0u) : sceneryPreviewMode == 4 ?
+        (sceneryPlazaStartZ_ != -1.0f && railDistance_ >= sceneryPlazaStartZ_ + 80.0f ? 4u :
+            sceneryCanyonStartZ_ != -1.0f && railDistance_ >= defenseStartZ + 140.0f ? 2u :
+            sceneryCanyonStartZ_ != -1.0f && railDistance_ >= defenseStartZ - 60.0f ? 1u : 0u) : sceneryPreviewMode == 5 ?
+        (bossSpawned_ && bossIntroTimer_ <= 0 ? 4u :
+            bossApronStartZ != -1.0f && railDistance_ >= bossApronStartZ + 90.0f ? 2u :
+            bossApronStartZ != -1.0f && railDistance_ >= bossApronStartZ - 40.0f ? 1u : 0u) : districtBit;
+    if (sceneryPreviewMode == 6) {
+        // 全区間の細部を一度の通常プレイで確認。停止点は既存の画面確認専用の経路だけで使う。
+        previewBit = 0;
+        if (railDistance_ >= 180.0f && !(sceneryPreviewSeen & 1u)) { previewBit = 1u; }
+        else if (sceneryCanyonStartZ_ != -1.0f && railDistance_ >= defenseStartZ + 40.0f &&
+            !(sceneryPreviewSeen & 2u)) { previewBit = 2u; }
+        else if (sceneryCanyonStartZ_ != -1.0f && railDistance_ >= defenseStartZ + 175.0f &&
+            !(sceneryPreviewSeen & 4u)) { previewBit = 4u; }
+        else if (bossApronStartZ != -1.0f && railDistance_ >= bossApronStartZ - 40.0f &&
+            !(sceneryPreviewSeen & 8u)) { previewBit = 8u; }
+        else if (bossSpawned_ && bossIntroTimer_ <= 0 && !(sceneryPreviewSeen & 16u)) { previewBit = 16u; }
+        else if (bossApronStartZ != -1.0f && railDistance_ >= bossApronStartZ + 245.0f &&
+            !(sceneryPreviewSeen & 32u)) { previewBit = 32u; }
+    }
+    if (sceneryPreviewMode == 7) {
+        // 接続部の直前・境界・直後を見比べ、点の静止画で隙間を見落とさない。
+        previewBit = 0;
+        const std::array<float, 8> stops{ 20.0f, defenseStartZ - 15.0f, defenseStartZ,
+            defenseStartZ + 15.0f, bossApronStartZ - 15.0f, bossApronStartZ,
+            bossApronStartZ + 15.0f, bossApronStartZ + 270.0f };
+        for (size_t index = 0; index < stops.size(); ++index) {
+            const unsigned int bit = 1u << index;
+            if (railDistance_ >= stops[index] && !(sceneryPreviewSeen & bit)) {
+                previewBit = bit;
+                break;
+            }
+        }
+    }
     if (sceneryPreview && frame > 30 && previewBit != 0 && (sceneryPreviewSeen & previewBit) == 0) {
         sceneryPreviewSeen |= previewBit;
         log("SCENERY_PREVIEW rail=" + std::to_string(railDistance_));
@@ -460,11 +638,12 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             }
             log("FEVER_AUTO_OK no_activation_key=1");
             if (sceneryCoverage != 7u) { throw std::runtime_error("Playthrough did not reach all three scenery districts"); }
-            log("SCENERY_OK avenue_canyon_plaza=1 visible_transforms_stable=1 bounded_objects=1 landmark_world_fixed=1");
+            if (!bossApronSeen) { throw std::runtime_error("Playthrough did not enter the boss apron"); }
+            log("SCENERY_OK avenue_canyon_plaza=1 boss_apron=1 visible_transforms_stable=1 bounded_objects=1 landmark_world_fixed=1 terrain_opaque_continuous_540m=1 terrain_road_depth_separated=1 no_in_view_appearance=1");
             if (!flightReleaseSeen || maximumFlightSpeed < 0.5f) {
                 throw std::runtime_error("Flight test did not exercise fever acceleration and slow release");
             }
-            log("FLIGHT_RUSH_OK trackside_pool=9 camera_readable=1 slow_release=1 max_speed=" +
+            log("FLIGHT_RUSH_OK trackside_pool=18 camera_readable=1 slow_release=1 max_speed=" +
                 std::to_string(maximumFlightSpeed));
             if (minimumCameraBank > -0.015f || maximumCameraBank < 0.015f || maximumFlightBlur < 0.25f) {
                 throw std::runtime_error("Flight test did not exercise both banks and acceleration blur");
@@ -522,8 +701,9 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         }
     }
     const auto position = player_->GetTranslate();
-    const float targetX = 4.2f * std::sin(static_cast<float>(frame) * 0.011f);
-    const float targetY = 0.7f + 1.0f * std::sin(static_cast<float>(frame) * 0.017f);
+    const bool edgeScan = sceneryPreviewMode == 7 || sceneryPreviewMode == 8;
+    const float targetX = (edgeScan ? 8.5f : 4.2f) * std::sin(static_cast<float>(frame) * 0.011f);
+    const float targetY = 0.7f + (edgeScan ? 2.5f : 1.0f) * std::sin(static_cast<float>(frame) * 0.017f);
     if (std::abs(targetX - position.x) > 0.3f) {
         keys[targetX > position.x ? DIK_D : DIK_A] = 0x80;
     }
@@ -1012,21 +1192,25 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
     std::array<BYTE, 256> keys{};
     Math::Vector2 mouse = input_->GetMousePosition();
     if (frame > 102 && defeatedEnemyCount_ == 3 && impactFrame < 0) { impactFrame = frame; }
-    if (preview && (frame == 100 || (impactFrame >= 0 &&
+    if (preview && (frame == 100 || frame == 105 || frame == 161 || frame == 166 || frame == 174 || (impactFrame >= 0 &&
         (frame == impactFrame || frame == impactFrame + 5 || frame == impactFrame + 12)))) {
         phantomPreviewPaused_ = true;
         ImGui::SetNextWindowPos({ 20.0f, 165.0f }, ImGuiCond_Always);
         ImGui::Begin("Charge visual fixture", nullptr,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
-        ImGui::TextUnformatted("TEST ONLY: charge shot / three small ships + sniper");
+        ImGui::TextUnformatted(frame == 100 ? "TEST ONLY: six enemy projectile styles" :
+            frame >= 160 ? "TEST ONLY: fever burst / high chain" :
+            "TEST ONLY: charge shot / three small ships + sniper");
         ImGui::Text("Frame: %d   Defeated: %d", frame, defeatedEnemyCount_);
-        const bool next = ImGui::Button("NEXT / resume test", { 220.0f, 36.0f });
+        const bool next = ImGui::Button("NEXT / F8", { 220.0f, 36.0f }) || ImGui::IsKeyPressed(ImGuiKey_F8, false);
         ImGui::End();
         if (!next) { input_->SetTestFrame(keys, mouse); return false; }
         phantomPreviewPaused_ = false;
     }
     ++frame;
     if (frame == 1) {
+        CheckProjectileVisualProjection();
+        log("PROJECTILE_VISUAL_OK body_follows_velocity=1 projected_endpoints_match=1 head_on_round=1 near_clip_bounded=1");
         const auto reset = [&]() {
             DebugJumpToStagePhase(0);
             std::fill(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), true);
@@ -1038,6 +1222,33 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
             playerImpactSlowTimer_ = 0;
             cameraShakeTimer_ = 0;
         };
+        // 編隊同時撃破＋着弾＋連射を重ねても、固定枠だけで全演出が出て返却されるか。
+        for (const bool fever : { false, true }) {
+            reset();
+            defeatChainCount_ = 12;
+            const size_t capacity = hitEffectObjectPool_.size();
+            for (int index = 0; index < 7; ++index) {
+                const Math::Vector3 p{ static_cast<float>(index - 3), 1.0f, railDistance_ + 32 };
+                if (fever) { AddFeverEnemyHitEffect(p, 1.08f); AddFeverEnemyImpactEffect(p, 1.38f); }
+                else { AddEnemyHitEffect(p, 1.32f); AddEnemyImpactEffect(p, 1.42f); }
+            }
+            for (int index = 0; index < 12; ++index) { AddMuzzleFlashEffect(player_->GetTranslate(), true); }
+            require(hitEffectObjectPoolMisses_ == 0, "Simultaneous combat burst exhausted fixed effect pool");
+            for (int step = 0; step < 120; ++step) { UpdateHitEffects(); }
+            require(hitEffects_.empty() && hitEffectObjectPool_.size() == capacity,
+                "Combat burst retained or returned an effect object twice");
+        }
+        reset();
+        AddEnemyHitEffect(player_->GetTranslate(), 1.0f);
+        const float baseStrength = hitEffects_.back().strength;
+        const size_t baseVisuals = hitEffects_.back().visualCount;
+        reset();
+        defeatChainCount_ = 12;
+        AddEnemyHitEffect(player_->GetTranslate(), 1.0f);
+        require(hitEffects_.back().strength > baseStrength && hitEffects_.back().visualCount > baseVisuals,
+            "Defeat chain failed to strengthen combat visuals");
+        reset();
+        log("COMBAT_BURST_OK simultaneous_kills=7 overlapping_impacts=7 muzzles=12 pools=0 fully_recycled=1 chain_escalates=1");
         const auto spawn = [&](float x, float y, int hp = 3, Enemy::Behavior behavior = Enemy::Behavior::Formation) {
             SpawnStageEnemy(x, y, 44.0f, behavior, Enemy::EntryStyle::TightFormation, hp, 1.0f);
             auto* enemy = enemies_.back().get();
@@ -1145,6 +1356,25 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         SpawnStageEnemy(5.3f, 2.0f, 48.0f, Enemy::Behavior::Sniper, Enemy::EntryStyle::PopShooter, 6, 1.18f);
         log("LIVE_FORMATION_BEGIN normal_input=1");
     }
+    if (preview && frame == 99) {
+        // 映像確認だけで全種類の本物の敵弾を並べる。次の射撃試験へ危険弾を持ち越さない。
+        const std::array<EnemyBulletStyle, 6> styles{ EnemyBulletStyle::Standard, EnemyBulletStyle::Crossfire,
+            EnemyBulletStyle::Sniper, EnemyBulletStyle::ShieldOrb, EnemyBulletStyle::BossCannon, EnemyBulletStyle::BossCharge };
+        for (size_t i = 0; i < styles.size(); ++i) {
+            FireEnemyBullet({ -6.0f + static_cast<float>(i) * 2.4f, 4.0f, railDistance_ + 26.0f }, styles[i]);
+        }
+        log("ENEMY_PROJECTILE_PREVIEW real_styles=6 cleared_before_charge_test=1");
+    }
+    if (preview && frame == 101) {
+        for (auto& bullet : enemyBullets_) { bullet->Kill(); }
+    }
+    if (preview && frame == 160) {
+        const int chain = defeatChainCount_;
+        defeatChainCount_ = 12;
+        AddFeverEnemyHitEffect({ 2.2f, 2.0f, railDistance_ + 26.0f }, 1.08f);
+        defeatChainCount_ = chain;
+        log("FEVER_BURST_PREVIEW real_effect=1 high_chain=12 gameplay_unchanged=1");
+    }
     if (frame == 101 || frame == 102) {
         Math::Vector2 screen{};
         require(TryProjectToScreen((*std::next(enemies_.begin()))->GetAimPosition(), screen), "center offscreen");
@@ -1169,6 +1399,239 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         input_->SetTestFrame(keys, mouse);
         return true;
     }
+    input_->SetTestFrame(keys, mouse);
+    return false;
+}
+bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
+{
+    static int frame = 0;
+    static int phase = 0;
+    static int phaseFrame = 0;
+    static int previewStep = 0;
+    static bool fired = false;
+    static bool liveGateSeen = false;
+    static bool firstPass = false;
+    static int gaugeBeforePass = 0;
+    static int feverBeforePass = 0;
+    const auto log = [&](const std::string& message) {
+        std::ofstream file(logPath, std::ios::app);
+        file << "RIFT_TEST " << message << '\n';
+    };
+    const auto require = [&](bool ok, const char* message) {
+        if (!ok) { log(std::string("FAIL ") + message); throw std::runtime_error(message); }
+    };
+    std::array<BYTE, 256> keys{};
+    Math::Vector2 mouse = input_->GetMousePosition();
+    const auto reset = [&]() {
+        DebugJumpToStagePhase(0);
+        std::fill(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), true);
+        for (auto& effect : hitEffects_) { RecycleHitEffectVisuals(effect); }
+        hitEffects_.clear();
+        feverGauge_ = 0;
+        feverTimer_ = 0;
+        playerImpactSlowTimer_ = 0;
+        cameraShakeTimer_ = 0;
+        shootCooldown_ = 0;
+        shootBufferTimer_ = 0;
+        chargeTimer_ = 100;
+    };
+    const auto activeGate = [&]() -> RiftGate* {
+        for (auto& rift : rifts_) { if (rift.active) { return &rift; } }
+        return nullptr;
+    };
+    if (preview) {
+        RiftGate* gate = activeGate();
+        const bool stop = (previewStep == 0 && phaseFrame == 2) ||
+            (previewStep == 1 && gate && gate->age >= 14.0f) ||
+            (previewStep == 2 && gate && gate->position.z - railDistance_ < 12.0f) ||
+            (previewStep == 3 && firstPass) ||
+            (previewStep == 4 && phase == 1 && riftPassCount_ == 1);
+        if (stop) {
+            phantomPreviewPaused_ = true;
+            ImGui::SetNextWindowPos({ 20.0f, 165.0f }, ImGuiCond_Always);
+            ImGui::Begin("Rift visual fixture", nullptr,
+                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+            ImGui::TextUnformatted("TEST ONLY: real shot -> steer through kill location");
+            ImGui::Text("Step %d  Passes %d  Gauge %d  Fever %d", previewStep,
+                riftPassCount_, feverGauge_, feverTimer_);
+            const bool next = ImGui::Button("NEXT / resume test", { 220.0f, 36.0f });
+            ImGui::End();
+            if (!next) { input_->SetTestFrame(keys, mouse); return false; }
+            ++previewStep;
+            phantomPreviewPaused_ = false;
+        }
+    }
+    ++frame;
+    ++phaseFrame;
+    if (frame == 1) {
+        reset();
+        const float z = railDistance_ + 30.0f;
+        const Math::Vector3 location{ 2.5f, 1.6f, z };
+        const auto cross = [&](float x, float y) {
+            UpdateRifts({ x, y, z - 2.0f }, { x, y, z + 2.0f });
+        };
+        SpawnStageEnemy(0.6f, 0.5f, 44, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1);
+        Enemy* carrier = enemies_.back().get();
+        require(carrier->IsRiftCarrier(), "formation carrier unmarked");
+        for (int step = 0; step < 120; ++step) { carrier->Update(railDistance_); }
+        const auto killPosition = carrier->GetAimPosition();
+        carrier->Kill();
+        OnEnemyDestroyed(*carrier, true, false);
+        require(riftSpawnCount_ == 1 && activeGate() &&
+            std::abs(activeGate()->position.x - killPosition.x) < 0.001f &&
+            std::abs(activeGate()->position.y - killPosition.y) < 0.001f &&
+            std::abs(activeGate()->position.z - killPosition.z) < 0.001f, "rift moved away from kill position");
+        SpawnStageEnemy(3, 1, 44, Enemy::Behavior::Sniper, Enemy::EntryStyle::Direct, 3, 1);
+        Enemy* ordinary = enemies_.back().get();
+        require(!ordinary->IsRiftCarrier(), "ordinary enemy incorrectly marked");
+        ordinary->Kill();
+        OnEnemyDestroyed(*ordinary, false, false);
+        require(riftSpawnCount_ == 1, "ordinary kill spawned a rift");
+        log("CARRIER_OK marked_only=1 kill_position_preserved_xyz=1");
+
+        reset();
+        SpawnRift(location);
+        const float age = activeGate()->age;
+        isPaused_ = true;
+        cross(location.x, location.y);
+        require(activeGate() && activeGate()->age == age && riftPassCount_ == 0, "paused gate advanced");
+        isPaused_ = false;
+        cross(location.x + 1.4f, location.y + 1.1f);
+        require(!activeGate() && riftPassCount_ == 0 && feverGauge_ == 0, "ellipse corner miss rewarded");
+        SpawnRift(location);
+        chargeTimer_ = 0;
+        shootCooldown_ = 20;
+        defeatChainCount_ = 2;
+        defeatChainTimer_ = 1;
+        UpdateRifts({ location.x - 4.0f, location.y, z - 2.0f },
+            { location.x + 4.0f, location.y, z + 2.0f });
+        require(riftPassCount_ == 1 && feverGauge_ == kRiftGaugeReward && chargeTimer_ == 100 &&
+            shootCooldown_ == 4 && defeatChainTimer_ > 200, "swept pass failed to grant charge/gauge/chain");
+        cross(location.x, location.y);
+        require(riftPassCount_ == 1 && feverGauge_ == kRiftGaugeReward, "rift rewarded twice");
+        SpawnRift(location);
+        cross(location.x + kRiftRadiusX * 1.01f, location.y);
+        require(riftPassCount_ == 1, "outside aperture rewarded");
+        SpawnRift(location);
+        cross(location.x + kRiftRadiusX * 0.99f, location.y);
+        require(riftPassCount_ == 2, "inside aperture missed");
+        log("CROSSING_OK swept_xy=1 ellipse=1 boundary=1 reward_once=1 pause_freezes=1");
+
+        reset();
+        feverTimer_ = 390;
+        SpawnRift(location);
+        cross(location.x, location.y);
+        require(feverTimer_ == 480 && feverGauge_ == 0 && riftRecoveredFrames_ == 90, "fever recovery wrong");
+        feverTimer_ = 550;
+        SpawnRift(location);
+        cross(location.x, location.y);
+        require(feverTimer_ == 600 && riftRecoveredFrames_ == 50, "fever duration cap failed");
+        log("FEVER_OK recovery=90 cap=600 actual_recovery_display=1");
+
+        reset();
+        for (size_t index = 0; index < rifts_.size() + 1; ++index) { SpawnRift(location); }
+        require(riftSpawnCount_ == static_cast<int>(rifts_.size()), "gate pool overflow replaced a live gate");
+        rifts_.front().age = rifts_.front().lifetime;
+        UpdateRifts({ 0, 0, z - 10 }, { 0, 0, z - 9 });
+        require(!rifts_.front().active && feverGauge_ == 0, "expired gate rewarded");
+        reset();
+        require(!activeGate() && riftPassCount_ == 0 && riftNoticeTimer_ == 0, "retry retained gates/rewards");
+        playMode_ = PlayMode::Tutorial;
+        SpawnRift(location);
+        require(!activeGate(), "main-only rift leaked into tutorial");
+        playMode_ = PlayMode::Game;
+        SpawnRift(location);
+        isGameOver_ = true;
+        cross(location.x, location.y);
+        require(!activeGate() && feverGauge_ == 0, "game-over gate rewarded");
+        isGameOver_ = false;
+        log("LIFETIME_OK fixed_pool=8 expired_no_reward=1 retry_resets=1 tutorial_unchanged=1 game_over=1");
+
+        reset();
+        Math::Vector3 movedMuzzle{ 6.0f, 3.0f, railDistance_ + 1.75f };
+        const Math::Vector3 aimPoint{ -1.0f, 2.0f, movedMuzzle.z + 45.0f };
+        require(TryProjectToScreen(aimPoint, reticleScreen_), "aim fixture offscreen");
+        const auto direction = CalculateAimDirection(movedMuzzle);
+        const float distance = (aimPoint.z - movedMuzzle.z) / direction.z;
+        require(std::abs(movedMuzzle.x + direction.x * distance - aimPoint.x) < 0.02f &&
+            std::abs(movedMuzzle.y + direction.y * distance - aimPoint.y) < 0.02f,
+            "unassisted shot did not converge from displaced muzzle");
+        log("AIM_OK displaced_muzzle_x=6 cursor_convergence=1");
+
+        // 外れ弾が寿命まで残る最悪条件で、10秒以上の実際の射撃・弾更新を検証する。
+        keys[DIK_SPACE] = 0x80;
+        input_->SetTestFrame(keys, mouse);
+        feverTimer_ = 600;
+        for (int step = 0; step < 620; ++step) {
+            chargeTimer_ = 100;
+            UpdatePlayerShooting();
+            UpdatePlayerBullets();
+            UpdateHitEffects();
+        }
+        require(playerShotsFired_ >= 75 && playerBulletPoolMisses_ == 0 && hitEffectObjectPoolMisses_ == 0,
+            "rapid fever fire exhausted fixed pools");
+        log("RAPID_FIRE_OK shots=" + std::to_string(playerShotsFired_) + " pool_misses=0");
+        keys.fill(0);
+        reset();
+        SpawnStageEnemy(4.0f, 1.4f, 48, Enemy::Behavior::Formation, Enemy::EntryStyle::Direct, 3, 1);
+        carrier = enemies_.back().get();
+        carrier->SetTrainingTarget(true);
+        for (int step = 0; step < 120; ++step) { carrier->Update(railDistance_); }
+        log("LIVE_NORMAL_BEGIN real_projectile=1 real_player_movement=1");
+    }
+    if (!fired && !enemies_.empty()) {
+        Math::Vector2 screen{};
+        require(TryProjectToScreen(enemies_.front()->GetAimPosition(), screen), "live enemy offscreen");
+        const auto origin = ImGui::GetMainViewport()->Pos;
+        mouse = { screen.x - origin.x, screen.y - origin.y };
+        if (phaseFrame >= 4) {
+            require(isReticleOnTarget_, "live fixture failed to lock target");
+            keys[DIK_SPACE] = 0x80;
+            fired = true;
+        }
+    }
+    if (RiftGate* gate = activeGate()) {
+        if (!liveGateSeen) { liveGateSeen = true; gaugeBeforePass = feverGauge_; }
+        const auto position = player_->GetTranslate();
+        const float x = gate->position.x - position.x;
+        const float y = gate->position.y - position.y;
+        if (std::abs(x) > 0.15f) { keys[x > 0 ? DIK_D : DIK_A] = 0x80; }
+        if (std::abs(y) > 0.15f) { keys[y > 0 ? DIK_W : DIK_S] = 0x80; }
+        feverBeforePass = feverTimer_;
+    }
+    if (phase == 0 && riftPassCount_ == 1) {
+        require(liveGateSeen && playerShotsFired_ == 1 && defeatedEnemyCount_ == 1 &&
+            feverGauge_ == gaugeBeforePass + kRiftGaugeReward && chargeTimer_ == 100,
+            "real kill/steering pass failed normal rewards");
+        if (!firstPass) { firstPass = true; log("LIVE_NORMAL_OK real_kill=1 steered_pass=1 gauge_plus=22 charge_ready=1"); }
+        if (!preview || previewStep > 3) {
+            reset();
+            ActivateFever();
+            feverTimer_ = 420; // 発動3秒後を配置し、上限とは別に1.5秒の実回復を検証する。
+            phase = 1;
+            phaseFrame = 0;
+            fired = false;
+            liveGateSeen = false;
+            SpawnStageEnemy(2.0f, 2.0f, 48, Enemy::Behavior::Formation, Enemy::EntryStyle::Direct, 4, 1);
+            auto* enemy = enemies_.back().get();
+            enemy->SetTrainingTarget(true);
+            for (int step = 0; step < 120; ++step) { enemy->Update(railDistance_); }
+            log("LIVE_FEVER_BEGIN remaining_frames=420");
+        }
+    }
+    if (phase == 1 && riftPassCount_ == 1 && (!preview || previewStep > 4)) {
+        log("LIVE_FEVER_RESULT before=" + std::to_string(feverBeforePass) + " after=" +
+            std::to_string(feverTimer_) + " recovered=" + std::to_string(riftRecoveredFrames_) +
+            " shots=" + std::to_string(playerShotsFired_) + " kills=" + std::to_string(defeatedEnemyCount_));
+        require(liveGateSeen && feverTimer_ == feverBeforePass - 1 + kRiftFeverRecoveryFrames &&
+            playerShotsFired_ == 1 && defeatedEnemyCount_ == 1 && riftRecoveredFrames_ == 90,
+            "real fever kill/steering pass failed duration recovery");
+        require(playerBulletPoolMisses_ == 0 && hitEffectObjectPoolMisses_ == 0, "live pool exhaustion");
+        log("PASS normal_and_fever_real_shot_pass=1 fever_plus=90 pools=0");
+        input_->SetTestFrame({}, mouse);
+        return true;
+    }
+    require(frame < 700, "live rift steering timed out or missed gate");
     input_->SetTestFrame(keys, mouse);
     return false;
 }

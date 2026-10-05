@@ -1459,6 +1459,31 @@ ModelData Model::CreateRingData(
     return modelData;
 }
 
+ModelData Model::CreateArcData(uint32_t divideCount, float outerRadius,
+    float width, float arcRadians, const std::string& textureFilePath)
+{
+    assert(divideCount >= 3 && outerRadius > width && width > 0.0f);
+    assert(arcRadians > 0.0f && arcRadians <= 2.0f * std::numbers::pi_v<float>);
+    ModelData modelData;
+    modelData.material.textureFilePath = textureFilePath;
+    modelData.vertices.reserve(static_cast<size_t>(divideCount) * 6);
+    const auto vertex = [&](float t, bool inner) {
+        const float angle = (t - 0.5f) * arcRadians;
+        // 両端を尖らせた弧。輪の一部を切るだけの一定幅にはしない。
+        const float taper = std::sin(t * std::numbers::pi_v<float>);
+        const float radius = outerRadius - (inner ? width * taper * taper : 0.0f);
+        return VertexData{ { -std::sin(angle) * radius, std::cos(angle) * radius, 0, 1 },
+            { t, inner ? 1.0f : 0.0f }, { 0, 0, -1 } };
+    };
+    for (uint32_t index = 0; index < divideCount; ++index) {
+        const float t = static_cast<float>(index) / static_cast<float>(divideCount);
+        const float next = static_cast<float>(index + 1) / static_cast<float>(divideCount);
+        AppendTriangle(modelData, vertex(t, false), vertex(next, false), vertex(t, true));
+        AppendTriangle(modelData, vertex(t, true), vertex(next, false), vertex(next, true));
+    }
+    return modelData;
+}
+
 ModelData Model::CreateSphereData(
     uint32_t latDivideCount,
     uint32_t lonDivideCount,

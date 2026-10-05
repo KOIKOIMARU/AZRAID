@@ -5,83 +5,65 @@
 
 namespace {
 
-Math::Vector3 TransformDirection(
-    const Math::Vector3& direction,
-    const Math::Matrix4x4& matrix)
-{
-    return {
-        direction.x * matrix.m[0][0] +
-            direction.y * matrix.m[1][0] +
-            direction.z * matrix.m[2][0],
-        direction.x * matrix.m[0][1] +
-            direction.y * matrix.m[1][1] +
-            direction.z * matrix.m[2][1],
-        direction.x * matrix.m[0][2] +
-            direction.y * matrix.m[1][2] +
-            direction.z * matrix.m[2][2],
-    };
-}
-
 float Dot(const Math::Vector3& a, const Math::Vector3& b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-float CalculateBillboardRoll(
-    const Math::Vector3& velocity,
-    const Math::Vector3& cameraRotate,
-    float fallbackRoll)
-{
-    const Math::Matrix4x4 cameraMatrix =
-        Math::Multiply(
-            Math::MakeRotateXMatrix(cameraRotate.x),
-            Math::Multiply(
-                Math::MakeRotateYMatrix(cameraRotate.y),
-                Math::MakeRotateZMatrix(cameraRotate.z)));
-    const Math::Vector3 cameraRight =
-        TransformDirection({ 1.0f, 0.0f, 0.0f }, cameraMatrix);
-    const Math::Vector3 cameraUp =
-        TransformDirection({ 0.0f, 1.0f, 0.0f }, cameraMatrix);
-    const float projectedX = Dot(velocity, cameraRight);
-    const float projectedY = Dot(velocity, cameraUp);
-    if (std::abs(projectedX) <= 0.001f && std::abs(projectedY) <= 0.001f) {
-        return fallbackRoll;
-    }
-    return std::atan2(-projectedX, projectedY);
-}
-
-Math::Vector3 CalculateBillboardTrailOffset(
-    const Math::Vector3& velocity,
-    const Math::Vector3& cameraRotate,
-    float distance)
-{
-    const Math::Matrix4x4 cameraMatrix =
-        Math::Multiply(
-            Math::MakeRotateXMatrix(cameraRotate.x),
-            Math::Multiply(
-                Math::MakeRotateYMatrix(cameraRotate.y),
-                Math::MakeRotateZMatrix(cameraRotate.z)));
-    const Math::Vector3 cameraRight =
-        TransformDirection({ 1.0f, 0.0f, 0.0f }, cameraMatrix);
-    const Math::Vector3 cameraUp =
-        TransformDirection({ 0.0f, 1.0f, 0.0f }, cameraMatrix);
-    const float projectedX = Dot(velocity, cameraRight);
-    const float projectedY = Dot(velocity, cameraUp);
-    const float projectedLength =
-        std::sqrt(projectedX * projectedX + projectedY * projectedY);
-    if (projectedLength <= 0.001f) {
-        return {};
-    }
-
-    const float offsetScale = -distance / projectedLength;
-    return {
-        (cameraRight.x * projectedX + cameraUp.x * projectedY) * offsetScale,
-        (cameraRight.y * projectedX + cameraUp.y * projectedY) * offsetScale,
-        (cameraRight.z * projectedX + cameraUp.z * projectedY) * offsetScale
-    };
-}
-
 } // namespace
+
+Math::Vector3 Bullet::CalculateBillboardRotation(const Math::Matrix4x4& cameraWorld, float roll)
+{
+    // ロールはカメラのZ軸周りへ合成する。EulerのZだけへ加算すると
+    // 俯角やバンクが付いた時、軌跡がカメラへ正対しなくなる。
+    const auto rotation = Math::Multiply(Math::MakeRotateZMatrix(roll), cameraWorld);
+    return { std::atan2(rotation.m[1][2], rotation.m[2][2]),
+        std::asin(std::clamp(-rotation.m[0][2], -1.0f, 1.0f)),
+        std::atan2(rotation.m[0][1], rotation.m[0][0]) };
+}
+
+Math::Vector3 Bullet::CalculateBodyRotation(const Math::Vector3& velocity)
+{
+    const float horizontal = std::sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+    return { -std::atan2(velocity.y, horizontal), std::atan2(velocity.x, velocity.z), 0.0f };
+}
+
+Bullet::TrailVisual Bullet::CalculateTrailVisual(const Math::Vector3& position,
+    const Math::Vector3& velocity, float distance, const Math::Matrix4x4& cameraWorld)
+{
+    TrailVisual visual{ position, CalculateBillboardRotation(cameraWorld, 0.0f), 0.0f };
+    const Math::Vector3 cameraPosition{ cameraWorld.m[3][0], cameraWorld.m[3][1], cameraWorld.m[3][2] };
+    const Math::Vector3 right{ cameraWorld.m[0][0], cameraWorld.m[0][1], cameraWorld.m[0][2] };
+    const Math::Vector3 up{ cameraWorld.m[1][0], cameraWorld.m[1][1], cameraWorld.m[1][2] };
+    const Math::Vector3 forward{ cameraWorld.m[2][0], cameraWorld.m[2][1], cameraWorld.m[2][2] };
+    const Math::Vector3 head{ position.x - cameraPosition.x,
+        position.y - cameraPosition.y, position.z - cameraPosition.z };
+    const float headDepth = Dot(head, forward);
+    const float speed = std::sqrt(Dot(velocity, velocity));
+    if (headDepth <= 0.05f || speed <= 0.001f || distance <= 0.0f) { return visual; }
+    const Math::Vector3 direction = velocity * (1.0f / speed);
+    // 尾がカメラの手前へ跨ぐ場合は、射影の前に線分を切り詰める。
+    const float depthDirection = Dot(direction, forward);
+    if (depthDirection > 0.001f) {
+        distance = (std::min)(distance, (headDepth - 0.05f) / depthDirection);
+    }
+    const Math::Vector3 tail{ head.x - direction.x * distance,
+        head.y - direction.y * distance, head.z - direction.z * distance };
+    const float tailDepth = (std::max)(Dot(tail, forward), 0.05f);
+    const float projectionScale = headDepth / tailDepth;
+    Math::Vector3 offset{ tail.x * projectionScale - head.x,
+        tail.y * projectionScale - head.y, tail.z * projectionScale - head.z };
+    const float x = Dot(offset, right), y = Dot(offset, up);
+    const float projectedLength = std::sqrt(x * x + y * y);
+    if (projectedLength <= 0.001f) { return visual; }
+    // 至近の透視拡大で軌跡が画面を覆わないよう、描画だけに上限を設ける。
+    visual.length = (std::min)(projectedLength, distance * 1.5f);
+    offset = offset * (visual.length / projectedLength);
+    visual.center = { position.x + offset.x * 0.5f,
+        position.y + offset.y * 0.5f, position.z + offset.z * 0.5f };
+    visual.rotate = CalculateBillboardRotation(cameraWorld, std::atan2(x, -y));
+    return visual;
+}
 
 void Bullet::Initialize(
     Object3dCommon* object3dCommon,
@@ -126,7 +108,10 @@ void Bullet::Initialize(
     object_->SetColor(bodyBaseColor_);
     object_->SetLightingMode(0);
     object_->SetEnvironmentCoefficient(0.0f);
-    object_->SetRotate({});
+    object_->SetRotate(CalculateBodyRotation(velocity));
+    glowEnabled_ = glowModel != nullptr;
+    trailEnabled_ = trailModel != nullptr;
+    sparkleEnabled_ = sparkleModel != nullptr;
 
     translate_ = position;
     startTranslate_ = position;
@@ -175,8 +160,6 @@ void Bullet::Initialize(
         glowObject_->SetRotate({ 0.0f, 0.0f, trailRoll_ });
         glowObject_->SetTranslate(translate_);
         glowObject_->Update();
-    } else {
-        glowObject_.reset();
     }
     if (trailModel) {
         if (!trailObject_) {
@@ -192,8 +175,6 @@ void Bullet::Initialize(
         trailObject_->SetTranslate(translate_);
         trailObject_->Update();
 
-    } else {
-        trailObject_.reset();
     }
     if (sparkleModel) {
         for (size_t index = 0; index < sparkleObjects_.size(); ++index) {
@@ -216,10 +197,6 @@ void Bullet::Initialize(
                 translate_.z + trailOffset_.z * offsetScale
             });
             sparkleObject->Update();
-        }
-    } else {
-        for (auto& sparkleObject : sparkleObjects_) {
-            sparkleObject.reset();
         }
     }
 }
@@ -274,6 +251,7 @@ void Bullet::Update(float timeScale)
     }
     object_->SetTranslate(translate_);
     const float corePulse = 1.0f + 0.04f * std::sin(static_cast<float>(age_) * 0.48f);
+    object_->SetRotate(CalculateBodyRotation(velocity_));
     object_->SetScale({
         bodyBaseScale_.x * corePulse,
         bodyBaseScale_.y * corePulse,
@@ -281,11 +259,11 @@ void Bullet::Update(float timeScale)
     });
     object_->SetColor(bodyBaseColor_);
     object_->Update();
-    if (glowObject_) {
+    if (glowObject_ && glowEnabled_) {
         glowObject_->SetTranslate(translate_);
         glowObject_->Update();
     }
-    if (trailObject_) {
+    if (trailObject_ && trailEnabled_) {
         trailObject_->SetTranslate(translate_);
         trailObject_->Update();
     }
@@ -309,7 +287,7 @@ void Bullet::Draw()
     }
 }
 
-void Bullet::DrawGlow(const Math::Vector3& cameraRotate)
+void Bullet::DrawGlow(const Math::Matrix4x4& cameraWorld)
 {
     const float lifeRate =
         initialLifeTimer_ > 0 ?
@@ -318,17 +296,14 @@ void Bullet::DrawGlow(const Math::Vector3& cameraRotate)
     const float flicker = 0.93f + 0.07f * std::sin(static_cast<float>(age_) * 0.58f);
     const float tailBreath = 0.99f + 0.09f * std::sin(static_cast<float>(age_) * 0.34f);
 
-    if (!isDead_ && trailObject_) {
-        Math::Vector3 trailRotate = cameraRotate;
-        const float billboardRoll =
-            CalculateBillboardRoll(velocity_, cameraRotate, trailRoll_);
-        trailRotate.z += billboardRoll;
+    const TrailVisual trail = CalculateTrailVisual(translate_, velocity_, trailDistance_, cameraWorld);
+    if (!isDead_ && trailObject_ && trailEnabled_ && trail.length > 0.001f) {
         const float trailFade = 0.74f + 0.26f * lifeRate;
 
-        trailObject_->SetRotate(trailRotate);
+        trailObject_->SetRotate(trail.rotate);
         trailObject_->SetScale({
             trailBaseScale_.x * tailBreath * 0.78f,
-            trailBaseScale_.y * tailBreath * 0.78f,
+            trail.length,
             trailBaseScale_.z
         });
         Math::Vector4 trailColor = trailBaseColor_;
@@ -337,23 +312,12 @@ void Bullet::DrawGlow(const Math::Vector3& cameraRotate)
             trailFade *
             0.82f;
         trailObject_->SetColor(trailColor);
-        const Math::Vector3 billboardOffset =
-            CalculateBillboardTrailOffset(
-                velocity_,
-                cameraRotate,
-                trailDistance_ * 0.50f);
-        trailObject_->SetTranslate({
-            translate_.x + billboardOffset.x,
-            translate_.y + billboardOffset.y,
-            translate_.z + billboardOffset.z
-        });
+        trailObject_->SetTranslate(trail.center);
         trailObject_->Update();
         trailObject_->Draw();
     }
-    if (!isDead_ && glowObject_) {
-        Math::Vector3 glowRotate = cameraRotate;
-        glowRotate.z += CalculateBillboardRoll(velocity_, cameraRotate, trailRoll_);
-        glowObject_->SetRotate(glowRotate);
+    if (!isDead_ && glowObject_ && glowEnabled_) {
+        glowObject_->SetRotate(trail.rotate);
         const float glowPunch = 1.0f + 0.05f * std::sin(static_cast<float>(age_) * 0.78f);
         glowObject_->SetScale({
             glowBaseScale_.x * flicker * glowPunch,
@@ -368,7 +332,7 @@ void Bullet::DrawGlow(const Math::Vector3& cameraRotate)
         glowObject_->Draw();
     }
 
-    if (!isDead_) {
+    if (!isDead_ && sparkleEnabled_) {
         for (size_t index = 0; index < sparkleObjects_.size(); ++index) {
             Object3d* sparkle = sparkleObjects_[index].get();
             if (!sparkle) {
@@ -386,11 +350,7 @@ void Bullet::DrawGlow(const Math::Vector3& cameraRotate)
             const float sparklePulse = 0.78f + 0.30f * std::sin(phase * 1.31f);
             const float fade = (1.0f - indexF * 0.040f) * (0.86f + 0.14f * lifeRate);
 
-            sparkle->SetRotate({
-                cameraRotate.x,
-                cameraRotate.y,
-                cameraRotate.z + phase * 0.45f
-            });
+            sparkle->SetRotate(CalculateBillboardRotation(cameraWorld, phase * 0.45f));
             sparkle->SetScale({
                 sparkleBaseScale_.x * sparklePulse * (0.96f + indexF * 0.052f),
                 sparkleBaseScale_.y * sparklePulse * (0.96f + indexF * 0.052f),

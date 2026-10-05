@@ -70,6 +70,11 @@ SmokeTestOptions ParseSmokeTestOptions()
         } else if (argument == L"--smoke-charge-preview") {
             options.chargeShot = true;
             options.chargePreview = true;
+        } else if (argument == L"--smoke-rift") {
+            options.rift = true;
+        } else if (argument == L"--smoke-rift-preview") {
+            options.rift = true;
+            options.riftPreview = true;
         } else if (argument == L"--smoke-boss") {
             options.boss = true;
         } else if (argument == L"--smoke-boss-preview") {

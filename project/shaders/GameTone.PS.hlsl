@@ -325,8 +325,8 @@ PixelShaderOutput main(VertexShaderOutput input) {
     float32_t horizonFog = pow(saturate(1.0f - abs(viewRay.y) * 3.0f), 2.0f);
     float32_t fogAmount = (depthFog + horizonFog * horizonFogStrength * depthFog) * (1.0f - skyMask);
     // シーン色は線形色空間。sRGBの見た目の値を直接足して白いベールにしない。
-    float32_t3 fogColor = lerp(float32_t3(0.24f, 0.32f, 0.43f),
-        float32_t3(0.43f, 0.48f, 0.54f), horizonFog);
+    float32_t3 fogColor = lerp(float32_t3(0.10f, 0.16f, 0.24f),
+        float32_t3(0.22f, 0.30f, 0.39f), horizonFog);
     color = lerp(color, fogColor, saturate(fogAmount));
     color = ApplyCinematicGrade(color, viewDepth, skyMask);
     float32_t filmicAmount = 0.25f + saturate(highlightCompression) * 0.12f;

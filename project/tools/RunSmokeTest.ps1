@@ -18,6 +18,8 @@ param(
     [switch]$PhantomPreview,
     [switch]$ChargeShot,
     [switch]$ChargePreview,
+    [switch]$Rift,
+    [switch]$RiftPreview,
     [switch]$Boss,
     [switch]$BossPreview,
 
@@ -183,6 +185,13 @@ if ($Boss -or $BossPreview) {
         throw 'Boss requires Debug, main game, Opening, and cannot combine with other probes.'
     }
     $arguments += $(if ($BossPreview) { ' --smoke-boss-preview' } else { ' --smoke-boss' })
+}
+
+if ($Rift -or $RiftPreview) {
+    if ($Configuration -ne 'Debug' -or $Tutorial -or $StartPhase -ne 'Opening' -or $Playthrough -or $Phantom -or $PhantomPreview -or $ChargeShot -or $ChargePreview -or $Boss -or $BossPreview) {
+        throw 'Rift requires Debug, main game, Opening, and cannot combine with other probes.'
+    }
+    $arguments += $(if ($RiftPreview) { ' --smoke-rift-preview' } else { ' --smoke-rift' })
 }
 
 $startPhaseEnvironmentName = 'CG2_DEBUG_START_PHASE'

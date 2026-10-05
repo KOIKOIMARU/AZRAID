@@ -64,10 +64,34 @@ public:
     bool RunTutorialProbe(const std::string& logPath, bool preview = false);
     bool RunPhantomProbe(const std::string& logPath, bool preview = false);
     bool RunChargeShotProbe(const std::string& logPath, bool preview = false);
+    bool RunRiftProbe(const std::string& logPath, bool preview = false);
     bool RunBossProbe(const std::string& logPath, bool preview = false);
 #endif
 
 private:
+    struct RiftGate {
+        std::unique_ptr<Object3d> rim;
+        std::unique_ptr<Object3d> glow;
+        Math::Vector3 position{}; // 撃破地点に固定。レールや自機へ追従させない。
+        float age = 0.0f;
+        float lifetime = 0.0f;
+        bool active = false;
+    };
+    static constexpr float kRiftRadiusX = 1.65f;
+    static constexpr float kRiftRadiusY = 1.30f;
+    static constexpr int kRiftGaugeReward = 22;
+    static constexpr int kRiftFeverRecoveryFrames = 90;
+    std::array<RiftGate, 8> rifts_{}; // 起動時だけ確保し、撃破・通過時には生成しない。
+    int riftSpawnCount_ = 0;
+    int riftPassCount_ = 0;
+    int riftNoticeTimer_ = 0;
+    int riftRecoveredFrames_ = 0;
+    void InitializeRifts();
+    void ResetRifts();
+    void SpawnRift(const Math::Vector3& position);
+    void UpdateRifts(const Math::Vector3& previous, const Math::Vector3& current);
+    void DrawRiftObjects();
+    void DrawRiftHud();
 #ifdef _DEBUG
     bool phantomPreviewPaused_ = false; // 明示的な映像確認テストだけで演出をコマ止めする。
 #endif
@@ -169,12 +193,15 @@ private:
             float growth = 1.0f;
             float spin = 0.0f;
             float popDelay = 0.0f;
+            float lifeEnd = 1.0f; // 閃光・衝撃波・煙を別々の時間で収束させる。
+            float roll = 0.0f;
+            float drag = 0.0f;
             float aspectX = 1.0f;
             float aspectY = 1.0f;
             Math::Vector3 velocity{};
             bool additive = true;
         };
-        static constexpr size_t kMaxVisuals = 16;
+        static constexpr size_t kMaxVisuals = 24;
         std::array<Visual, kMaxVisuals> visuals{};
         size_t visualCount = 0;
     };
@@ -253,12 +280,20 @@ private:
         float currentLocalZ = 0.0f;
         float drawFarLocalZ = 300.0f;
         bool isVisible = true;
+        bool isInView = true; // 色描画だけのカメラ判定。画面外の施設が落とす影は別に残す。
+        bool castsShadow = false; // 不透明な構造物だけを投影し、路面と別モデルの窓は除外する。
+        Math::Vector3 boundsMin{};
+        Math::Vector3 boundsMax{};
         bool billboard = false;
         bool isBuilding = false; // 街区ごとに幅と高さを変える対象。元のanchor/scaleは保持する。
         bool isRoad = false;
         bool isBackRow = false; // 奥の建物は道路沿いより外側へ置き、空の輪郭を作る。
         bool isLandmark = false; // 一度だけ通過する施設。道路のようにループ再配置しない。
         bool isTrackside = false; // 飛行域の外側に置く低い設備。近景の流れで速度を伝える。
+        bool isTerrain = false; // 敷地や道路の隙間から空を見せない連続した不透明地表。
+        bool isDefenseDistrict = false; // 中盤の固定間隔の敷地。再配置は視界の外だけで行う。
+        bool isBossApron = false; // 終盤の広い航空エプロン。中央の飛行域に構造物を置かない。
+        bool isRoadDetail = false; // 車道用の排水溝・マンホール。航空エプロンには持ち込まない。
         float halfDepth = 0.0f; // 大きな施設の前後端まで含めた可視・影の判定範囲。
     };
 
@@ -311,6 +346,7 @@ private:
     void InitializeRailScenery();
     void UpdateRailScenery();
     Math::Vector2 GetSceneryDistrictWeights(float worldZ) const;
+    float GetBossApronStartZ() const;
     void RenderShadowMap();
     void DrawRailScenery(ModelDrawPass drawPass);
     void InitializeContactShadows();
@@ -385,7 +421,11 @@ private:
         float aspectX,
         float aspectY,
         const Math::Vector3& velocity,
-        bool additive = true);
+        bool additive = true,
+        float lifeEnd = 1.0f,
+        float roll = 0.0f,
+        float drag = 0.0f);
+    void AddCombatBurstVisuals(HitEffect& effect, bool fever);
     void PrewarmHitEffectObjectPool();
     std::unique_ptr<Object3d> CreatePooledHitEffectObject();
     std::unique_ptr<Object3d> AcquireHitEffectObject();
@@ -533,6 +573,10 @@ private:
     Model* effectEnemyBulletCoreModel_ = nullptr;
     Model* effectEnemyBulletTailModel_ = nullptr;
     Model* effectImpactBurstModel_ = nullptr;
+    Model* effectCombatShockModel_ = nullptr;
+    Model* effectCombatBladeModel_ = nullptr;
+    Model* effectCombatDiscModel_ = nullptr;
+    Model* effectCombatArcModel_ = nullptr;
     Model* effectMagicShardModel_ = nullptr;
     Model* effectExplosionFireballModel_ = nullptr;
     Model* effectExplosionSmokeModel_ = nullptr;
@@ -604,9 +648,9 @@ private:
     size_t visibleSceneryCount_ = 0;
     size_t maxActivePlayerBullets_ = 0;
     size_t maxActiveEnemyBullets_ = 0;
-    int chargeShotThreshold_ = 88;
-    int normalShootCooldown_ = 17;
-    int chargedShootCooldown_ = 30;
+    int chargeShotThreshold_ = 72;
+    int normalShootCooldown_ = 14;
+    int chargedShootCooldown_ = 22;
     int enemyShotInterval_ = 64;
     int waveStartDelay_ = 90;
     float cameraTimer_ = 0.0f;

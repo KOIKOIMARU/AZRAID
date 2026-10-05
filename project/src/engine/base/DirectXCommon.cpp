@@ -311,10 +311,10 @@ void DirectXCommon::DrawRenderTextureToSwapChain(int postEffectMode)
         gameToneParameterData_->saturation = 1.10f;
         gameToneParameterData_->contrast = 1.10f;
         gameToneParameterData_->damageTint = 0.0f;
-        gameToneParameterData_->fogStart = 36.0f;
-        gameToneParameterData_->fogEnd = 240.0f;
-        gameToneParameterData_->fogStrength = 0.85f;
-        gameToneParameterData_->horizonFogStrength = 0.08f;
+        gameToneParameterData_->fogStart = 72.0f;
+        gameToneParameterData_->fogEnd = 330.0f;
+        gameToneParameterData_->fogStrength = 0.46f;
+        gameToneParameterData_->horizonFogStrength = 0.035f;
         gameToneParameterData_->exposure = 1.02f;
         gameToneParameterData_->blackPoint = 0.006f;
         gameToneParameterData_->highlightCompression = 0.50f;
@@ -324,7 +324,7 @@ void DirectXCommon::DrawRenderTextureToSwapChain(int postEffectMode)
             gameToneParameterData_->saturation = 0.86f;
             gameToneParameterData_->contrast = 1.22f;
             gameToneParameterData_->damageTint = 0.24f;
-            gameToneParameterData_->fogStrength = 0.90f;
+            gameToneParameterData_->fogStrength = 0.54f;
             gameToneParameterData_->horizonFogStrength = 0.08f;
             gameToneParameterData_->exposure = 1.02f;
             gameToneParameterData_->blackPoint = 0.028f;
@@ -335,7 +335,7 @@ void DirectXCommon::DrawRenderTextureToSwapChain(int postEffectMode)
             gameToneParameterData_->saturation = 1.13f;
             gameToneParameterData_->contrast = 1.15f;
             gameToneParameterData_->damageTint = 0.0f;
-            gameToneParameterData_->fogStrength = 0.72f;
+            gameToneParameterData_->fogStrength = 0.40f;
             gameToneParameterData_->horizonFogStrength = 0.045f;
             gameToneParameterData_->exposure = 1.09f;
             gameToneParameterData_->blackPoint = 0.012f;
@@ -346,7 +346,7 @@ void DirectXCommon::DrawRenderTextureToSwapChain(int postEffectMode)
             gameToneParameterData_->saturation = 0.28f;
             gameToneParameterData_->contrast = 1.22f;
             gameToneParameterData_->damageTint = 0.18f;
-            gameToneParameterData_->fogStrength = 1.0f;
+            gameToneParameterData_->fogStrength = 0.60f;
             gameToneParameterData_->horizonFogStrength = 0.10f;
             gameToneParameterData_->exposure = 0.92f;
             gameToneParameterData_->blackPoint = 0.050f;
@@ -2050,10 +2050,10 @@ void DirectXCommon::InitializeRenderTexture(SrvManager* srvManager)
     gameToneParameterData_->saturation = 1.07f;
     gameToneParameterData_->contrast = 1.15f;
     gameToneParameterData_->damageTint = 0.0f;
-    gameToneParameterData_->fogStart = 36.0f;
-    gameToneParameterData_->fogEnd = 240.0f;
-    gameToneParameterData_->fogStrength = 0.85f;
-    gameToneParameterData_->horizonFogStrength = 0.08f;
+    gameToneParameterData_->fogStart = 72.0f;
+    gameToneParameterData_->fogEnd = 330.0f;
+    gameToneParameterData_->fogStrength = 0.46f;
+    gameToneParameterData_->horizonFogStrength = 0.035f;
     gameToneParameterData_->exposure = 1.00f;
     gameToneParameterData_->blackPoint = 0.010f;
     gameToneParameterData_->highlightCompression = 0.46f;

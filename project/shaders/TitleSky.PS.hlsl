@@ -30,7 +30,7 @@ float Noise(float3 p)
 
 float Density(float3 p)
 {
-    float3 q = p * float3(0.006f, 0.004f, 0.006f);
+    float3 q = p * float3(0.006f, 0.0045f, 0.006f);
     float shape = Noise(q) * 0.64f + Noise(q * 2.07f + 17.1f) * 0.25f +
         Noise(q * 4.13f + 31.7f) * 0.11f;
     float height = (p.y + 55.0f) / 395.0f;
@@ -47,13 +47,12 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
     float2 screen = input.texcoord * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f);
     float3 ray = normalize(cameraForward.xyz + cameraRight.xyz * screen.x * cameraRight.w +
         cameraUp.xyz * screen.y * cameraUp.w);
-    const float3 sun = normalize(float3(0.48f, 0.10f, 1.0f));
+    const float3 sun = normalize(float3(0.58f, 0.26f, 1.0f));
     float sunFacing = saturate(dot(ray, sun));
     float horizon = pow(saturate(ray.y + 0.30f), 0.35f);
-    float3 sky = lerp(float3(0.19f, 0.32f, 0.59f), float3(0.006f, 0.035f, 0.18f), horizon);
-    sky += float3(0.40f, 0.24f, 0.10f) * pow(sunFacing, 18.0f);
-    sky += float3(0.72f, 0.51f, 0.24f) * pow(sunFacing, 280.0f);
-    sky += float3(1.0f, 0.91f, 0.66f) * smoothstep(0.99965f, 0.99988f, sunFacing);
+    float3 sky = lerp(float3(0.07f, 0.19f, 0.38f), float3(0.002f, 0.012f, 0.075f), horizon);
+    sky += float3(0.19f, 0.19f, 0.16f) * pow(sunFacing, 22.0f);
+    sky += float3(0.62f, 0.49f, 0.31f) * pow(sunFacing, 380.0f);
 
     float safeY = abs(ray.y) < 0.001f ? (ray.y < 0.0f ? -0.001f : 0.001f) : ray.y;
     float edgeA = (340.0f - cameraOrigin.y) / safeY;
@@ -78,12 +77,13 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
         float density = Density(p);
         if (density > 0.001f)
         {
-            float illumination = saturate(1.0f - Density(p + sun * 38.0f) * 0.94f);
+            float illumination = exp(-Density(p + sun * 44.0f) * 1.8f -
+                Density(p + sun * 108.0f) * 2.6f);
             float heightLight = smoothstep(30.0f, 310.0f, p.y);
-            float light = saturate(illumination * 0.70f + heightLight * 0.30f);
-            float3 color = lerp(float3(0.17f, 0.25f, 0.44f), float3(1.0f, 0.91f, 0.76f), light);
+            float light = smoothstep(0.12f, 0.86f, illumination * 0.84f + heightLight * 0.16f);
+            float3 color = lerp(float3(0.014f, 0.042f, 0.13f), float3(0.81f, 0.87f, 0.94f), light);
             color += float3(0.18f, 0.13f, 0.06f) * pow(sunFacing, 12.0f) * illumination;
-            color = lerp(color, sky, 1.0f - exp(-t * 0.00024f));
+            color = lerp(color, sky, 1.0f - exp(-t * 0.00013f));
             float alpha = 1.0f - exp(-density * stepSize * 0.047f);
             cloud += color * (alpha * transmittance);
             transmittance *= 1.0f - alpha;

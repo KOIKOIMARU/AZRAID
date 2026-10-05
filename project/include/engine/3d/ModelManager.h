@@ -43,6 +43,13 @@ public:
         float outerRadius,
         float innerRadius,
         const std::string& textureFilePath);
+    void CreateArc(
+        const std::string& name,
+        uint32_t divideCount,
+        float outerRadius,
+        float width,
+        float arcRadians,
+        const std::string& textureFilePath);
     void CreateSphere(
         const std::string& name,
         uint32_t latDivideCount,

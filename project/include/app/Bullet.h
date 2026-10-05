@@ -34,7 +34,17 @@ public:
         int damage = 8);
     void Update(float timeScale = 1.0f);
     void Draw();
-    void DrawGlow(const Math::Vector3& cameraRotate);
+    void DrawGlow(const Math::Matrix4x4& cameraWorld);
+    struct TrailVisual {
+        Math::Vector3 center{};
+        Math::Vector3 rotate{};
+        float length = 0.0f;
+    };
+    // 射影後の頭と尾を結ぶ。正面方向の弾に架空の縦長の軌跡を付けない。
+    static TrailVisual CalculateTrailVisual(const Math::Vector3& position,
+        const Math::Vector3& velocity, float distance, const Math::Matrix4x4& cameraWorld);
+    static Math::Vector3 CalculateBodyRotation(const Math::Vector3& velocity);
+    static Math::Vector3 CalculateBillboardRotation(const Math::Matrix4x4& cameraWorld, float roll);
 
     bool IsDead() const { return isDead_; }
     void Kill() { isDead_ = true; }
@@ -56,6 +66,9 @@ private:
     std::unique_ptr<Object3d> glowObject_;
     std::unique_ptr<Object3d> trailObject_;
     std::array<std::unique_ptr<Object3d>, 2> sparkleObjects_;
+    bool glowEnabled_ = false;
+    bool trailEnabled_ = false;
+    bool sparkleEnabled_ = false;
     Math::Vector3 startTranslate_{};
     Math::Vector3 translate_{};
     Math::Vector3 velocity_{ 0.0f, 0.0f, 0.5f };
