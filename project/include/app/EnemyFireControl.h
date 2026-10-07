@@ -12,6 +12,7 @@ struct Pattern {
     float interval = 12.0f; // 同じ連射内の弾間隔。
     float recovery = 86.0f; // 撃ち終わってから次に構えるまで。
     int shots = 3; // 一回の構えから撃つ回数。扇状弾の本数とは別。
+    float aimLockLead = 8.0f; // 初弾の何フレーム前に横・縦の照準を固定するか。
 };
 
 enum class Event { None, Aim, Fire };
@@ -34,6 +35,7 @@ public:
         if (phase_ == Phase::Idle) {
             phase_ = Phase::Windup;
             remaining_ = windup_ = pattern.windup;
+            aimLockLead_ = std::clamp(pattern.aimLockLead, 0.0f, windup_);
             shotIndex_ = 0;
             ++volleyIndex_;
             return Event::Aim;
@@ -62,7 +64,7 @@ public:
         return phase_ == Phase::Windup ?
             std::clamp(1.0f - remaining_ / (std::max)(windup_, 1.0f), 0.0f, 1.0f) : 0.0f;
     }
-    bool IsTracking() const { return phase_ == Phase::Windup && remaining_ > 8.0f; }
+    bool IsTracking() const { return phase_ == Phase::Windup && remaining_ > aimLockLead_; }
     bool IsBraced() const { return phase_ == Phase::Windup || phase_ == Phase::Burst; }
     float ShotFlash() const { return shotFlash_ / 8.0f; }
     float RecoveryElapsed() const { return phase_ == Phase::Recovery ? recoveryElapsed_ : -1.0f; }
@@ -75,6 +77,7 @@ private:
     Phase phase_ = Phase::Idle;
     float remaining_ = 0.0f;
     float windup_ = 1.0f;
+    float aimLockLead_ = 8.0f;
     float shotFlash_ = 0.0f; // 発射直後の反動と銃口光を同じ時計で動かす。
     float recoveryElapsed_ = 0.0f; // 撃ち終わりの隙の経過時間。
     int shotIndex_ = 0;

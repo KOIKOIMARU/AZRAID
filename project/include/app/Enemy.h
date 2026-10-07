@@ -72,6 +72,11 @@ public:
     bool IsBoss() const { return behavior_ == Behavior::Boss; }
     bool IsCrossfire() const { return behavior_ == Behavior::Crossfire; }
     bool IsSniper() const { return behavior_ == Behavior::Sniper; }
+    // 二射後、反動が収まってから姿勢を戻すまでがチャージ直撃の反撃機会。
+    bool IsChargeCounterOpen() const {
+        const float recovery = fireControl_.RecoveryElapsed();
+        return IsSniper() && CanShoot() && recovery >= 8.0f && recovery < 66.0f;
+    }
     bool IsShield() const { return behavior_ == Behavior::Shield; }
     bool IsSupport() const { return behavior_ == Behavior::Support; }
     bool HasShield() const { return shieldHp_ > 0; }

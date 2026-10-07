@@ -198,7 +198,7 @@ void GameRuntime::DrawTutorialGuideHud()
     char stage[32]{};
     std::snprintf(stage, sizeof(stage), "%02d / 06", lesson + 1);
     CombatHud::Number(draw, p(476, 17), 23 * s, CombatHud::Muted, stage, true);
-    CombatHud::Readout(draw, p(22, 17), 24 * s, accent, success ? "クリア" : kLessonNames[lesson]);
+    CombatHud::Heading(draw, p(22, 17), 24 * s, accent, success ? "クリア" : kLessonNames[lesson]);
     char progress[128]{};
     const char* action = "W A S D で、輪の位置へ機体を動かす";
     switch (tutorial_.lesson) {
@@ -265,20 +265,24 @@ void GameRuntime::DrawTutorialResult()
     Math::Vector2 min{}, size{};
     GetEffectiveHudViewportRect(min, size);
     const float s = CombatHud::Scale(size);
-    const ImVec2 origin{ min.x + (size.x - 740 * s) * 0.5f, min.y + (size.y - 410 * s) * 0.5f };
+    const ImVec2 origin{ min.x + (size.x - 1280 * s) * 0.5f, min.y + (size.y - 720 * s) * 0.5f };
     const auto p = [&](float x, float y) { return ImVec2(origin.x + x * s, origin.y + y * s); };
     auto* draw = ImGui::GetForegroundDrawList();
-    draw->AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y }, IM_COL32(0, 0, 0, 170));
-    MenuUi::Sheet(draw, origin, p(740, 410), s);
-    MenuUi::Text(draw, p(40, 34), 32 * s, MenuUi::Paper, "チュートリアル完了");
-    MenuUi::Text(draw, p(40, 83), 18 * s, MenuUi::Quiet, "準備完了。次は本番へ。");
+    draw->PushClipRect({ min.x, min.y }, { min.x + size.x, min.y + size.y }, true);
+    draw->AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y },
+        CombatHud::SurfaceColor(MenuUi::CanvasPaper));
+    draw->AddQuadFilled(p(986, -200), p(1500, -200), p(1500, 920), p(782, 920),
+        CombatHud::SurfaceColor(MenuUi::Ink));
+    MenuUi::Brand(draw, p(64, 36), 24 * s, MenuUi::Ink);
+    CombatHud::Slant(draw, p(42, 108), 150 * s, MenuUi::Ink, "READY", false, false);
+    MenuUi::Text(draw, p(64, 262), 27 * s, MenuUi::Ink, "チュートリアル完了");
     // 練習に順位や失敗回数の採点は不要。体験できた操作だけを振り返る。
     for (int index = 0; index < 6; ++index) {
-        const float x = 44.0f + static_cast<float>(index / 3) * 338.0f;
-        const float y = 151.0f + static_cast<float>(index % 3) * 49.0f;
+        const float x = 64.0f + static_cast<float>(index / 3) * 330.0f;
+        const float y = 376.0f + static_cast<float>(index % 3) * 68.0f;
         draw->AddLine(p(x, y + 10), p(x + 5, y + 15), CombatHud::SurfaceColor(CombatHud::Health), 2 * s);
         draw->AddLine(p(x + 5, y + 15), p(x + 15, y + 3), CombatHud::SurfaceColor(CombatHud::Health), 2 * s);
-        MenuUi::Text(draw, p(x + 30, y), 19 * s, MenuUi::Paper, kLessonNames[index]);
+        MenuUi::Text(draw, p(x + 30, y), 24 * s, MenuUi::Ink, kLessonNames[index]);
     }
     if (MenuUi::Pressed(input_, DIK_LEFT) || MenuUi::Pressed(input_, DIK_A) ||
         MenuUi::Pressed(input_, DIK_UP) || MenuUi::Pressed(input_, DIK_W)) {
@@ -291,14 +295,14 @@ void GameRuntime::DrawTutorialResult()
     const bool confirm = MenuUi::Pressed(input_, DIK_RETURN);
     const int confirmed = resultSelectedItem_;
     ImGui::SetNextWindowPos(origin);
-    ImGui::SetNextWindowSize({ 740 * s, 410 * s });
+    ImGui::SetNextWindowSize({ 1280 * s, 720 * s });
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("##TutorialResult", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav);
     const char* labels[]{ "本編へ", "もう一度", "タイトルへ" };
     for (int index = 0; index < 3; ++index) {
-        const bool clicked = MenuUi::Button(draw, labels[index], labels[index], p(40 + index * 228.0f, 326),
-            { 204 * s, 48 * s }, s, resultSelectedItem_ == index, false);
+        const bool clicked = MenuUi::FlightAction(draw, labels[index], labels[index],
+            p(950 - index * 18.0f, 254 + index * 100.0f), { 290 * s, 64 * s }, s, resultSelectedItem_ == index);
         MenuUi::SelectHovered(resultSelectedItem_, index);
         if (clicked || (confirm && confirmed == index)) {
             if (index == 0) { isMainGameRequested_ = true; }
@@ -309,6 +313,7 @@ void GameRuntime::DrawTutorialResult()
     }
     ImGui::End();
     ImGui::PopStyleVar();
+    draw->PopClipRect();
 }
 
 #ifdef _DEBUG

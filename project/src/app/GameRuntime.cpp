@@ -161,9 +161,10 @@ constexpr float kStageClearDistance = 365.0f;
 constexpr float kBossWarningDistance = 300.0f;
 constexpr float kBossSpawnDistance = 330.0f;
 constexpr float kStageTimelineCruiseSpeed = 0.090f;
-constexpr int kStageEncounterBreatherFrames = 84;
-constexpr float kEmptyEncounterMaxFrames = 60.0f;
-constexpr float kEmptyBossApproachMaxFrames = 120.0f;
+constexpr float kStageOpeningFrames = 36.0f;
+constexpr float kStageHandoffFrames = 24.0f;
+constexpr float kEmptyEncounterMaxFrames = 12.0f;
+constexpr float kEmptyBossApproachMaxFrames = 36.0f;
 constexpr float kStageEncounterGroupingDistance = 10.5f;
 constexpr int kBossWarningDuration = 150;
 constexpr int kBossIntroDuration = 72;
@@ -177,8 +178,9 @@ int BossWindupDuration(int pattern, int phase)
     return phase >= 2 ? enraged[std::clamp(pattern, 0, 2)] : normal[std::clamp(pattern, 0, 2)];
 }
 constexpr int kBossMaxHp = 52;
-constexpr int kMaxActiveStageEnemiesBeforeBoss = 7;
-constexpr int kMaxStageEnemyEventsPerFrame = 2;
+constexpr int kMaxActiveStageEnemiesBeforeBoss = 5;
+constexpr int kMaxStageEnemyPressure = 2;
+constexpr int kMaxStageEnemyEventsPerFrame = 4;
 constexpr float kJustDodgeGrazePadding = 1.25f;
 constexpr float kJustDodgeRailSlowScale = 0.28f;
 constexpr int kJustDodgeChargeBonus = 24;
@@ -194,7 +196,7 @@ constexpr int kFeverDurationFrames = 600;
 constexpr int kFeverActivationFlashFrames = 90;
 constexpr int kFeverRapidShotCooldown = 8;
 constexpr int kFeverScoreMultiplier = 3;
-constexpr int kFeverEncounterBreatherFrames = 18;
+constexpr float kFeverStageHandoffFrames = 16.0f;
 constexpr float kFeverRailSpeedMultiplier = 2.15f;
 constexpr float kFeverRailAccelerationResponse = 0.15f;
 constexpr int kDefeatChainDurationFrames = 210;
@@ -295,34 +297,70 @@ constexpr StageEnemySpawnEvent kStageEnemySpawnEvents[] = {
     {  16.0f,  2.7f,  0.2f, 42.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.020f,  4,  4, 1.08f, "Opening pair" },
     {  28.0f,  0.0f,  1.4f, 50.0f, Enemy::Behavior::DiveBomber,    Enemy::EntryStyle::Direct,     0.030f,  7,  5, 1.08f, "Crossing assault" },
     {  32.0f,  5.1f,  1.2f, 48.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::RightSweep, 0.032f,  6,  5, 1.08f, "Crossing assault" },
+    {  40.0f, -2.6f, -0.4f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Avenue pursuit" },
+    {  40.0f,  0.0f,  0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Avenue pursuit" },
+    {  48.0f,  2.2f,  1.0f, 48.0f, Enemy::Behavior::DiveBomber, Enemy::EntryStyle::RightSweep, 0.000f, 0, 5, 1.08f, "Roof dive" },
+    {  48.0f, -2.2f, -0.3f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Roof dive" },
     {  58.0f, -5.1f,  0.7f, 48.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::LeftSweep,  0.032f,  6,  5, 1.08f, "Cross sweep" },
+    {  66.0f, -2.6f,  0.0f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Wing lead-in" },
+    {  66.0f,  0.0f,  1.0f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Wing lead-in" },
     // 手前の三機を一掃するか、奥の狙撃機を先に処理するかを選べる組み合わせ。
     {  78.0f, -4.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.022f, 5, 3, 1.00f, "Sniper wing" },
     {  78.0f, -2.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 3, 1.00f, "Sniper wing" },
     {  78.0f,  0.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 3, 1.00f, "Sniper wing" },
     {  78.0f,  5.3f,  2.0f, 48.0f, Enemy::Behavior::Sniper,    Enemy::EntryStyle::PopShooter,    0.000f, 0, 6, 1.18f, "Sniper wing" },
+    {  90.0f,  3.6f,  0.6f, 48.0f, Enemy::Behavior::Swoop, Enemy::EntryStyle::RightSweep, 0.000f, 0, 5, 1.08f, "Wing follow-through" },
+    {  90.0f, -2.6f, -0.3f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Wing follow-through" },
+    { 100.0f,  0.0f,  0.9f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Climb pursuit" },
+    { 100.0f,  2.6f, -0.1f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Climb pursuit" },
     { 112.0f,  4.6f,  1.6f, 54.0f, Enemy::Behavior::DiveBomber,    Enemy::EntryStyle::RightSweep, 0.036f,  8,  5, 1.12f, "High dive" },
     { 124.0f, -2.9f, -0.4f, 44.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.024f,  5,  5, 1.12f, "Guard pair" },
     { 128.0f,  2.9f, -0.2f, 44.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.024f,  5,  5, 1.12f, "Guard pair" },
+    { 136.0f, -2.6f,  0.4f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Guard follow-through" },
+    { 136.0f,  0.0f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Guard follow-through" },
     { 148.0f, -4.6f,  1.5f, 54.0f, Enemy::Behavior::DiveBomber,    Enemy::EntryStyle::LeftSweep,  0.036f,  8,  5, 1.12f, "High dive" },
+    { 152.0f,  2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Shield escort" },
+    { 152.0f, -2.6f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Shield escort" },
     { 160.0f,  0.0f,  1.45f, 54.0f, Enemy::Behavior::Shield,        Enemy::EntryStyle::Direct,     0.070f, 14, 11, 1.24f, "Shield wall" },
     { 174.0f, -5.4f,  0.55f, 52.0f, Enemy::Behavior::Crossfire,     Enemy::EntryStyle::LeftSweep,  0.048f,  9,  6, 1.12f, "Crossfire pair" },
     { 174.0f,  5.4f,  1.15f, 52.0f, Enemy::Behavior::Crossfire,     Enemy::EntryStyle::RightSweep, 0.048f,  9,  6, 1.12f, "Crossfire pair" },
+    { 182.0f,  0.0f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Crossfire opening" },
+    { 182.0f,  2.6f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Crossfire opening" },
     { 188.0f, -4.9f,  1.0f, 52.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::LeftSweep,  0.038f,  7,  5, 1.14f, "High-speed pass" },
+    { 194.0f,  2.4f,  1.3f, 48.0f, Enemy::Behavior::DiveBomber, Enemy::EntryStyle::RightSweep, 0.000f, 0, 5, 1.08f, "Dive pursuit" },
+    { 194.0f, -2.4f, -0.3f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Dive pursuit" },
     { 202.0f,  4.9f,  1.0f, 52.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::RightSweep, 0.038f,  7,  5, 1.14f, "High-speed pass" },
+    { 208.0f, -2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Break lead-in" },
+    { 208.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Break lead-in" },
     { 214.0f,  0.0f,  1.0f, 50.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.030f,  6,  5, 1.18f, "Break formation" },
+    { 220.0f,  2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Crossfire lead-in" },
+    { 220.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Crossfire lead-in" },
     { 228.0f, -3.8f,  0.6f, 48.0f, Enemy::Behavior::StrafeShooter, Enemy::EntryStyle::PopShooter, 0.040f,  8,  7, 1.18f, "Final crossfire" },
     { 234.0f,  3.8f,  0.6f, 48.0f, Enemy::Behavior::StrafeShooter, Enemy::EntryStyle::PopShooter, 0.040f,  8,  7, 1.18f, "Final crossfire" },
+    { 242.0f, -2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Final pursuit" },
+    { 242.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Final pursuit" },
+    { 250.0f,  4.6f,  1.0f, 48.0f, Enemy::Behavior::Swoop, Enemy::EntryStyle::RightSweep, 0.000f, 0, 5, 1.08f, "Support lead-in" },
+    { 250.0f, -2.6f, -0.4f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Support lead-in" },
     { 258.0f,  0.0f,  1.9f, 48.0f, Enemy::Behavior::Support,       Enemy::EntryStyle::Direct,     0.050f, 10,  8, 1.16f, "Support gate" },
     { 258.0f, -2.9f, -0.5f, 44.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.030f,  6,  5, 1.16f, "Support gate" },
     { 258.0f,  2.9f, -0.5f, 44.0f, Enemy::Behavior::Formation,     Enemy::EntryStyle::VFormation, 0.030f,  6,  5, 1.16f, "Support gate" },
+    { 266.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Reprise lead-in" },
+    { 266.0f,  2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Reprise lead-in" },
     // 終盤は左右を入れ替えて再登場。初見と同じ構え・攻撃なので学んだ対処を使える。
     { 274.0f,  4.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.030f, 6, 3, 1.00f, "Sniper wing reprise" },
     { 274.0f,  2.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 3, 1.00f, "Sniper wing reprise" },
     { 274.0f, -0.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 3, 1.00f, "Sniper wing reprise" },
     { 274.0f, -5.3f,  2.0f, 48.0f, Enemy::Behavior::Sniper,    Enemy::EntryStyle::PopShooter,    0.000f, 0, 6, 1.18f, "Sniper wing reprise" },
+    { 282.0f, -2.6f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss screen lead-in" },
+    { 282.0f,  0.0f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss screen lead-in" },
     { 286.0f, -5.2f,  1.2f, 54.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::LeftSweep,  0.034f,  7,  5, 1.12f, "Boss screen" },
-    { 296.0f,  5.2f,  1.2f, 54.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::RightSweep, 0.034f,  7,  5, 1.12f, "Boss screen" }
+    { 296.0f,  5.2f,  1.2f, 54.0f, Enemy::Behavior::Swoop,         Enemy::EntryStyle::RightSweep, 0.034f,  7,  5, 1.12f, "Boss screen" },
+    { 304.0f, -2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss approach pursuit" },
+    { 304.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss approach pursuit" },
+    { 316.0f,  2.6f,  1.2f, 48.0f, Enemy::Behavior::DiveBomber, Enemy::EntryStyle::RightSweep, 0.000f, 0, 5, 1.08f, "Last dive" },
+    { 316.0f, -2.6f, -0.3f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::VFormation, 0.000f, 0, 4, 1.00f, "Last dive" },
+    { 324.0f,  0.0f,  0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss escort" },
+    { 324.0f,  2.6f, -0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Boss escort" }
 };
 
 template <size_t Count>
@@ -344,6 +382,32 @@ std::span<const StageEnemySpawnEvent> GetEnemySchedule(bool isTutorial)
 {
     return isTutorial ? std::span<const StageEnemySpawnEvent>{} :
         std::span<const StageEnemySpawnEvent>(kStageEnemySpawnEvents);
+}
+
+constexpr int StageEnemyPressure(Enemy::Behavior behavior)
+{
+    switch (behavior) {
+    case Enemy::Behavior::Sniper:
+    case Enemy::Behavior::Shield:
+    case Enemy::Behavior::Support:
+        return 2; // 明確に対処する主役は一機に絞る。
+    case Enemy::Behavior::Crossfire:
+    case Enemy::Behavior::StrafeShooter:
+        return 1; // 左右の一組は一緒に出す。
+    default:
+        return 0;
+    }
+}
+
+size_t StageEnemyGroupEnd(std::span<const StageEnemySpawnEvent> events, size_t first)
+{
+    size_t end = first + 1;
+    while (end < events.size() &&
+        std::string_view(events[end].beatName) == std::string_view(events[first].beatName) &&
+        events[end].distance - events[first].distance <= kStageEncounterGroupingDistance) {
+        ++end;
+    }
+    return end;
 }
 
 constexpr EnemySpawnPattern kWaveOnePatterns[] = {
@@ -510,21 +574,9 @@ void DrawCombatHudText(
     bool alignRight = false,
     bool number = false)
 {
-    (void)number; // 戦闘中は数字も和文と同じ書体にする。
+    (void)number; // 和文の行と短い英数字を共通部品で判別する。
     CombatHud::Readout(drawList, position, fontSize, color, text, alignRight);
 }
-
-// 枠を使わず、明るい背景でも数字を読める程度の局所的な下地だけを敷く。
-void DrawCombatHudShade(ImDrawList* drawList, const ImVec2& min, const ImVec2& max, bool alignRight)
-{
-    const ImU32 dark = IM_COL32(12, 13, 14, 164);
-    const ImU32 clear = IM_COL32(12, 13, 14, 0);
-    drawList->AddRectFilledMultiColor(min, max,
-        alignRight ? clear : dark, alignRight ? dark : clear,
-        alignRight ? IM_COL32(12, 13, 14, 40) : clear,
-        alignRight ? clear : IM_COL32(12, 13, 14, 40));
-}
-
 
 } // namespace
 
@@ -821,6 +873,8 @@ void GameRuntime::Initialize(PlayMode mode)
     showControlsHelp_ = false;
     isPaused_ = false;
     pauseSelectedItem_ = resultSelectedItem_ = 0;
+    pauseUiStarted_ = resultUiStarted_ = -1.0;
+    resultUiKind_ = 0;
     resultSoundPlayed_ = false;
     isGameClear_ = false;
     isGameOver_ = false;
@@ -877,8 +931,7 @@ void GameRuntime::Initialize(PlayMode mode)
     flightCameraMotion_.previousSpeed = railSpeed_;
     stageProgress_ = 0.0f;
     stageTimelineSpeed_ = 0.0f;
-    stageTimelineWasBlocked_ = false;
-    stageEncounterBreatherTimer_ = 0;
+    stageHandoffFrames_ = 0.0f;
     stageEmptyFrames_ = 0.0f;
     stageCameraYawBias_ = 0.0f;
     stageCameraRollBias_ = 0.0f;
@@ -889,6 +942,7 @@ void GameRuntime::Initialize(PlayMode mode)
     nextPlayerExhaustParticleIndex_ = 0;
     stageSectionName_ = "Opening";
     stageCombatBeatName_ = "Intro";
+    ResetCombatRadio();
     stageRailEventTriggered_.fill(false);
     stageEnemyEventTriggered_.assign(GetEnemySchedule(IsTutorial()).size(), false);
     shootCooldown_ = 0;
@@ -1029,6 +1083,11 @@ void GameRuntime::Initialize(PlayMode mode)
     InitializeContactShadows();
     InitializePhantomRaid();
     InitializeRifts();
+    InitializeResultPresentation();
+
+    // タイトルの裂け目から、進行・入力を動かさず開始位置を描ける状態にする。
+    player_->SetRailZ(railDistance_);
+    UpdateRailScenery();
 
     musicLevels_.fill(0.0f);
     musicTrack_ = -1;
@@ -1123,6 +1182,9 @@ void GameRuntime::Finalize()
     railSceneryObjects_.clear();
     depthCueEffects_.clear();
     player_.reset();
+    for (auto& exhaust : resultExhaust_) { exhaust.reset(); }
+    resultShip_.reset();
+    resultCamera_.reset();
     camera_.reset();
     skybox_.reset();
     object3dCommon_.reset();
@@ -1200,6 +1262,7 @@ void GameRuntime::Update()
     }
 
     const Math::Vector3 previousRiftPlayerPosition = player_ ? player_->GetTranslate() : Math::Vector3{};
+    UpdateCombatRadio(dxCommon_ ? dxCommon_->GetDeltaTime() : 1.0f / 60.0f);
     UpdateRailProgress();
     UpdatePlayerAndCamera();
     UpdateFever();
@@ -1338,6 +1401,7 @@ void GameRuntime::UpdateStageDirector()
         bossWarningTriggered_ = true;
         bossWarningTimer_ = kBossWarningDuration;
         stageCombatBeatName_ = "WARNING";
+        RequestCombatRadio(CombatRadioCue::Boss);
         AddCameraShake(0.13f, 28);
     }
 }
@@ -1367,67 +1431,51 @@ void GameRuntime::UpdateRailProgress()
             }
         }
 
-        const StageEnemySpawnEvent* nextEnemyEvent = nullptr;
         const auto enemyEvents = GetEnemySchedule(IsTutorial());
         const size_t eventCount =
             (std::min)(stageEnemyEventTriggered_.size(), enemyEvents.size());
+        size_t nextEventIndex = eventCount;
         for (size_t index = 0; index < eventCount; ++index) {
             if (!stageEnemyEventTriggered_[index]) {
-                nextEnemyEvent = &enemyEvents[index];
+                nextEventIndex = index;
                 break;
             }
         }
-
-        const bool nextEventContinuesCurrentEncounter =
-            nextEnemyEvent != nullptr &&
-            std::string_view(nextEnemyEvent->beatName) ==
-                std::string_view(stageCombatBeatName_ ? stageCombatBeatName_ : "Intro") &&
-            nextEnemyEvent->distance - stageProgress_ <=
-                kStageEncounterGroupingDistance;
-        const bool currentEncounterFullyScheduled =
-            !nextEventContinuesCurrentEncounter;
-        const bool timelineBlocked =
-            activeStageEnemyCount > 0 && currentEncounterFullyScheduled;
+        const bool hasNextEnemy = nextEventIndex < eventCount;
+        const bool canAdmitNext = hasNextEnemy ? CanSpawnStageEnemyGroup(nextEventIndex) :
+            activeStageEnemyCount == 0;
+        const float destination = hasNextEnemy ? enemyEvents[nextEventIndex].distance : kBossSpawnDistance;
 
         if (activeStageEnemyCount > 0 || bossSpawned_) { stageEmptyFrames_ = 0.0f; }
         else { stageEmptyFrames_ += worldTimeScale; }
 
-        if (stageTimelineWasBlocked_ && !timelineBlocked &&
-            activeStageEnemyCount == 0) {
-            stageEncounterBreatherTimer_ = feverTimer_ > 0 ?
-                kFeverEncounterBreatherFrames : (IsTutorial() ? kStageEncounterBreatherFrames : 36);
+        if (!bossSpawned_ && canAdmitNext && activeStageEnemyCount <= 1) {
+            stageHandoffFrames_ += worldTimeScale;
+        } else {
+            stageHandoffFrames_ = 0.0f;
         }
-        stageTimelineWasBlocked_ = timelineBlocked;
 
-        if (bossSpawned_ || timelineBlocked) {
+        if (bossSpawned_) {
             stageTimelineSpeed_ = 0.0f;
         } else {
-            // 編隊間の移動と息継ぎを並行させ、撃破後の二重待ちをなくす。
-            // フィーバーでも敵が残っている間は進行を止め、倒す機会を奪わない。
+            // 次の編隊の境界まで進み続ける。全滅待ちはせず、密度が上限の時だけ入場を待つ。
             stageTimelineSpeed_ = kStageTimelineCruiseSpeed *
                 (feverTimer_ > 0 ? kFeverRailSpeedMultiplier : 1.0f);
-            if (!IsTutorial() && activeStageEnemyCount == 0 &&
-                std::any_of(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), [](bool v) { return v; })) {
-                // 背景や自機の速度は変えず、敵の配置タイムラインだけを詰める。
-                // 次の一件までしか進めないので、編隊の順序・数・戦闘中の滞在時間は維持する。
-                const float destination = nextEnemyEvent ? nextEnemyEvent->distance : kBossSpawnDistance;
-                const float deadline = nextEnemyEvent ? kEmptyEncounterMaxFrames : kEmptyBossApproachMaxFrames;
-                const float remainingFrames = (std::max)(1.0f, deadline - stageEmptyFrames_);
+            if (canAdmitNext && activeStageEnemyCount <= 1) {
+                const float deadline = !hasNextEnemy ? kEmptyBossApproachMaxFrames :
+                    nextEventIndex == 0 ? kStageOpeningFrames :
+                    activeStageEnemyCount == 0 ? kEmptyEncounterMaxFrames :
+                    feverTimer_ > 0 ? kFeverStageHandoffFrames : kStageHandoffFrames;
+                const float remainingFrames = (std::max)(1.0f, deadline - stageHandoffFrames_);
                 stageTimelineSpeed_ = (std::max)(stageTimelineSpeed_,
-                    (destination - stageProgress_) / remainingFrames);
-            }
-            if (stageEncounterBreatherTimer_ > 0) {
-                --stageEncounterBreatherTimer_;
+                    (std::max)(0.0f, destination - stageProgress_) / remainingFrames);
             }
         }
         float nextProgress = stageProgress_ + stageTimelineSpeed_ * worldTimeScale;
-        if (!IsTutorial() && activeStageEnemyCount == 0 && nextEnemyEvent) {
-            nextProgress = (std::min)(nextProgress, nextEnemyEvent->distance);
-        }
-        if (stageEncounterBreatherTimer_ > 0 && nextEnemyEvent) {
-            // 最短の息継ぎ時間を確保する。出現境界を越えないだけで配置は飛ばさない。
-            nextProgress = (std::min)(nextProgress,
-                (std::max)(stageProgress_, nextEnemyEvent->distance - 0.001f));
+        if (!bossSpawned_) {
+            // 一度に次の出現境界だけを越える。空き待ち中に後続やボスへ飛ばない。
+            const float limit = canAdmitNext ? destination : destination - 0.001f;
+            nextProgress = (std::min)(nextProgress, (std::max)(stageProgress_, limit));
         }
         stageProgress_ = nextProgress;
     }
@@ -1535,8 +1583,6 @@ void GameRuntime::ActivateFever()
     feverActivationFlashTimer_ = kFeverActivationFlashFrames;
     chargeTimer_ = kChargeShotMax;
     chargeFlashTimer_ = (std::max)(chargeFlashTimer_, 30);
-    stageEncounterBreatherTimer_ =
-        (std::min)(stageEncounterBreatherTimer_, kFeverEncounterBreatherFrames);
     if (player_) {
         const Math::Vector3 playerPosition = player_->GetTranslate();
         AddPlayerDodgeGrazeEffect(playerPosition);
@@ -1649,6 +1695,7 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
     enemies_.clear();
     ResetPhantomRaid();
     ResetRifts();
+    ResetCombatRadio();
 
     while (!playerBullets_.empty()) {
         playerBulletPool_.push_back(std::move(playerBullets_.front()));
@@ -1667,8 +1714,7 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
     sceneryCanyonStartZ_ = targetProgress >= 104.0f ? railDistance_ - 600.0f : kDefenseStartWorldZ;
     sceneryPlazaStartZ_ = targetProgress >= 230.0f ? railDistance_ - 400.0f : kPlazaStartWorldZ;
     stageTimelineSpeed_ = 0.0f;
-    stageTimelineWasBlocked_ = false;
-    stageEncounterBreatherTimer_ = 0;
+    stageHandoffFrames_ = 0.0f;
     stageEmptyFrames_ = 0.0f;
     currentWaveIndex_ = targetProgress < 104.0f ? 0 : (targetProgress < 230.0f ? 1 : 2);
     spawnedEnemyCountInWave_ = 0;
@@ -1775,7 +1821,7 @@ void GameRuntime::UpdateEnemyAttackPatterns(bool hasSupportDrone)
             }
             break;
         case Enemy::Behavior::Sniper:
-            pattern = { 60.0f, 18.0f, enemyShotInterval_ * 2.0f, 2 };
+            pattern = { 60.0f, 18.0f, enemyShotInterval_ * 2.0f, 2, 22.0f };
             leadFrames = 22.0f;
             break;
         case Enemy::Behavior::Shield:
@@ -1871,6 +1917,7 @@ void GameRuntime::UpdateBossActions()
         bossAttackStep_ = -1;
         bossCounterTimer_ = 0;
         stageCombatBeatName_ = "Boss phase 2";
+        RequestCombatRadio(CombatRadioCue::BossPhase);
 
         while (!enemyBullets_.empty()) {
             justDodgedEnemyBullets_.erase(enemyBullets_.front().get());
@@ -2117,6 +2164,7 @@ int GameRuntime::GetPlayerHp() const
 const Math::Matrix4x4& GameRuntime::GetProjectionMatrix() const
 {
     static const Math::Matrix4x4 kIdentity = Math::MakeIdentity4x4();
+    if (HasResultPresentation()) { return resultCamera_->GetProjectionMatrix(); }
     return camera_ ? camera_->GetProjectionMatrix() : kIdentity;
 }
 
@@ -3443,6 +3491,10 @@ bool GameRuntime::LoadSceneObjects(const char* path)
 
 void GameRuntime::Draw()
 {
+    if (HasResultPresentation()) {
+        DrawResultPresentation();
+        return;
+    }
     if (dxCommon_ && camera_ && player_ && !IsTutorial()) {
         Math::Vector2 viewportMin{}, viewportSize{};
         GetEffectiveHudViewportRect(viewportMin, viewportSize);
@@ -4036,6 +4088,7 @@ void GameRuntime::SpawnStageEnemy(
     enemies_.push_back(std::move(enemy));
     ++spawnSequenceIndex_;
     ++spawnedEnemyCountInWave_;
+    if (behavior == Enemy::Behavior::Sniper) { RequestCombatRadio(CombatRadioCue::Sniper); }
 }
 
 Model* GameRuntime::GetEnemyModelForBehavior(Enemy::Behavior behavior) const
@@ -4127,7 +4180,31 @@ void GameRuntime::SpawnBossEnemy()
     bossCounterTimer_ = 0;
     bossCounterDuration_ = 1;
     stageCombatBeatName_ = "Boss";
+    RequestCombatRadio(CombatRadioCue::Boss); // 接近時に受信済みなら、入場時には繰り返さない。
     AddCameraShake(0.18f, 36);
+}
+
+bool GameRuntime::CanSpawnStageEnemyGroup(size_t eventIndex) const
+{
+    const auto events = GetEnemySchedule(IsTutorial());
+    if (eventIndex >= events.size()) { return false; }
+    int count = 0;
+    int pressure = 0;
+    for (const auto& enemy : enemies_) {
+        if (enemy && !enemy->IsDead() && !enemy->IsBoss()) {
+            ++count;
+            pressure += StageEnemyPressure(enemy->GetBehavior());
+        }
+    }
+    // 編隊の残り全機を予約する。狙撃編隊や左右挟撃を空き一枠だけで分断しない。
+    const size_t end = StageEnemyGroupEnd(events, eventIndex);
+    for (size_t index = eventIndex; index < end; ++index) {
+        if (!stageEnemyEventTriggered_[index]) {
+            ++count;
+            pressure += StageEnemyPressure(events[index].behavior);
+        }
+    }
+    return count <= kMaxActiveStageEnemiesBeforeBoss && pressure <= kMaxStageEnemyPressure;
 }
 
 void GameRuntime::UpdateStageEnemyEvents()
@@ -4143,12 +4220,6 @@ void GameRuntime::UpdateStageEnemyEvents()
     const auto enemyEvents = GetEnemySchedule(IsTutorial());
     const size_t eventCount =
         (std::min)(stageEnemyEventTriggered_.size(), enemyEvents.size());
-    int activeStageEnemyCount = 0;
-    for (const auto& enemy : enemies_) {
-        if (enemy && !enemy->IsDead() && !enemy->IsBoss()) {
-            ++activeStageEnemyCount;
-        }
-    }
     int spawnedEventCountThisFrame = 0;
 
     for (size_t index = 0; index < eventCount; ++index) {
@@ -4157,20 +4228,7 @@ void GameRuntime::UpdateStageEnemyEvents()
             stageProgress_ < event.distance) {
             continue;
         }
-        const bool isCrossfirePairStart =
-            event.behavior == Enemy::Behavior::Crossfire &&
-            (index == 0 ||
-                enemyEvents[index - 1].behavior != Enemy::Behavior::Crossfire ||
-                enemyEvents[index - 1].distance != event.distance);
-        const bool isCrossfirePairEnd =
-            event.behavior == Enemy::Behavior::Crossfire &&
-            index > 0 &&
-            enemyEvents[index - 1].behavior == Enemy::Behavior::Crossfire &&
-            enemyEvents[index - 1].distance == event.distance &&
-            stageEnemyEventTriggered_[index - 1];
-        const int requiredSlots = isCrossfirePairStart ? 2 : 1;
-        if ((!isCrossfirePairEnd &&
-                activeStageEnemyCount + requiredSlots > kMaxActiveStageEnemiesBeforeBoss) ||
+        if (!CanSpawnStageEnemyGroup(index) ||
             spawnedEventCountThisFrame >= kMaxStageEnemyEventsPerFrame) {
             break;
         }
@@ -4185,7 +4243,7 @@ void GameRuntime::UpdateStageEnemyEvents()
             event.entryStyle,
             event.maxHpOverride,
             event.scaleMultiplier);
-        ++activeStageEnemyCount;
+        stageHandoffFrames_ = 0.0f;
         ++spawnedEventCountThisFrame;
         AddCameraShake(event.shakePower, event.shakeDuration);
     }
@@ -5850,6 +5908,7 @@ void GameRuntime::SpawnRift(const Math::Vector3& position)
             (position.z - railDistance_) / (std::max)(railSpeed_, 0.15f) + 120.0f, 120.0f, 480.0f);
         rift.active = true;
         ++riftSpawnCount_;
+        RequestCombatRadio(feverTimer_ > 0 ? CombatRadioCue::RiftFever : CombatRadioCue::Rift);
         return;
     }
 }
@@ -5884,6 +5943,7 @@ void GameRuntime::UpdateRifts(const Math::Vector3& previous, const Math::Vector3
                     AddFeverGauge(kRiftGaugeReward);
                 }
                 chargeTimer_ = kChargeShotMax;
+                chargeFlashTimer_ = (std::max)(chargeFlashTimer_, 24);
                 shootCooldown_ = (std::min)(shootCooldown_, 4); // 通過直後の攻撃へつなげる。
                 if (defeatChainCount_ > 0) { defeatChainTimer_ = kDefeatChainDurationFrames; }
                 riftNoticeTimer_ = 54;
@@ -5950,34 +6010,95 @@ void GameRuntime::DrawRiftHud()
                 { screen.x + 5.0f, screen.y + offset }, gold, 2.0f);
         }
     }
-    const RiftGate* nearest = nullptr;
-    for (const auto& rift : rifts_) {
-        if (rift.active && (!nearest || rift.position.z < nearest->position.z)) { nearest = &rift; }
+}
+
+void GameRuntime::ResetCombatRadio()
+{
+    combatRadioCue_ = CombatRadioCue::None;
+    combatRadioRemaining_ = combatRadioSilence_ = 0.0f;
+    combatRadioSeen_ = 0;
+}
+
+void GameRuntime::RequestCombatRadio(CombatRadioCue cue)
+{
+    if (cue == CombatRadioCue::None || IsTutorial() || isGameOver_ || isGameClear_) { return; }
+    const unsigned int bit = 1u << static_cast<unsigned int>(cue);
+    if (combatRadioSeen_ & bit) { return; }
+    const auto priority = [](CombatRadioCue value) {
+        return value == CombatRadioCue::BossPhase ? 4 :
+            (value == CombatRadioCue::Boss ? 3 : (value == CombatRadioCue::Sniper ? 2 : 1));
+    };
+    if (combatRadioCue_ != CombatRadioCue::None && priority(cue) <= priority(combatRadioCue_)) { return; }
+    if (combatRadioCue_ == CombatRadioCue::None && combatRadioSilence_ > 0.0f && priority(cue) < 2) { return; }
+    // 危険な通信は先に出す。後から古い説明を流す待ち行列は持たない。
+    combatRadioCue_ = cue;
+    combatRadioRemaining_ = kCombatRadioDuration;
+    combatRadioSilence_ = 0.0f;
+    combatRadioSeen_ |= bit; // 同じ情報を撃破・通過のたびに繰り返さない。
+}
+
+void GameRuntime::UpdateCombatRadio(float deltaSeconds)
+{
+    if (isPaused_) { return; }
+    if (IsTutorial() || isGameOver_ || isGameClear_) {
+        combatRadioCue_ = CombatRadioCue::None;
+        combatRadioRemaining_ = combatRadioSilence_ = 0.0f;
+        return;
     }
-    if (nearest && nearest->position.z > railDistance_ + 6.0f) {
-        auto position = nearest->position;
-        position.y -= 1.75f;
-        Math::Vector2 screen{};
-        if (TryProjectToScreen(position, screen)) {
-            const char* text = feverTimer_ > 0 ? "通過でフィーバー延長" : "通過でチャージ";
-            const float width = CombatHud::ReadoutWidth(text, 14.0f);
-            CombatHud::Readout(drawList, { screen.x - width * 0.5f, screen.y }, 14.0f, gold, text);
-        }
+    const float step = std::clamp(deltaSeconds, 0.0f, 0.1f);
+    if (combatRadioCue_ == CombatRadioCue::None) {
+        combatRadioSilence_ = (std::max)(0.0f, combatRadioSilence_ - step);
+        return;
     }
-    if (riftNoticeTimer_ > 0) {
-        Math::Vector2 min{}, size{};
-        GetEffectiveHudViewportRect(min, size);
-        char text[64]{};
-        if (riftRecoveredFrames_ > 0) {
-            std::snprintf(text, sizeof(text), "突破  +%.1f秒", static_cast<float>(riftRecoveredFrames_) / 60.0f);
-        } else {
-            std::snprintf(text, sizeof(text), "突破  チャージ獲得");
-        }
-        const int alpha = (std::min)(255, riftNoticeTimer_ * 18);
-        const float width = CombatHud::ReadoutWidth(text, 23.0f);
-        CombatHud::Readout(drawList, { min.x + size.x * 0.5f - width * 0.5f, min.y + size.y * 0.78f },
-            23.0f, IM_COL32(255, 214, 126, alpha), text);
+    combatRadioRemaining_ = (std::max)(0.0f, combatRadioRemaining_ - step);
+    if (combatRadioRemaining_ == 0.0f) {
+        combatRadioCue_ = CombatRadioCue::None;
+        combatRadioSilence_ = 2.0f;
     }
+}
+
+void GameRuntime::DrawCombatRadio()
+{
+    if (combatRadioCue_ == CombatRadioCue::None || IsTutorial() || isGameOver_ || isGameClear_) { return; }
+    const char* message = "";
+    switch (combatRadioCue_) {
+    case CombatRadioCue::Rift: message = "撃破地点にエネルギー反応。\n抜けて、次の攻撃につなげろ。"; break;
+    case CombatRadioCue::RiftFever: message = "前方の反応を使え。\n高出力を維持できる。"; break;
+    case CombatRadioCue::Sniper: message = "狙撃機を確認。\n射線に気をつけろ。"; break;
+    case CombatRadioCue::Boss: message = "前方、大型敵機を捕捉。\n接近してくる。迎撃準備。"; break;
+    case CombatRadioCue::BossPhase: message = "敵機、出力が急上昇。\n攻撃が変わる。警戒しろ。"; break;
+    default: return;
+    }
+    const float elapsed = kCombatRadioDuration - combatRadioRemaining_;
+    const float entry = std::clamp(elapsed / 0.18f, 0.0f, 1.0f);
+    const float ease = 1.0f - std::pow(1.0f - entry, 3.0f);
+    const float fade = entry * std::clamp(combatRadioRemaining_ / 0.30f, 0.0f, 1.0f);
+    const bool warning = combatRadioCue_ == CombatRadioCue::Boss || combatRadioCue_ == CombatRadioCue::BossPhase;
+    const ImU32 accent = warning ? IM_COL32(237, 100, 88, static_cast<int>(255 * fade)) :
+        IM_COL32(231, 189, 109, static_cast<int>(255 * fade));
+    Math::Vector2 min{}, size{};
+    GetEffectiveHudViewportRect(min, size);
+    const CombatHud::Layout layout(min, size);
+    const float scale = layout.scale;
+    const ImVec2 anchor{ layout.radio.x - 12.0f * (1.0f - ease) * scale, layout.radio.y };
+    const auto p = [&](float x, float y) { return ImVec2(anchor.x + x * scale, anchor.y + y * scale); };
+    auto* draw = ImGui::GetForegroundDrawList();
+    CombatHud::Wake(draw, p(-32, -8), p(390, 108));
+    draw->AddLine(p(0, 12), p(0, 34), CombatHud::SurfaceColor(accent), 2.0f * scale);
+    CombatHud::Readout(draw, p(18, 11), 12.0f * scale, accent, "管制");
+
+    // UTF-8の文字境界で受信文字を出す。固定バッファなので戦闘中の確保は増やさない。
+    std::array<char, 256> received{};
+    const int visibleCharacters = static_cast<int>((std::max)(0.0f, elapsed - 0.12f) * 32.0f);
+    size_t bytes = 0;
+    for (int count = 0; count < visibleCharacters && message[bytes] != '\0'; ++count) {
+        const unsigned char lead = static_cast<unsigned char>(message[bytes]);
+        const size_t length = lead < 0x80 ? 1u : (lead < 0xe0 ? 2u : (lead < 0xf0 ? 3u : 4u));
+        if (bytes + length >= received.size()) { break; }
+        for (size_t index = 0; index < length; ++index) { received[bytes + index] = message[bytes + index]; }
+        bytes += length;
+    }
+    CombatHud::Readout(draw, p(18, 34), 18.0f * scale, IM_COL32(239, 241, 244, static_cast<int>(255 * fade)), received.data());
 }
 
 void GameRuntime::DrawBulletEffectObjects()
@@ -7185,6 +7306,48 @@ void GameRuntime::DrawEnemyTypeTelegraphs()
             const auto& fire = enemy->GetFireControl();
             const float charge = fire.ChargeRate();
             const float flash = fire.ShotFlash();
+            const bool aimLocked = fire.IsBraced() && !fire.IsTracking();
+            // 危険な終盤だけ射線を出す。固定後の終点は横・縦へ追尾しない。
+            // レール前進による深度の変化は実際の射撃計算と揃える。
+            if (enemy->CanShoot() && fire.IsBraced() && (charge >= 0.55f || aimLocked)) {
+                Math::Vector2 muzzleScreen{}, aimScreen{};
+                Math::Vector3 muzzleWorld = enemy->GetAimPosition();
+                muzzleWorld.z -= 1.0f;
+                Math::Vector3 aimWorld = fire.aimPoint;
+                aimWorld.z = player_->GetTranslate().z;
+                aimWorld.y += 0.08f; // FireEnemyBulletの照準補正と一致させる。
+                if (TryProjectToScreen(muzzleWorld, muzzleScreen) && TryProjectToScreen(aimWorld, aimScreen)) {
+                    const ImVec2 muzzle(muzzleScreen.x, muzzleScreen.y), aim(aimScreen.x, aimScreen.y);
+                    const int alpha = aimLocked ? 205 : 95;
+                    drawList->AddLine(muzzle, aim, IM_COL32(35, 9, 21, alpha), aimLocked ? 3.0f : 2.5f);
+                    drawList->AddLine(muzzle, aim, IM_COL32(255, aimLocked ? 120 : 58, 92, alpha), 1.0f);
+                    // 自機の輪郭を覆わず、被弾位置の左右だけを短く示す。
+                    const float radius = aimLocked ? 18.0f : 23.0f;
+                    for (const float side : { -1.0f, 1.0f }) {
+                        drawList->AddLine({ aim.x + side * radius, aim.y - 7.0f },
+                            { aim.x + side * (radius - 4.0f), aim.y }, IM_COL32(255, 124, 132, alpha), 1.6f);
+                        drawList->AddLine({ aim.x + side * (radius - 4.0f), aim.y },
+                            { aim.x + side * radius, aim.y + 7.0f }, IM_COL32(255, 124, 132, alpha), 1.6f);
+                    }
+                }
+            }
+            if (enemy->IsChargeCounterOpen()) {
+                Math::Vector2 rim{};
+                const auto center = enemy->GetAimPosition();
+                if (TryProjectToScreen({ center.x + enemy->GetAimRadius(), center.y, center.z }, rim)) {
+                    const float radius = std::clamp(std::abs(rim.x - enemyScreen.x) + 8.0f, 16.0f, 42.0f);
+                    const float fade = std::clamp((66.0f - fire.RecoveryElapsed()) / 12.0f, 0.0f, 1.0f);
+                    const int alpha = static_cast<int>(240.0f * fade);
+                    // 赤い射線から金の開いた括弧へ。撃ち終わりのチャージ反撃だけを知らせる。
+                    for (const float side : { -1.0f, 1.0f }) {
+                        const ImVec2 corner(enemyScreen.x + side * radius, enemyScreen.y);
+                        drawList->AddLine({ corner.x - side * 6.0f, corner.y - 9.0f }, corner,
+                            IM_COL32(255, 218, 133, alpha), 2.2f);
+                        drawList->AddLine(corner, { corner.x - side * 6.0f, corner.y + 9.0f },
+                            IM_COL32(255, 218, 133, alpha), 2.2f);
+                    }
+                }
+            }
             if ((charge > 0.0f || flash > 0.0f) && enemy->CanShoot()) {
                 Math::Vector3 muzzleWorld = enemy->GetAimPosition();
                 muzzleWorld.z -= 1.0f; // FireEnemyBulletと同じ発射位置に付ける。照準上には描かない。
@@ -7198,8 +7361,8 @@ void GameRuntime::DrawEnemyTypeTelegraphs()
                     drawList->AddCircleFilled(muzzle, radius * 2.5f, IM_COL32(255, 76, 40, alpha / 6), 20);
                     drawList->AddCircleFilled(muzzle, radius, IM_COL32(255, 130, 70, alpha), 16);
                     drawList->AddCircleFilled(muzzle, radius * 0.42f, IM_COL32(255, 246, 220, alpha), 12);
-                    // 照準が固定された最後の瞬間だけ、短い横の閃光で発射を知らせる。
-                    if ((!fire.IsTracking() && charge > 0.0f) || flash > 0.0f) {
+                    // 照準固定を銃口の白い閃光でも知らせる。
+                    if (aimLocked || flash > 0.0f) {
                         const float width = radius * (2.8f + flash * 1.8f);
                         drawList->AddLine({ muzzle.x - width, muzzle.y }, { muzzle.x + width, muzzle.y },
                             IM_COL32(255, 228, 176, alpha), 1.5f);
@@ -7258,6 +7421,9 @@ void GameRuntime::DrawEnemyTypeTelegraphs()
 
 void GameRuntime::DrawHud()
 {
+    if (!isPaused_) { pauseUiStarted_ = -1.0; }
+    // 停止画面では機体と構図を見せる。通常計器をメニューの背後へ積み重ねない。
+    if (isPaused_) { return; }
     if (!player_ || ((isGameClear_ || isGameOver_) && resultTransitionTimer_ <= 0)) {
         return;
     }
@@ -7327,27 +7493,44 @@ void GameRuntime::DrawHud()
             clearAlertColor);
     }
 
-    const ImVec2 playerAnchor(origin.x + 24.0f * hudScale, origin.y + 24.0f * hudScale);
+    const CombatHud::Layout layout(hudMin, hudSize);
+    const ImVec2 playerAnchor = layout.health;
     const auto hpPoint = [&](float x, float y) {
         return ImVec2(playerAnchor.x + x * hudScale, playerAnchor.y + y * hudScale);
     };
     char hpText[16]{};
     std::snprintf(hpText, sizeof(hpText), "%d", hp);
     const bool critical = hpRate <= 0.34f;
-    DrawCombatHudShade(drawList, origin, hpPoint(292, 82), false);
-    CombatHud::ShipIcon(drawList, hpPoint(22, 29), hudScale,
-        critical ? CombatHud::Danger : CombatHud::White);
-    DrawCombatHudText(drawList, hpPoint(54, 0), 18.0f * hudScale, CombatHud::White, "HP");
-    CombatHud::Number(drawList, hpPoint(244, -4), 26.0f * hudScale,
-        critical ? CombatHud::Danger : CombatHud::White, hpText, true);
-    CombatHud::Meter(drawList, hpPoint(54, 24), hpPoint(244, 40), hpRate,
+    CombatHud::Wake(drawList, hpPoint(-32, -26), hpPoint(292, 114));
+    CombatHud::Slant(drawList, hpPoint(-6, -16), 64.0f * hudScale,
+        critical ? CombatHud::Danger : CombatHud::White, hpText, false, true, 0.0f, 116 * hudScale);
+    CombatHud::Heading(drawList, hpPoint(126, 14), 18.0f * hudScale, CombatHud::White, "耐久");
+    CombatHud::WingMeter(drawList, hpPoint(0, 76), 248 * hudScale, 11 * hudScale, hpRate,
         critical ? CombatHud::Danger : CombatHud::Health, hudScale);
-    DrawCombatHudText(drawList, hpPoint(54, 48), 16.0f * hudScale,
-        CombatHud::Muted, "チャージ");
-    CombatHud::Meter(drawList, hpPoint(130, 51), hpPoint(244, 61), chargeRate,
-        isChargeReady ? CombatHud::Energy : CombatHud::Mix(CombatHud::Energy, CombatHud::White, 0.25f), hudScale);
 
-    const ImVec2 scoreAnchor(origin.x + drawSize.x - 32.0f * hudScale, playerAnchor.y);
+    const auto weaponPoint = [&](float x, float y) {
+        return ImVec2(layout.charge.x + x * hudScale, layout.charge.y + y * hudScale);
+    };
+    CombatHud::Wake(drawList, weaponPoint(-48, -14), weaponPoint(276, 188), true);
+    CombatHud::Heading(drawList, weaponPoint(0, 0), 22.0f * hudScale, CombatHud::White, "チャージ");
+    CombatHud::KeyBadge(drawList, weaponPoint(184, 0), weaponPoint(244, 26), hudScale, "SPACE", isChargeReady);
+    DrawCombatHudText(drawList, weaponPoint(0, 30), 16.0f * hudScale,
+        isChargeReady ? CombatHud::White : CombatHud::Muted, isChargeReady ? "充填完了" : "充填中");
+    CombatHud::WingMeter(drawList, weaponPoint(0, 57), 244 * hudScale, 9 * hudScale,
+        chargeRate, isChargeReady ? CombatHud::White : CombatHud::Energy, hudScale,
+        isChargeReady ? std::fmod(cameraTimer_ * 0.45f, 1.0f) : -1.0f);
+    if (chargeFlashTimer_ > 0) {
+        const float flash = std::clamp(static_cast<float>(chargeFlashTimer_) / 30.0f, 0.0f, 1.0f);
+        if (isChargeReady) {
+            drawList->AddQuadFilled(weaponPoint(10, 56.25f), weaponPoint(244, 38.7f),
+                weaponPoint(234, 48.45f), weaponPoint(0, 66),
+                CombatHud::SurfaceColor(IM_COL32(239, 241, 244, static_cast<int>(100 * flash * flash))));
+        }
+    }
+
+    const auto scorePoint = [&](float x, float y) {
+        return ImVec2(layout.score.x + x * hudScale, layout.score.y + y * hudScale);
+    };
     const int waveNumber = currentWaveIndex_ < kWaveCount ? currentWaveIndex_ + 1 : kWaveCount;
     char scoreText[32]{};
     char waveText[48]{};
@@ -7357,14 +7540,12 @@ void GameRuntime::DrawHud()
     } else {
         std::snprintf(waveText, sizeof(waveText), "ウェーブ  %d / %d", waveNumber, kWaveCount);
     }
-    DrawCombatHudShade(drawList,
-        ImVec2(origin.x + drawSize.x - 280.0f * hudScale, origin.y),
-        ImVec2(origin.x + drawSize.x, origin.y + 120.0f * hudScale), true);
-    DrawCombatHudText(drawList, scoreAnchor, 18.0f * hudScale, CombatHud::White, "スコア", true);
-    CombatHud::Number(drawList, ImVec2(scoreAnchor.x, scoreAnchor.y + 21.0f * hudScale),
-        38.0f * hudScale, CombatHud::White, scoreText, true);
-    DrawCombatHudText(drawList, ImVec2(scoreAnchor.x, scoreAnchor.y + 58.0f * hudScale),
-        16.0f * hudScale, CombatHud::Muted, bossSpawned_ ? "ボス戦" : waveText, true);
+    CombatHud::Wake(drawList, scorePoint(-48, -28), scorePoint(304, 160), true);
+    DrawCombatHudText(drawList, scorePoint(272, 0), 16.0f * hudScale, CombatHud::White, "スコア", true);
+    CombatHud::Slant(drawList, scorePoint(272, 16), 52.0f * hudScale, CombatHud::White, scoreText,
+        true, true, 0.0f, 272 * hudScale);
+    DrawCombatHudText(drawList, scorePoint(272, 73), 18.0f * hudScale,
+        CombatHud::Muted, bossSpawned_ ? "ボス戦" : waveText, true);
 
     DrawBossHud();
     DrawTutorialGuideHud();
@@ -7375,6 +7556,8 @@ void GameRuntime::DrawHud()
     DrawPlayerDamageHud();
     DrawDefeatChainHud();
     DrawFeverHud();
+    DrawPhantomRaidHud();
+    DrawCombatRadio();
     ImGui::PopFont();
 }
 
@@ -7399,21 +7582,45 @@ void GameRuntime::DrawPauseOverlay()
     Math::Vector2 min{}, size{};
     GetEffectiveHudViewportRect(min, size);
     const float scale = GetCombatHudScale(size);
-    const ImVec2 origin{ min.x + (size.x - 440 * scale) * 0.5f, min.y + (size.y - 440 * scale) * 0.5f };
+    const ImVec2 origin{ min.x + (size.x - 1280 * scale) * 0.5f, min.y + (size.y - 720 * scale) * 0.5f };
     const auto p = [&](float x, float y) { return ImVec2(origin.x + x * scale, origin.y + y * scale); };
     auto* draw = ImGui::GetForegroundDrawList();
-    draw->AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y }, IM_COL32(0, 0, 0, 170));
-    MenuUi::Sheet(draw, origin, p(440, 440), scale);
-    MenuUi::Text(draw, p(48, 36), 32 * scale, MenuUi::Paper, "ポーズ");
+    draw->PushClipRect({ min.x, min.y }, { min.x + size.x, min.y + size.y }, true);
+    if (pauseUiStarted_ < 0) { pauseUiStarted_ = ImGui::GetTime(); }
+    const float elapsed = static_cast<float>(ImGui::GetTime() - pauseUiStarted_);
+    const float enter = 1.0f - std::pow(1.0f - std::clamp(elapsed / 0.32f, 0.0f, 1.0f), 3.0f);
+    draw->AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y }, IM_COL32(0, 0, 0, 88));
+    // 実際の機体を中央に残し、前傾したメニューが右から滑り込む。
+    const float slide = (1.0f - enter) * 140;
+    draw->AddQuadFilled(p(904 + slide, -200), p(1500 + slide, -200), p(1500 + slide, 900),
+        p(696 + slide, 900), CombatHud::SurfaceColor(IM_COL32(13, 19, 32, 244)));
+    CombatHud::Wake(draw, p(0, 0), p(700, 316));
+    CombatHud::Slant(draw, p(46 - (1 - enter) * 40, 70), 148 * scale, MenuUi::Paper, "PAUSE", false, false);
+    MenuUi::Heading(draw, p(64, 205), 23 * scale, MenuUi::Paper, "飛行中断");
+    MenuUi::Brand(draw, p(64, 36), 24 * scale, MenuUi::Paper);
+    CombatHud::Wake(draw, p(0, 532), p(700, 720));
+    MenuUi::Text(draw, p(64, 568), 17 * scale, MenuUi::Paper, "スコア");
+    char pauseScore[32]{};
+    std::snprintf(pauseScore, sizeof(pauseScore), "%06d", score_);
+    CombatHud::Slant(draw, p(58, 592), 52 * scale, MenuUi::Paper, pauseScore);
+    MenuUi::Text(draw, p(386, 568), 17 * scale, MenuUi::Paper, "耐久");
+    char pauseHp[16]{};
+    std::snprintf(pauseHp, sizeof(pauseHp), "%d", GetPlayerHp());
+    CombatHud::Slant(draw, p(380, 592), 52 * scale, MenuUi::Paper, pauseHp);
+    CombatHud::WingMeter(draw, p(386, 664), 156 * scale, 6 * scale,
+        static_cast<float>(GetPlayerHp()) / static_cast<float>((std::max)(GetPlayerMaxHp(), 1)),
+        CombatHud::Health, scale);
+    MenuUi::Text(draw, p(850, 594), 16 * scale, MenuUi::Quiet, "ESC  再開");
     ImGui::SetNextWindowPos(origin);
-    ImGui::SetNextWindowSize({ 440 * scale, 440 * scale });
+    ImGui::SetNextWindowSize({ 1280 * scale, 720 * scale });
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("##PauseActions", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav);
     const char* labels[] = { "再開", "再挑戦", "操作方法", "タイトルへ" };
     for (int index = 0; index < 4; ++index) {
-        const bool clicked = MenuUi::Button(draw, labels[index], labels[index], p(48, 120 + index * 62.0f),
-            { 344 * scale, 48 * scale }, scale, pauseSelectedItem_ == index, false);
+        const float x = 908 - static_cast<float>(index) * 14;
+        const bool clicked = MenuUi::FlightAction(draw, labels[index], labels[index],
+            p(x + slide, 218 + index * 78.0f), { 310 * scale, 62 * scale }, scale, pauseSelectedItem_ == index);
         MenuUi::SelectHovered(pauseSelectedItem_, index);
         if (clicked || (confirm && pauseSelectedItem_ == index)) {
             if (index == 0) { isPaused_ = false; }
@@ -7425,6 +7632,7 @@ void GameRuntime::DrawPauseOverlay()
     }
     ImGui::End();
     ImGui::PopStyleVar();
+    draw->PopClipRect();
 }
 void GameRuntime::DrawBossHud()
 {
@@ -7434,8 +7642,8 @@ void GameRuntime::DrawBossHud()
     Math::Vector2 min{}, size{};
     GetEffectiveHudViewportRect(min, size);
     const float scale = GetCombatHudScale(size);
-    const float width = 416.0f * scale;
-    const ImVec2 anchor(min.x + (size.x - width) * 0.5f, min.y + 24.0f * scale);
+    const CombatHud::Layout layout(min, size);
+    const ImVec2 anchor = layout.boss;
     const auto p = [&](float x, float y) {
         return ImVec2(anchor.x + x * scale, anchor.y + y * scale);
     };
@@ -7444,17 +7652,10 @@ void GameRuntime::DrawBossHud()
         static_cast<float>((std::max)(boss->GetMaxHp(), 1)), 0.0f, 1.0f);
     const bool counter = bossCounterTimer_ > 0;
     const bool attacking = !counter && bossAttackStep_ >= 0 && bossAttackStepTimer_ > 0;
-    const ImU32 clear = IM_COL32(12, 13, 14, 0);
-    const ImU32 shade = IM_COL32(12, 13, 14, 150);
-    const float shadeBottom = attacking || counter ? 83.0f : 58.0f;
-    draw->AddRectFilledMultiColor(p(-64, -24), p(0, shadeBottom),
-        clear, shade, clear, clear);
-    draw->AddRectFilledMultiColor(p(0, -24), p(416, shadeBottom),
-        shade, shade, clear, clear);
-    draw->AddRectFilledMultiColor(p(416, -24), p(480, shadeBottom),
-        shade, clear, clear, clear);
-    CombatHud::Readout(draw, p(0, 0), 18.0f * scale, CombatHud::White, "ボス");
-    CombatHud::Meter(draw, p(0, 29), p(416, 43), hpRate, CombatHud::Danger, scale);
+    CombatHud::Wake(draw, p(-48, -32), p(208, 100), true);
+    CombatHud::Wake(draw, p(208, -32), p(464, 100));
+    CombatHud::Heading(draw, p(18, 10), 20.0f * scale, CombatHud::White, "ボス");
+    CombatHud::WingMeter(draw, p(18, 56), 380 * scale, 9 * scale, hpRate, CombatHud::Danger, scale);
 
     if (counter || attacking) {
         // 敵の状態と反撃可能時間だけを提示し、注意文やHPの重複数値は出さない。
@@ -7467,15 +7668,13 @@ void GameRuntime::DrawBossHud()
             static_cast<float>(counter ? bossCounterTimer_ : bossAttackStepTimer_) /
                 static_cast<float>((std::max)(duration, 1)), 0.0f, 1.0f);
         const float rate = counter ? remaining : (bossAttackStep_ > 0 ? 1.0f : 1.0f - remaining);
-        DrawCombatHudText(draw, p(416, 0), 16.0f * scale, color, label, true);
-        CombatHud::Segments(draw, p(0, 49), p(416, 52), rate, color, 1, 0);
+        DrawCombatHudText(draw, p(398, 12), 18.0f * scale, color, label, true);
+        CombatHud::WingMeter(draw, p(18, 69), 380 * scale, 3 * scale, rate, color, scale);
     }
 }
 void GameRuntime::DrawStageCueHud()
 {
-    if (bossWarningTimer_ <= 0 &&
-        bossDefeatFlashTimer_ <= 0 &&
-        bossPhaseTransitionTimer_ <= 0 &&
+    if (bossDefeatFlashTimer_ <= 0 &&
         justDodgeFlashTimer_ <= 0) {
         return;
     }
@@ -7486,7 +7685,6 @@ void GameRuntime::DrawStageCueHud()
     GetEffectiveHudViewportRect(hudMin, hudSize);
     const ImVec2 origin(hudMin.x, hudMin.y);
     const ImVec2 drawSize(hudSize.x, hudSize.y);
-    const ImVec2 center(origin.x + drawSize.x * 0.5f, origin.y + drawSize.y * 0.29f);
 
     if (justDodgeFlashTimer_ > 0) {
         const float rate =
@@ -7532,21 +7730,6 @@ void GameRuntime::DrawStageCueHud()
             IM_COL32(255, 174, 76, (std::clamp)(alpha, 0, 120)));
     }
 
-    const bool phaseChange = bossPhaseTransitionTimer_ > 0;
-    const int timer = phaseChange ? bossPhaseTransitionTimer_ : bossWarningTimer_;
-    const int duration = phaseChange ? kBossPhaseTransitionDuration : kBossWarningDuration;
-    if (timer > 0) {
-        const float remaining = static_cast<float>(timer) / static_cast<float>((std::max)(duration, 1));
-        const float fade = std::clamp((1.0f - remaining) / 0.10f, 0.0f, 1.0f) *
-            std::clamp(remaining / 0.20f, 0.0f, 1.0f);
-        const float scale = GetCombatHudScale(hudSize);
-        const char* label = phaseChange ? "第2段階" : "大型敵接近";
-        const float fontSize = 30.0f * scale;
-        const float width = CombatHud::ReadoutWidth(label, fontSize);
-        DrawCombatHudText(drawList, ImVec2(center.x - width * 0.5f, center.y), fontSize,
-            phaseChange ? IM_COL32(241, 240, 235, static_cast<int>(255.0f * fade)) :
-                          IM_COL32(237, 100, 88, static_cast<int>(255.0f * fade)), label);
-    }
 }
 void GameRuntime::DrawDefeatChainHud()
 {
@@ -7561,14 +7744,12 @@ void GameRuntime::DrawDefeatChainHud()
     Math::Vector2 hudMin{};
     Math::Vector2 hudSize{};
     GetEffectiveHudViewportRect(hudMin, hudSize);
-    const ImVec2 origin(hudMin.x, hudMin.y);
-    const ImVec2 drawSize(hudSize.x, hudSize.y);
     const float hudScale = GetCombatHudScale(hudSize);
-    const float panelWidth = 190.0f * hudScale;
-    const ImVec2 panelMin(
-        origin.x + drawSize.x - 32.0f * hudScale - panelWidth,
-        origin.y + 115.0f * hudScale);
-    const ImVec2 panelMax(panelMin.x + panelWidth, panelMin.y + 42.0f * hudScale);
+    const CombatHud::Layout layout(hudMin, hudSize);
+    const ImVec2 panelMin = layout.chain;
+    const ImVec2 panelMax(panelMin.x + 272.0f * hudScale, panelMin.y + 90.0f * hudScale);
+    CombatHud::Wake(drawList, { panelMin.x - 48 * hudScale, panelMin.y - 8 * hudScale },
+        { panelMax.x + 32 * hudScale, panelMax.y + 28 * hudScale }, true);
     ImU32 accentColor = CombatHud::GaugeGold;
     if (isBreakNoticeVisible) {
         const int alpha = static_cast<int>(
@@ -7579,8 +7760,8 @@ void GameRuntime::DrawDefeatChainHud()
     }
 
     if (isBreakNoticeVisible) {
-        CombatHud::Readout(drawList, ImVec2(panelMax.x, panelMin.y),
-            18.0f * hudScale, accentColor, "連続撃破終了", true);
+        CombatHud::Readout(drawList, ImVec2(panelMax.x, panelMin.y + 20 * hudScale),
+            20.0f * hudScale, accentColor, "連続撃破終了", true);
         return;
     }
 
@@ -7591,23 +7772,22 @@ void GameRuntime::DrawDefeatChainHud()
     char multiplierText[32]{};
     std::snprintf(chainText, sizeof(chainText), "%d 連続撃破", defeatChainCount_);
     std::snprintf(multiplierText, sizeof(multiplierText), "×%d", totalScoreMultiplier);
-    DrawCombatHudText(drawList, ImVec2(panelMin.x, panelMin.y + 9.0f * hudScale),
-        18.0f * hudScale, CombatHud::White, chainText);
+    DrawCombatHudText(drawList, ImVec2(panelMin.x, panelMin.y + 45.0f * hudScale),
+        22.0f * hudScale, CombatHud::White, chainText);
     if (totalScoreMultiplier > 1) {
         const float punch = 1.0f - std::clamp(
             static_cast<float>(kDefeatChainDurationFrames - defeatChainTimer_) / 14.0f, 0.0f, 1.0f);
-        CombatHud::Number(drawList, { panelMax.x, panelMin.y - punch * 3.0f * hudScale },
-            (28.0f + punch * 3.0f) * hudScale, accentColor, multiplierText, true);
+        CombatHud::Slant(drawList, { panelMax.x, panelMin.y - punch * 4 * hudScale },
+            (64.0f + punch * 4.0f) * hudScale, accentColor, multiplierText, true);
     }
 
-    const ImVec2 timerMin(panelMin.x, panelMax.y - 2.0f * hudScale);
-    const ImVec2 timerMax(panelMax.x, panelMax.y);
+    const ImVec2 timerMin(panelMin.x, panelMax.y - 5 * hudScale);
     const float timerRate = std::clamp(
         static_cast<float>(defeatChainTimer_) /
             static_cast<float>(kDefeatChainDurationFrames),
         0.0f,
         1.0f);
-    CombatHud::Segments(drawList, timerMin, timerMax, timerRate, accentColor, 1, 0);
+    CombatHud::WingMeter(drawList, timerMin, 272 * hudScale, 4 * hudScale, timerRate, accentColor, hudScale);
 }
 
 void GameRuntime::DrawFeverHud()
@@ -7648,12 +7828,12 @@ void GameRuntime::DrawFeverHud()
         position.x = std::round(position.x);
         position.y = std::round(position.y);
         alpha = std::clamp(alpha, 0, 255);
-        const float width = (std::max)(CombatHud::ReadoutWidth(text, size), 1.0f);
+        const float width = (std::max)(CombatHud::ReadoutWidth(text, size, true), 1.0f);
         // 影は暗色のまま残し、文字の頂点だけをゲージと同じ流れる虹色にする。
-        drawList->AddText(CombatHud::BattleFont(), size, { position.x, position.y + 1.0f },
+        drawList->AddText(CombatHud::HeadingFont(), size, { position.x, position.y + 1.0f },
             IM_COL32(0, 0, 0, alpha * 4 / 5), text);
         const int firstVertex = drawList->VtxBuffer.Size;
-        drawList->AddText(CombatHud::BattleFont(), size, position, IM_COL32(255, 255, 255, alpha), text);
+        drawList->AddText(CombatHud::HeadingFont(), size, position, IM_COL32(255, 255, 255, alpha), text);
         for (int index = firstVertex; index < drawList->VtxBuffer.Size; ++index) {
             ImDrawVert& vertex = drawList->VtxBuffer[index];
             const float offset = std::clamp((vertex.pos.x - position.x) / width, 0.0f, 1.0f);
@@ -7662,34 +7842,26 @@ void GameRuntime::DrawFeverHud()
     };
 
     const float hudScale = GetCombatHudScale(hudSize);
-    const ImVec2 anchor(origin.x + 32.0f * hudScale, origin.y + drawSize.y - 80.0f * hudScale);
+    const CombatHud::Layout layout(hudMin, hudSize);
+    const ImVec2 anchor = layout.fever;
     const auto p = [&](float x, float y) {
         return ImVec2(anchor.x + x * hudScale, anchor.y + y * hudScale);
     };
-    CombatHud::Shade(drawList, p(-32, -16), p(280, 80));
-    if (isActive || isReady) {
-        rainbowReadout(p(0, 0), 20.0f * hudScale, 255, "フィーバー");
-    } else {
-        CombatHud::Readout(drawList, p(0, 0), 20.0f * hudScale, CombatHud::White, "フィーバー");
-    }
-    CombatHud::Meter(drawList, p(0, 32), p(232, 47), rate, CombatHud::FeverCharge, hudScale);
-    // 発動中だけ計器の中が虹に変わる。通常の画面へ色を散らさない。
-    if (isActive || isReady) {
-        for (int index = 0; index < 24; ++index) {
-            const float part = std::clamp(rate * 24.0f - static_cast<float>(index), 0.0f, 1.0f);
-            if (part <= 0.0f) { break; }
-            const float x = 2.0f + static_cast<float>(index) * 9.5f;
-            drawList->AddRectFilledMultiColor(p(x, 34), p(x + 9.5f * part, 45),
-                CombatHud::SurfaceColor(rainbowColor(static_cast<float>(index) / 24.0f, 255)),
-                CombatHud::SurfaceColor(rainbowColor(static_cast<float>(index + 1) / 24.0f, 255)),
-                CombatHud::SurfaceColor(CombatHud::Mix(rainbowColor(static_cast<float>(index + 1) / 24.0f, 255), IM_COL32(0, 0, 0, 255), 0.30f)),
-                CombatHud::SurfaceColor(CombatHud::Mix(rainbowColor(static_cast<float>(index) / 24.0f, 255), IM_COL32(0, 0, 0, 255), 0.30f)));
-        }
-    }
+    CombatHud::Wake(drawList, p(-32, -12), p(320, 148));
+    CombatHud::Slant(drawList, p(-6, 0), 52 * hudScale,
+        isActive || isReady ? CombatHud::GaugeGold : CombatHud::White, "FEVER");
+    CombatHud::Heading(drawList, p(0, 58), 17 * hudScale, CombatHud::White, "フィーバー");
+    CombatHud::WingMeter(drawList, p(0, 98), 252 * hudScale, 13 * hudScale, rate,
+        CombatHud::FeverCharge, hudScale, isActive ? std::fmod(cameraTimer_ * 0.7f, 1.0f) : -1.0f,
+        isActive || isReady ? cameraTimer_ * 0.08f : -1.0f);
     if (isActive) {
         char status[32]{};
         std::snprintf(status, sizeof(status), "%.1f秒", static_cast<float>(feverTimer_) / 60.0f);
-        CombatHud::Readout(drawList, p(232, -1), 20.0f * hudScale, CombatHud::White, status, true);
+        CombatHud::Readout(drawList, p(252, 57), 22.0f * hudScale, CombatHud::White, status, true);
+    } else {
+        char status[16]{};
+        std::snprintf(status, sizeof(status), "%d%%", static_cast<int>(std::clamp(rate, 0.0f, 1.0f) * 100));
+        CombatHud::Slant(drawList, p(252, 36), 34.0f * hudScale, CombatHud::FeverCharge, status, true);
     }
     if (isActive) {
         const int edgeAlpha = static_cast<int>(45.0f + pulse * 38.0f);
@@ -7753,7 +7925,7 @@ void GameRuntime::DrawFeverHud()
             std::clamp(remaining / 0.28f, 0.0f, 1.0f);
         const float fontSize = (44.0f + 8.0f * (1.0f - elapsed)) * hudScale;
         const char* title = "フィーバー";
-        const float titleWidth = CombatHud::ReadoutWidth(title, fontSize);
+        const float titleWidth = CombatHud::ReadoutWidth(title, fontSize, true);
         const ImVec2 center(origin.x + drawSize.x * 0.5f,
             origin.y + drawSize.y * 0.23f - elapsed * 8.0f * hudScale);
         rainbowReadout(
@@ -7976,43 +8148,268 @@ void GameRuntime::DrawPlayerDamageHud()
 
 }
 
+bool GameRuntime::HasResultPresentation() const
+{
+    return resultShip_ && resultCamera_ && resultUiStarted_ >= 0.0 &&
+        (isGameOver_ || isGameClear_) && resultTransitionTimer_ <= 0 &&
+        !(IsTutorial() && isGameClear_);
+}
+
+void GameRuntime::InitializeResultPresentation()
+{
+    if (!playerModel_ || playerModel_->GetVertices().empty()) { return; }
+    Math::Vector3 min{ FLT_MAX, FLT_MAX, FLT_MAX }, max{ -FLT_MAX, -FLT_MAX, -FLT_MAX };
+    for (const auto& vertex : playerModel_->GetVertices()) {
+        min.x = (std::min)(min.x, vertex.position.x); max.x = (std::max)(max.x, vertex.position.x);
+        min.y = (std::min)(min.y, vertex.position.y); max.y = (std::max)(max.y, vertex.position.y);
+        min.z = (std::min)(min.z, vertex.position.z); max.z = (std::max)(max.z, vertex.position.z);
+    }
+    resultModelCenter_ = { (min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f, (min.z + max.z) * 0.5f };
+    resultCamera_ = std::make_unique<Camera>();
+    resultCamera_->SetFovY(0.56f);
+    resultCamera_->SetFarClip(200.0f);
+    resultShip_ = std::make_unique<Object3d>();
+    resultShip_->Initialize(object3dCommon_.get());
+    resultShip_->SetCamera(resultCamera_.get());
+    resultShip_->SetModel(playerModel_);
+    resultShip_->SetLightingMode(1);
+    resultShip_->SetColor({ 0.64f, 0.74f, 0.88f, 1.0f });
+    resultShip_->SetDirectionalLightDirection({ -0.30f, -0.72f, 0.55f });
+    resultShip_->SetDirectionalLightIntensity(1.65f);
+    resultShip_->SetPointLightIntensity(0.0f);
+    resultShip_->SetSpotLightIntensity(0.0f);
+    resultShip_->SetEnvironmentCoefficient(0.07f);
+    resultShip_->SetShininess(160.0f);
+    resultShip_->SetRoughness(0.34f);
+    resultShip_->SetMetallic(0.28f);
+    resultShip_->SetSpecularColor({ 0.40f, 0.44f, 0.50f });
+    resultShip_->SetShadowReceiveStrength(0.0f);
+    // 確認済みのObject3d噴射を専用インスタンスで使う。結果表示中の生成は行わない。
+    for (size_t index = 0; index < resultExhaust_.size(); ++index) {
+        auto& exhaust = resultExhaust_[index];
+        exhaust = std::make_unique<Object3d>();
+        exhaust->Initialize(object3dCommon_.get());
+        exhaust->SetCamera(resultCamera_.get());
+        exhaust->SetModel(index / 2 == 2 ? effectPlayerBulletCoreModel_ : effectPlayerBulletTrailModel_);
+        exhaust->SetLightingMode(0);
+        exhaust->SetEnvironmentCoefficient(0.0f);
+        exhaust->SetAlphaReference(0.003f);
+    }
+}
+
+void GameRuntime::UpdateResultPresentation(float elapsed)
+{
+    if (!resultShip_ || !resultCamera_) { return; }
+    const auto rotate = [](const Math::Vector3& v, const Math::Matrix4x4& m) {
+        return Math::Vector3{ v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0],
+            v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1],
+            v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] };
+    };
+    const float arrival = 1.0f - std::pow(1.0f - std::clamp(elapsed / 1.1f, 0.0f, 1.0f), 3.0f);
+    const float fit = (std::min)(dxCommon_->GetPresentationAspectRatio() / (1280.0f / 720.0f), 1.0f);
+    resultCamera_->SetAspectRatio(dxCommon_->GetPresentationAspectRatio());
+    resultCamera_->SetTranslate({ 0, 0, -17 });
+    resultCamera_->SetRotate({ -0.10f, 0.12f, isGameClear_ ? -0.10f : 0.06f });
+    resultCamera_->Update();
+    const Math::Vector3 local{ (2.9f + (1 - arrival) * 6.0f) * fit,
+        2.25f + std::sin(elapsed * 0.65f) * 0.12f, 17.0f };
+    const auto worldOffset = rotate(local, resultCamera_->GetWorldMatrix());
+    const auto eye = resultCamera_->GetTranslate();
+    const Math::Vector3 center{ eye.x + worldOffset.x, eye.y + worldOffset.y, eye.z + worldOffset.z };
+    const auto cross = [](const Math::Vector3& a, const Math::Vector3& b) {
+        return Math::Vector3{ a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x };
+    };
+    // 機首の向きとバンクを分離。Euler角を個別に傾けると機首まで縦を向いてしまう。
+    const auto forward = Math::Normalize(rotate({ -0.92f, 0.10f,
+        0.38f + (1 - arrival) * 0.15f + std::sin(elapsed * 0.42f) * 0.065f }, resultCamera_->GetWorldMatrix()));
+    const auto referenceUp = rotate({ 0, 1, 0 }, resultCamera_->GetWorldMatrix());
+    const auto right = Math::Normalize(cross(referenceUp, forward));
+    const auto up = cross(forward, right);
+    const float bank = (isGameClear_ ? 0.58f : 0.34f) + std::sin(elapsed * 0.65f) * 0.035f;
+    const float cosine = std::cos(bank), sine = std::sin(bank);
+    const Math::Vector3 bankedRight{ right.x * cosine + up.x * sine,
+        right.y * cosine + up.y * sine, right.z * cosine + up.z * sine };
+    const Math::Vector3 bankedUp{ up.x * cosine - right.x * sine,
+        up.y * cosine - right.y * sine, up.z * cosine - right.z * sine };
+    const Math::Vector3 rotation{ std::atan2(bankedUp.z, forward.z),
+        std::asin(std::clamp(-bankedRight.z, -1.0f, 1.0f)), std::atan2(bankedRight.y, bankedRight.x) };
+    const float shipScale = 3.2f * fit;
+    const auto rotationMatrix = Math::MakeAffineMatrix({ 1, 1, 1 }, rotation, {});
+    const auto matrix = Math::MakeAffineMatrix({ shipScale, shipScale, shipScale }, rotation, {});
+    const auto offset = rotate(resultModelCenter_, matrix);
+    resultShip_->SetScale({ shipScale, shipScale, shipScale });
+    resultShip_->SetRotate(rotation);
+    resultShip_->SetTranslate({ center.x - offset.x, center.y - offset.y, center.z - offset.z });
+    resultShip_->SetColor(isGameClear_ ? Math::Vector4{ 0.90f, 0.94f, 1.0f, 1.0f } :
+        Math::Vector4{ 0.38f, 0.43f, 0.52f, 1.0f });
+    resultShip_->Update();
+
+    const auto tail = rotate({ 0, 0, -1 }, rotationMatrix);
+    const auto tailView = rotate(tail, resultCamera_->GetViewMatrix());
+    Math::Vector3 billboard = resultCamera_->GetRotate();
+    billboard.z += std::atan2(-tailView.x, tailView.y);
+    const float pulse = 1.0f + 0.045f * std::sin(elapsed * 29.0f) + 0.025f * std::sin(elapsed * 43.0f);
+    for (size_t index = 0; index < resultExhaust_.size(); ++index) {
+        const int layer = static_cast<int>(index / 2);
+        const float ratio = shipScale / 1.26f;
+        const auto nozzle = rotate({ (index % 2 == 0 ? -0.48f : 0.48f) * ratio,
+            -0.28f * ratio, -1.70f * ratio }, rotationMatrix);
+        const float length = (layer == 0 ? 2.0f : 1.3f) * pulse * (isGameClear_ ? 1.0f : 0.28f);
+        const float centerOffset = layer == 2 ? 0.025f : length * 0.78f;
+        auto& exhaust = resultExhaust_[index];
+        exhaust->SetTranslate({ center.x + nozzle.x + tail.x * centerOffset,
+            center.y + nozzle.y + tail.y * centerOffset, center.z + nozzle.z + tail.z * centerOffset });
+        exhaust->SetRotate(billboard);
+        exhaust->SetScale(layer == 2 ? Math::Vector3{ 0.20f * pulse, 0.20f * pulse, 1 } :
+            Math::Vector3{ (layer == 0 ? 0.27f : 0.12f) * pulse, length, 1 });
+        exhaust->SetColor(layer == 2 ? Math::Vector4{ 0.72f, 0.84f, 1.0f, 0.52f } :
+            (layer == 0 ? Math::Vector4{ 0.22f, 0.43f, 0.86f, 0.48f } : Math::Vector4{ 0.91f, 0.96f, 1.0f, 0.85f }));
+        exhaust->Update();
+    }
+}
+
+void GameRuntime::DrawResultPresentation()
+{
+    dxCommon_->SetFlightBlur(0.0f, { 0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.5f, 0.5f }, resultCamera_->GetAspectRatio());
+    // このフレームでは本編の空・機体を描かず、各定数バッファを一つのカメラでだけ使う。
+    if (skybox_) { skybox_->Update(resultCamera_.get()); skybox_->Draw(); }
+    const auto depth = object3dCommon_->GetDepthDrawMode();
+    const auto blend = object3dCommon_->GetBlendMode();
+    object3dCommon_->SetDepthDrawMode(DepthDrawMode::Normal);
+    object3dCommon_->SetBlendMode(BlendMode::Normal);
+    object3dCommon_->CommonDrawSetting();
+    resultShip_->Draw();
+    object3dCommon_->SetDepthDrawMode(DepthDrawMode::ReadOnly);
+    object3dCommon_->SetBlendMode(BlendMode::Add);
+    object3dCommon_->CommonDrawSetting();
+    for (const auto& exhaust : resultExhaust_) { exhaust->Draw(); }
+    object3dCommon_->SetDepthDrawMode(depth);
+    object3dCommon_->SetBlendMode(blend);
+    object3dCommon_->CommonDrawSetting();
+}
+
 void GameRuntime::DrawResultOverlay()
 {
-    if ((!isGameOver_ && !isGameClear_) || resultTransitionTimer_ > 0) { return; }
+    if ((!isGameOver_ && !isGameClear_) || resultTransitionTimer_ > 0) {
+        resultUiStarted_ = -1.0;
+        resultUiKind_ = 0;
+        return;
+    }
     if (IsTutorial() && isGameClear_) { DrawTutorialResult(); return; }
 
     Math::Vector2 hudMin{}, hudSize{};
     GetEffectiveHudViewportRect(hudMin, hudSize);
     const float scale = GetCombatHudScale(hudSize);
     const ImVec2 origin{ hudMin.x, hudMin.y };
-    const ImVec2 panelMin{ origin.x + (hudSize.x - 920 * scale) * 0.5f,
-        origin.y + (hudSize.y - 500 * scale) * 0.5f };
+    const ImVec2 panelMin{ origin.x + (hudSize.x - 1280 * scale) * 0.5f,
+        origin.y + (hudSize.y - 720 * scale) * 0.5f };
     const auto p = [&](float x, float y) { return ImVec2(panelMin.x + x * scale, panelMin.y + y * scale); };
     auto* draw = ImGui::GetForegroundDrawList();
-    // 戦闘HUDより前に一枚の結果シートを置く。黄色の囲み・見出し・評価の重複は使わない。
-    draw->AddRectFilled(origin, { origin.x + hudSize.x, origin.y + hudSize.y }, IM_COL32(0, 0, 0, 175));
-    MenuUi::Sheet(draw, panelMin, p(920, 500), scale);
-    MenuUi::Text(draw, p(48, 34), 32 * scale, MenuUi::Paper,
-        (IsTutorial() && isGameClear_) ? "チュートリアル完了" : (isGameClear_ ? "ステージクリア" : "ゲームオーバー"));
+    draw->PushClipRect(origin, { origin.x + hudSize.x, origin.y + hudSize.y }, true);
+    const int kind = isGameClear_ ? 1 : 2;
+    if (resultUiStarted_ < 0 || resultUiKind_ != kind) {
+        resultUiStarted_ = ImGui::GetTime();
+        resultUiKind_ = kind;
+    }
+    const float elapsed = static_cast<float>(ImGui::GetTime() - resultUiStarted_);
+    UpdateResultPresentation(elapsed);
+    const float reveal = 1.0f - std::pow(1.0f - std::clamp(elapsed / 0.65f, 0.0f, 1.0f), 3.0f);
+    const ImU32 paper = IM_COL32(239, 238, 231, 255);
+    const ImU32 ink = IM_COL32(13, 19, 32, 255);
+    const ImU32 quiet = IM_COL32(170, 181, 197, 255);
+    const auto surface = [](ImU32 color) { return CombatHud::SurfaceColor(color); };
+    const ImVec2 viewportMax{ origin.x + hudSize.x, origin.y + hudSize.y };
+    // 自機と空を残し、戦績の背後だけを暗くする。下の翼面は機体のバンク角につなぐ。
+    draw->AddRectFilledMultiColor(origin, viewportMax, surface(IM_COL32(8, 13, 25, 80)),
+        surface(IM_COL32(8, 13, 25, 20)), surface(IM_COL32(8, 13, 25, 160)), surface(IM_COL32(8, 13, 25, 170)));
+    draw->AddRectFilledMultiColor(origin, { p(780, 0).x, viewportMax.y }, surface(IM_COL32(8, 13, 25, 248)),
+        surface(IM_COL32(8, 13, 25, 0)), surface(IM_COL32(8, 13, 25, 0)), surface(IM_COL32(8, 13, 25, 248)));
+    draw->AddQuadFilled(p(-240, 505), p(1520, 414), p(1520, 920), p(-240, 920), surface(ink));
+    if (isGameClear_) {
+        draw->AddQuadFilled(p(930, 485), p(1300, 452), p(1300, 720), p(890, 720),
+            surface(IM_COL32(24, 34, 49, 255)));
+    }
+    MenuUi::Brand(draw, p(64, 38), 24 * scale, paper);
+    CombatHud::Slant(draw, p(48 - (1 - reveal) * 35, 102), 80 * scale, paper,
+        isGameClear_ ? "RAID CLEAR" : "RAID LOST", false, false, 0.04f);
+    MenuUi::Heading(draw, p(64, 198), 24 * scale, quiet, isGameClear_ ? "作戦完了" : "ゲームオーバー");
 
     char value[96]{};
-    MenuUi::Text(draw, p(48, 109), 16 * scale, MenuUi::Quiet, "スコア");
-    std::snprintf(value, sizeof(value), "%06d", score_);
-    MenuUi::Number(draw, p(44, 124), 78 * scale, MenuUi::Paper, value);
+    MenuUi::Text(draw, p(64, 290), 18 * scale, quiet, "スコア");
+    std::snprintf(value, sizeof(value), "%06d", static_cast<int>(std::round(static_cast<double>(score_) * reveal)));
+    const float scoreFit = (std::min)(1.0f, 580 * scale / (std::max)(CombatHud::Width(value, 124 * scale, true) + 30 * scale, 1.0f));
+    CombatHud::Slant(draw, p(46, 320), 124 * scale * scoreFit, paper, value, false, false, 0.045f);
     if (isGameClear_ && !IsTutorial()) {
-        const char* rank = playerDamageCount_ == 0 && escapedEnemyCount_ <= 2 ? "S" :
-            (playerDamageCount_ <= 2 && escapedEnemyCount_ <= 5 ? "A" : "B");
-        MenuUi::Text(draw, p(750, 109), 16 * scale, MenuUi::Quiet, "評価");
-        MenuUi::Number(draw, p(872, 75), 132 * scale, MenuUi::Paper, rank, true);
+        const char rank = playerDamageCount_ == 0 && escapedEnemyCount_ <= 2 ? 'S' :
+            (playerDamageCount_ <= 2 && escapedEnemyCount_ <= 5 ? 'A' : 'B');
+        const float stamp = std::clamp((elapsed - 0.4f) / 0.24f, 0.0f, 1.0f);
+        const int alpha = static_cast<int>(255 * stamp);
+        const ImU32 rankInk = (rank == 'S' ? IM_COL32(237, 208, 143, 255) : paper) & ~IM_COL32_A_MASK;
+        MenuUi::Text(draw, p(960, 494), 18 * scale, quiet, "評価");
+        // ロゴと同じ切断角を持つ専用字形。汎用フォントの巨大な一文字にはしない。
+        const auto glyph = [&](std::initializer_list<ImVec2> shape) {
+            std::array<ImVec2, 12> points{};
+            int count = 0;
+            for (const auto point : shape) { points[count++] = { point.x + (100 - point.y) * 0.19f, point.y }; }
+            for (int half = 0; half < 2; ++half) {
+                std::array<ImVec2, 16> clipped{};
+                int size = 0;
+                const auto distance = [&](ImVec2 point) {
+                    const float cut = point.y - 72 + point.x * 0.11f;
+                    return half == 0 ? -cut - 1.3f : cut - 1.3f;
+                };
+                const auto append = [&](ImVec2 point) { clipped[size++] = p(1030 + point.x * 1.35f,
+                    482 + point.y * 1.35f - (1 - stamp) * 12); };
+                for (int index = 0; index < count; ++index) {
+                    const auto a = points[index], b = points[(index + 1) % count];
+                    const float da = distance(a), db = distance(b);
+                    if (da >= 0) { append(a); }
+                    if ((da >= 0) != (db >= 0)) {
+                        const float t = da / (da - db);
+                        append({ a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t });
+                    }
+                }
+                if (size >= 3) {
+                    const int firstVertex = draw->VtxBuffer.Size;
+                    draw->AddConvexPolyFilled(clipped.data(), size,
+                        surface(rankInk | (static_cast<ImU32>(alpha) << IM_COL32_A_SHIFT)));
+                    for (int index = firstVertex; index < draw->VtxBuffer.Size; ++index) {
+                        auto& vertex = draw->VtxBuffer[index];
+                        const float t = std::clamp((vertex.pos.y - p(0, 482).y) / (135 * scale), 0.0f, 1.0f);
+                        const ImU32 shade = CombatHud::Mix(rankInk | IM_COL32_A_MASK,
+                            rank == 'S' ? IM_COL32(164, 126, 66, 255) : IM_COL32(148, 167, 190, 255), t * 0.65f);
+                        vertex.col = (surface(shade) & ~IM_COL32_A_MASK) | (vertex.col & IM_COL32_A_MASK);
+                    }
+                }
+            }
+        };
+        if (rank == 'A') {
+            glyph({ {0,100},{35,0},{55,0},{26,100} });
+            glyph({ {43,0},{58,0},{90,100},{65,100} });
+            glyph({ {25,59},{64,53},{70,72},{19,79} });
+        } else if (rank == 'S') {
+            glyph({ {18,0},{82,0},{74,22},{15,22} });
+            glyph({ {0,18},{18,0},{23,23},{23,44},{0,44} });
+            glyph({ {0,42},{64,42},{83,61},{20,64} });
+            glyph({ {60,61},{83,61},{83,82},{65,100},{60,80} });
+            glyph({ {-6,80},{65,80},{65,100},{-14,100} });
+        } else {
+            glyph({ {0,0},{23,0},{23,100},{0,100} });
+            glyph({ {22,0},{65,0},{80,19},{22,19} });
+            glyph({ {58,18},{80,18},{80,40},{58,54} });
+            glyph({ {22,41},{73,41},{83,60},{22,60} });
+            glyph({ {62,59},{84,59},{84,81},{62,100} });
+            glyph({ {22,81},{64,81},{64,100},{22,100} });
+        }
+        if (playerDamageCount_ == 0) { MenuUi::Text(draw, p(960, 648), 20 * scale, paper, "ノーダメージ"); }
     }
-    const ImU32 rule = CombatHud::SurfaceColor(IM_COL32(88, 92, 101, 155));
-    draw->AddLine(p(48, 218), p(872, 218), rule, scale);
-    // 一列四項目。数値が先に目へ入り、単位や名称は同じ場所で読める。
+    // スコア以外の八項目も省略せず、一つの翼面に収める。
     const auto stat = [&](int column, int row, const char* label, const char* number) {
-        const float x = 48.0f + static_cast<float>(column) * 212.0f;
-        const float y = 242.0f + static_cast<float>(row) * 77.0f;
-        MenuUi::Text(draw, p(x, y), 17 * scale, MenuUi::Quiet, label);
-        MenuUi::Number(draw, p(x, y + 22), 29 * scale, MenuUi::Paper, number);
+        const float x = 64.0f + static_cast<float>(column) * 198.0f;
+        const float y = 484.0f + static_cast<float>(row) * 72.0f;
+        MenuUi::Text(draw, p(x, y), 16 * scale, quiet, label);
+        CombatHud::Slant(draw, p(x - 4, y + 22), (row == 0 ? 34 : 28) * scale, paper, number,
+            false, false, 0.02f, 180 * scale);
     };
     const int total = (std::max)(0, static_cast<int>(gameplayElapsedSeconds_ * 100));
     std::snprintf(value, sizeof(value), "%02d:%02d.%02d", total / 6000, (total / 100) % 60, total % 100);
@@ -8031,10 +8428,9 @@ void GameRuntime::DrawResultOverlay()
     stat(2, 1, "ジャスト回避", value);
     std::snprintf(value, sizeof(value), "%d", escapedEnemyCount_);
     stat(3, 1, "逃した敵", value);
-    draw->AddLine(p(48, 408), p(872, 408), rule, scale);
 
     ImGui::SetNextWindowPos(panelMin, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({ 920 * scale, 500 * scale }, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({ 1280 * scale, 720 * scale }, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("##ResultActions", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav);
@@ -8046,16 +8442,17 @@ void GameRuntime::DrawResultOverlay()
     }
     const bool confirm = MenuUi::Pressed(input_, DIK_RETURN);
     const int confirmedItem = resultSelectedItem_;
-    if (MenuUi::Button(draw, "retry", "再挑戦", p(452, 434), { 200 * scale, 44 * scale }, scale,
-        resultSelectedItem_ == 0, false) || (confirm && confirmedItem == 0)) { isRetryRequested_ = true; }
+    if (MenuUi::FlightAction(draw, "retry", "再挑戦", p(64, 638), { 286 * scale, 60 * scale }, scale,
+        resultSelectedItem_ == 0) || (confirm && confirmedItem == 0)) { isRetryRequested_ = true; }
     MenuUi::SelectHovered(resultSelectedItem_, 0);
-    if (MenuUi::Button(draw, "title", "タイトルへ", p(672, 434), { 200 * scale, 44 * scale }, scale,
-        resultSelectedItem_ == 1, false) || (confirm && confirmedItem == 1)) {
+    if (MenuUi::FlightAction(draw, "title", "タイトルへ", p(366, 638), { 286 * scale, 60 * scale }, scale,
+        resultSelectedItem_ == 1) || (confirm && confirmedItem == 1)) {
         isExitRequested_ = true;
     }
     MenuUi::SelectHovered(resultSelectedItem_, 1);
     ImGui::End();
     ImGui::PopStyleVar();
+    draw->PopClipRect();
 }
 
 #ifdef ENABLE_DEBUG_GUI
@@ -8526,7 +8923,8 @@ bool GameRuntime::DealPlayerShotDamage(Enemy& enemy, const Math::Vector3& impact
     if (enemy.IsDead() || !enemy.IsTargetable()) { return false; }
     const bool boss = enemy.IsBoss();
     const int baseDamage = splash ? kChargeSplashDamage : (fever ? 4 : (charged ? (boss ? 4 : 3) : 1));
-    const int damage = boss && bossCounterTimer_ > 0 ? baseDamage * 2 : baseDamage;
+    const bool sniperCounter = !splash && charged && !fever && enemy.IsChargeCounterOpen();
+    const int damage = (boss && bossCounterTimer_ > 0) || sniperCounter ? baseDamage * 2 : baseDamage;
     if (fever) {
         AddFeverEnemyImpactEffect(impactPosition, boss ? 1.75f : 1.38f);
     } else {

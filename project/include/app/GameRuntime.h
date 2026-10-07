@@ -92,6 +92,16 @@ private:
     void UpdateRifts(const Math::Vector3& previous, const Math::Vector3& current);
     void DrawRiftObjects();
     void DrawRiftHud();
+    enum class CombatRadioCue { None, Rift, RiftFever, Sniper, Boss, BossPhase };
+    static constexpr float kCombatRadioDuration = 3.8f;
+    CombatRadioCue combatRadioCue_ = CombatRadioCue::None;
+    float combatRadioRemaining_ = 0.0f;
+    float combatRadioSilence_ = 0.0f;
+    unsigned int combatRadioSeen_ = 0;
+    void ResetCombatRadio();
+    void RequestCombatRadio(CombatRadioCue cue);
+    void UpdateCombatRadio(float deltaSeconds);
+    void DrawCombatRadio();
 #ifdef _DEBUG
     bool phantomPreviewPaused_ = false; // 明示的な映像確認テストだけで演出をコマ止めする。
 #endif
@@ -115,6 +125,7 @@ private:
     void UpdatePhantomRaid();
     void DrawPhantomRaidObjects();
     void DrawPhantomRaidOverlay();
+    void DrawPhantomRaidHud();
     Enemy* FindPhantomTarget(const Enemy* target) const;
     void DealPhantomDamage(Enemy& enemy, int damage);
     bool IsPhantomRaidActive() const { return phantomClock_ >= 0.0f; }
@@ -371,6 +382,7 @@ private:
     const char* GetEnemyTextureOverrideForBehavior(Enemy::Behavior behavior) const;
     void SpawnBossEnemy();
     void UpdateStageEnemyEvents();
+    bool CanSpawnStageEnemyGroup(size_t eventIndex) const;
     void UpdateEnemyWave();
     void AdvanceEnemyWaveIfCleared();
     void UpdateLockOnTarget();
@@ -475,6 +487,10 @@ private:
     void DrawHitConfirmHud();
     void DrawPlayerDamageHud();
     void DrawResultOverlay();
+    void InitializeResultPresentation();
+    void UpdateResultPresentation(float elapsed);
+    void DrawResultPresentation();
+    bool HasResultPresentation() const;
 #ifdef ENABLE_DEBUG_GUI
     void DrawEditorOverlayGuiRich();
     void DrawPerformanceOverlay();
@@ -520,6 +536,11 @@ private:
     std::unique_ptr<Object3dCommon> object3dCommon_;
     std::unique_ptr<Skybox> skybox_;
     std::unique_ptr<Camera> camera_;
+    // 戦績専用の機体とカメラ。本編の姿勢・定数バッファを流用しない。
+    std::unique_ptr<Camera> resultCamera_;
+    std::unique_ptr<Object3d> resultShip_;
+    std::array<std::unique_ptr<Object3d>, 6> resultExhaust_;
+    Math::Vector3 resultModelCenter_{};
     std::unique_ptr<Player> player_;
     std::vector<std::unique_ptr<Object3d>> sceneObjects_;
     std::vector<SceneSerializer::ObjectRecord> sceneObjectRecords_;
@@ -710,8 +731,7 @@ private:
     bool hitConfirmCharged_ = false;
     bool hitConfirmBoss_ = false;
     bool hitConfirmDestroyed_ = false;
-    bool stageTimelineWasBlocked_ = false;
-    int stageEncounterBreatherTimer_ = 0;
+    float stageHandoffFrames_ = 0.0f; // 残り一機から次の編隊へつなぐ経過時間。スローとポーズに従う。
     float stageEmptyFrames_ = 0.0f; // 敵不在の経過時間。通常編隊間だけ次の出現までの待ちを制限する。
     int postEffectMode_ = 12;
     bool isGameOver_ = false;
@@ -723,6 +743,9 @@ private:
     bool menuInputConsumed_ = false; // 説明を閉じたEnterを下のメニューへ通さない。
     int pauseSelectedItem_ = 0; // 再開・再挑戦・操作方法・タイトルの選択位置。
     int resultSelectedItem_ = 0; // 再挑戦またはタイトル。方向キーで変更する。
+    double pauseUiStarted_ = -1.0; // ゲームの時計とは独立した画面演出。
+    double resultUiStarted_ = -1.0;
+    int resultUiKind_ = 0;
     bool isEditorOverlayVisible_ = false;
     bool isPerformanceOverlayVisible_ = false;
     bool isPostEffectBypassEnabled_ = false;

@@ -27,6 +27,7 @@ public:
     void SetNextScene(SceneType sceneType);
     void PrepareScene(SceneType sceneType);
     bool IsScenePrepared(SceneType sceneType) const;
+    BaseScene* GetPreparedScene(SceneType sceneType) const;
     void SetSceneFactory(AbstractSceneFactory* sceneFactory);
 
     void SetSystems(

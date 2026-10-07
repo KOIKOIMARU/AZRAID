@@ -1,16 +1,34 @@
 #include <Windows.h>
 #include <shellapi.h>
 
+#include <array>
 #include <cerrno>
 #include <cmath>
 #include <cwchar>
 #include <exception>
+#include <filesystem>
 #include <memory>
 
 #include "app/MyGame.h"
 #include "engine/base/Logger.h"
 
 namespace {
+
+void ConfigureRuntimeDirectory()
+{
+    std::array<wchar_t, 32768> executablePath{};
+    const DWORD length = GetModuleFileNameW(nullptr, executablePath.data(),
+        static_cast<DWORD>(executablePath.size()));
+    if (length == 0 || length >= executablePath.size()) { return; }
+
+    const auto directory = std::filesystem::path(executablePath.data()).parent_path();
+    std::error_code error;
+    // 配布版はexeの隣にあるデータを読む。開発ビルドの指定作業場所は維持する。
+    if (std::filesystem::is_directory(directory / L"resources", error) &&
+        std::filesystem::is_directory(directory / L"shaders", error)) {
+        std::filesystem::current_path(directory);
+    }
+}
 
 bool TryParsePositiveNumber(const wchar_t* text, double& value)
 {
@@ -102,6 +120,7 @@ SmokeTestOptions ParseSmokeTestOptions()
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     try {
+        ConfigureRuntimeDirectory();
         std::unique_ptr<Framework> game =
             std::make_unique<MyGame>(ParseSmokeTestOptions());
         return game->Run();

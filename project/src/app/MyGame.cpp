@@ -158,15 +158,27 @@ void MyGame::Draw() {
             dynamic_cast<GameScene*>(SceneManager::GetInstance()->GetCurrentScene())) {
         postEffectMode = gameScene->GetPostEffectMode();
         dxCommon_->SetPostEffectProjectionMatrix(gameScene->GetProjectionMatrix());
+    } else if (auto* titleScene =
+            dynamic_cast<TitleScene*>(SceneManager::GetInstance()->GetCurrentScene())) {
+        if (auto* preview = titleScene->GetDeparturePreview()) {
+            postEffectMode = preview->GetPostEffectMode();
+            dxCommon_->SetPostEffectProjectionMatrix(preview->GetProjectionMatrix());
+        }
     }
 
     sectionBegin = std::chrono::steady_clock::now();
     dxCommon_->DrawRenderTextureToSwapChain(postEffectMode);
+    if (auto* titleScene = dynamic_cast<TitleScene*>(SceneManager::GetInstance()->GetCurrentScene())) {
+        titleScene->DrawDepartureOverlay();
+    }
     timing.postEffectMs =
         ToMilliseconds(sectionBegin, std::chrono::steady_clock::now());
 
     sectionBegin = std::chrono::steady_clock::now();
     imguiManager_->Draw();
+    if (auto* titleScene = dynamic_cast<TitleScene*>(SceneManager::GetInstance()->GetCurrentScene())) {
+        titleScene->DrawFlightOverlay();
+    }
     timing.imguiDrawMs =
         ToMilliseconds(sectionBegin, std::chrono::steady_clock::now());
 

@@ -350,13 +350,16 @@ void ImGuiManager::Initialize(
         iconRanges);
 
     // ライセンス同梱のフォントを使い、実行PCのインストール状況に依存させない。
-    // 表記はM PLUS 1pで統一。異なる基準サイズの英字へ和文をマージすると、
-    // 日本語だけ小さく見えるため、数値・ロゴ用のRajdhaniとは役割で分ける。
+    // 和文はZen Kaku Gothic Newの二つの太さ、短い英字・数字はChakra Petch。
+    // 同じ参照サイズで読み込み、文字列の実測幅で配置する。
     hudFont_ = io.Fonts->AddFontFromFileTTF(
-        "resources/fonts/MPLUS1p-Medium.ttf", 48.0f, nullptr,
+        "resources/fonts/ZenKakuGothicNew-Medium.ttf", 48.0f, nullptr,
+        io.Fonts->GetGlyphRangesJapanese());
+    hudHeadingFont_ = io.Fonts->AddFontFromFileTTF(
+        "resources/fonts/ZenKakuGothicNew-Bold.ttf", 48.0f, nullptr,
         io.Fonts->GetGlyphRangesJapanese());
     hudNumberFont_ = io.Fonts->AddFontFromFileTTF(
-        "resources/fonts/Rajdhani-SemiBold.ttf", 48.0f);
+        "resources/fonts/ChakraPetch-SemiBold.ttf", 48.0f);
     combatFont_ = hudFont_;
 
     ImGui_ImplWin32_Init(winApp->GetHwnd());
@@ -407,6 +410,7 @@ void ImGuiManager::Draw() {
 void ImGuiManager::Finalize() {
 #ifdef USE_IMGUI
     hudFont_ = nullptr;
+    hudHeadingFont_ = nullptr;
     hudNumberFont_ = nullptr;
     combatFont_ = nullptr;
     ImGui_ImplDX12_Shutdown();
@@ -425,6 +429,11 @@ ImFont* ImGuiManager::GetHudFont()
 ImFont* ImGuiManager::GetHudNumberFont()
 {
     return hudNumberFont_ ? hudNumberFont_ : GetHudFont();
+}
+
+ImFont* ImGuiManager::GetHudHeadingFont()
+{
+    return hudHeadingFont_ ? hudHeadingFont_ : GetHudFont();
 }
 
 ImFont* ImGuiManager::GetCombatFont()

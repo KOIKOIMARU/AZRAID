@@ -25,6 +25,22 @@ inline float Scale(const Math::Vector2& viewport)
     return std::clamp((std::min)(viewport.x / 1280.0f, viewport.y / 720.0f), 0.5f, 2.0f);
 }
 
+// 各計器は同じ画面端・列・間隔へ揃える。通信と操作計器は中央の射撃領域へ置かない。
+struct Layout {
+    float scale;
+    ImVec2 health, score, chain, boss, charge, skill, fever, radio;
+    Layout(const Math::Vector2& min, const Math::Vector2& size) : scale(Scale(size)) {
+        health = { min.x + 32 * scale, min.y + 26 * scale };
+        score = { min.x + size.x - 304 * scale, min.y + 28 * scale };
+        chain = { score.x, min.y + 130 * scale };
+        boss = { min.x + (size.x - 416 * scale) * 0.5f, min.y + 32 * scale };
+        charge = { min.x + size.x - 276 * scale, min.y + size.y - 180 * scale };
+        skill = { charge.x, min.y + size.y - 104 * scale };
+        fever = { health.x, min.y + size.y - 136 * scale };
+        radio = { health.x, min.y + size.y - 260 * scale };
+    }
+};
+
 inline ImFont* Font(bool number = false)
 {
     return number ? ImGuiManager::GetHudNumberFont() : ImGuiManager::GetHudFont();
@@ -57,26 +73,42 @@ inline void Shade(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
 }
 
 inline ImFont* BattleFont() { return ImGuiManager::GetCombatFont(); }
+inline ImFont* HeadingFont() { return ImGuiManager::GetHudHeadingFont(); }
 
-inline float ReadoutWidth(const char* text, float size)
+// 和文を含む行は同じ和文書体で組む。短い英字・キー名だけは数字と書体を揃える。
+inline ImFont* ReadoutFont(const char* text, bool heading = false)
 {
-    return BattleFont()->CalcTextSizeA(size, FLT_MAX, 0.0f, text).x;
+    for (const char* letter = text; *letter; ++letter) {
+        if (static_cast<unsigned char>(*letter) >= 0x80) { return heading ? HeadingFont() : BattleFont(); }
+    }
+    return Font(true);
+}
+
+inline float ReadoutWidth(const char* text, float size, bool heading = false)
+{
+    return ReadoutFont(text, heading)->CalcTextSizeA(size, FLT_MAX, 0.0f, text).x;
 }
 
 // 和文ラベルはメニューと同じ書体・色変換を使う。細い影だけで背景から分離する。
 inline void Readout(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
-    const char* text, bool right = false)
+    const char* text, bool right = false, bool heading = false)
 {
-    if (right) { position.x -= ReadoutWidth(text, size); }
+    if (right) { position.x -= ReadoutWidth(text, size, heading); }
     position.x = std::round(position.x);
     position.y = std::round(position.y);
     const int alpha = static_cast<int>((color >> IM_COL32_A_SHIFT) & 0xff);
-    draw->AddText(BattleFont(), size, { position.x, position.y + 1.0f },
+    draw->AddText(ReadoutFont(text, heading), size, { position.x, position.y + 1.0f },
         IM_COL32(0, 0, 0, alpha * 4 / 5), text);
-    draw->AddText(BattleFont(), size, position, SurfaceColor(color), text);
+    draw->AddText(ReadoutFont(text, heading), size, position, SurfaceColor(color), text);
 }
 
-// 大きな数字だけは細身の角形書体。通常の文中の数字やキー名は和文書体のまま。
+inline void Heading(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
+    const char* text, bool right = false)
+{
+    Readout(draw, position, size, color, text, right, true);
+}
+
+// 大きな数字は角を落とした書体で揃える。和文の行中にある数字は和文書体で組む。
 inline void Number(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     const char* text, bool right = false)
 {
@@ -117,26 +149,110 @@ inline ImU32 Mix(ImU32 from, ImU32 to, float rate)
     return result;
 }
 
-inline void Panel(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale)
+// タイトルと同じ前傾を数字にも通す。幅を指定した欄では長い値も収める。
+inline void Slant(ImDrawList* draw, ImVec2 at, float size, ImU32 color,
+    const char* text, bool right = false, bool shadow = true, float rise = 0.0f, float maxWidth = 0.0f)
 {
-    const ImU32 top = SurfaceColor(IM_COL32(37, 39, 44, 248));
-    const ImU32 bottom = SurfaceColor(IM_COL32(18, 20, 24, 248));
-    draw->AddRectFilledMultiColor(min, max, top, top, bottom, bottom);
-    draw->AddRect(min, max, SurfaceColor(IM_COL32(105, 109, 118, 235)), 0, 0, scale);
-    draw->AddLine({ min.x + scale, min.y + scale }, { max.x - scale, min.y + scale },
-        SurfaceColor(IM_COL32(180, 184, 192, 175)), scale);
+    if (maxWidth > 0.0f) {
+        const float width = (std::max)(Width(text, size, true) + size * 0.19f, 1.0f);
+        size *= (std::min)(1.0f, maxWidth / width);
+    }
+    const float shear = size * 0.19f;
+    if (right) { at.x -= Width(text, size, true) + shear; }
+    const auto pass = [&](ImVec2 position, ImU32 ink) {
+        const int first = draw->VtxBuffer.Size;
+        draw->AddText(Font(true), size, position, ink, text);
+        for (int index = first; index < draw->VtxBuffer.Size; ++index) {
+            auto& vertex = draw->VtxBuffer[index];
+            vertex.pos.x += (position.y + size - vertex.pos.y) * 0.19f;
+            vertex.pos.y -= (vertex.pos.x - position.x) * rise;
+        }
+    };
+    if (shadow) { pass({ at.x + 2, at.y + 2 }, IM_COL32(0, 0, 0, 180)); }
+    pass(at, SurfaceColor(color));
 }
 
-// 色の流れと上面反射を持つ計器。塗りは三段で繋ぎ、微小な残量にもクリップ矩形を使わない。
+// 機体の後退翼と同じ傾き。枠を増やさず、残量そのものを長い刃として描く。
+inline void WingMeter(ImDrawList* draw, ImVec2 at, float width, float thickness,
+    float rate, ImU32 color, float scale, float shine = -1.0f, float rainbowTime = -1.0f)
+{
+    rate = std::clamp(rate, 0.0f, 1.0f);
+    const auto p = [&](float x, float y) { return ImVec2(at.x + x, at.y + y - x * 0.075f); };
+    const auto blade = [&](float length, ImU32 ink) {
+        if (length <= 0) { return; }
+        const float cut = (std::min)(length * 0.25f, 10 * scale);
+        const ImVec2 points[] = { p(cut, 0), p(length, 0), p(length - cut, thickness), p(0, thickness) };
+        draw->AddConvexPolyFilled(points, 4, SurfaceColor(ink));
+    };
+    blade(width, IM_COL32(10, 17, 28, 235));
+    const int first = draw->VtxBuffer.Size;
+    const float length = width * rate;
+    blade(length, color);
+    for (int index = first; index < draw->VtxBuffer.Size; ++index) {
+        auto& vertex = draw->VtxBuffer[index];
+        const float t = std::clamp((vertex.pos.x - at.x) / (std::max)(length, 1.0f), 0.0f, 1.0f);
+        ImU32 tint = color;
+        if (rainbowTime >= 0) {
+            float r{}, g{}, b{};
+            ImGui::ColorConvertHSVtoRGB(std::fmod(rainbowTime + t * 0.68f, 1.0f), 0.72f, 1.0f, r, g, b);
+            tint = IM_COL32(static_cast<int>(r * 255), static_cast<int>(g * 255), static_cast<int>(b * 255), 255);
+        }
+        const ImU32 ink = SurfaceColor(Mix(Mix(tint, IM_COL32(10, 17, 28, 255), 0.35f), tint, t));
+        vertex.col = (ink & ~IM_COL32_A_MASK) | (vertex.col & IM_COL32_A_MASK);
+    }
+    if (length > 0) {
+        draw->AddLine(p((std::min)(4 * scale, length * 0.2f), scale), p(length, scale),
+            SurfaceColor(Mix(color, White, 0.48f)), scale);
+    }
+    if (shine >= 0 && rate > 0.98f) {
+        const float x = std::clamp(shine, 0.0f, 1.0f) * (width - 16 * scale);
+        draw->AddQuadFilled(p(x + 8 * scale, 0), p(x + 16 * scale, 0),
+            p(x + 8 * scale, thickness), p(x, thickness), SurfaceColor(IM_COL32(239, 241, 244, 115)));
+    }
+}
+
+// 下地は端で消える。情報ごとに箱を作らず、空と建物から文字だけを分離する。
+inline void Wake(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
+{
+    const ImU32 dark = IM_COL32(0, 3, 9, 168), clear = IM_COL32(0, 3, 9, 0);
+    const float middle = min.y + (max.y - min.y) * 0.5f;
+    const ImU32 left = right ? clear : dark, edge = right ? dark : clear;
+    draw->AddRectFilledMultiColor(min, { max.x, middle }, clear, clear, edge, left);
+    draw->AddRectFilledMultiColor({ min.x, middle }, max, left, edge, clear, clear);
+}
+
+inline void Plate(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale, int alpha = 226)
+{
+    const float cut = (std::min)(8 * scale, (std::min)(max.x - min.x, max.y - min.y) * 0.25f);
+    const ImVec2 points[] = { min, { max.x - cut, min.y }, { max.x, min.y + cut },
+        max, { min.x + cut, max.y }, { min.x, max.y - cut } };
+    draw->AddConvexPolyFilled(points, 6, SurfaceColor(IM_COL32(15, 19, 25, alpha)));
+}
+
+inline void KeyBadge(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale,
+    const char* key, bool ready)
+{
+    const ImU32 color = ready ? Energy : Muted;
+    draw->AddRectFilled(min, max, SurfaceColor(IM_COL32(39, 45, 57, 235)), 2 * scale);
+    draw->AddRect(min, max, SurfaceColor(Mix(color, IM_COL32(39, 45, 57, 255), 0.45f)), 2 * scale, 0, scale);
+    const float size = 15 * scale;
+    Readout(draw, { min.x + (max.x - min.x - ReadoutWidth(key, size)) * 0.5f,
+        min.y + (max.y - min.y - size) * 0.5f }, size, ready ? White : Muted, key);
+}
+
+inline void Panel(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale)
+{
+    Plate(draw, min, max, scale, 244);
+}
+
+// 計器は枠を重ねず、残量と先端だけを明確にする。全ゲージで同じ断面を使う。
 inline void Meter(ImDrawList* draw, ImVec2 min, ImVec2 max, float rate, ImU32 color, float scale)
 {
-    draw->AddRectFilled({ min.x - scale, min.y - scale }, { max.x + scale, max.y + 2 * scale }, IM_COL32(0, 0, 0, 210));
-    const ImU32 troughTop = SurfaceColor(IM_COL32(12, 14, 18, 255));
-    const ImU32 troughBottom = SurfaceColor(IM_COL32(38, 41, 48, 255));
+    const ImU32 troughTop = SurfaceColor(IM_COL32(5, 9, 15, 245));
+    const ImU32 troughBottom = SurfaceColor(IM_COL32(43, 48, 58, 245));
     draw->AddRectFilledMultiColor(min, max, troughTop, troughTop, troughBottom, troughBottom);
-    draw->AddRect(min, max, SurfaceColor(IM_COL32(116, 120, 129, 255)), 0.0f, 0, scale);
-    const ImVec2 inner(min.x + 2.0f * scale, min.y + 2.0f * scale);
-    const ImVec2 end(max.x - 2.0f * scale, max.y - 2.0f * scale);
+    const ImVec2 inner(min.x, min.y + scale);
+    const ImVec2 end(max.x, max.y - scale);
     rate = std::clamp(rate, 0.0f, 1.0f);
     if (rate <= 0.0f || end.x <= inner.x || end.y <= inner.y) { return; }
     const float edge = inner.x + (end.x - inner.x) * rate;
@@ -150,7 +266,7 @@ inline void Meter(ImDrawList* draw, ImVec2 min, ImVec2 max, float rate, ImU32 co
         SurfaceColor(left), SurfaceColor(right),
         SurfaceColor(Mix(right, IM_COL32(0, 0, 0, 255), 0.28f)),
         SurfaceColor(Mix(left, IM_COL32(0, 0, 0, 255), 0.28f)));
-    draw->AddLine(inner, { edge, inner.y }, SurfaceColor(Mix(color, White, 0.62f)), scale);
+    draw->AddLine(inner, { edge, inner.y }, SurfaceColor(Mix(color, White, 0.38f)), scale);
     draw->AddLine({ edge, inner.y }, { edge, end.y }, SurfaceColor(Mix(color, White, 0.48f)), scale);
 }
 

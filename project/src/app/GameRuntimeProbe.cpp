@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <iterator>
 #include <cstdlib>
+#include <string_view>
 
 namespace {
 void CheckProjectileVisualProjection()
@@ -149,6 +150,22 @@ void CheckEnemyFireControl()
             control.Advance(step, true, pattern) == EnemyFireControl::Event::Aim,
             "offscreen enemy retained an immediate shot");
     }
+    // 狙撃だけは22フレームの固定予告。スロー中も同じ世界時間で二射する。
+    for (const float step : { 0.25f, 0.5f, 1.0f }) {
+        EnemyFireControl::Cycle sniper;
+        const EnemyFireControl::Pattern pattern{ 60.0f, 18.0f, 128.0f, 2, 22.0f };
+        sniper.Advance(step, true, pattern);
+        int shots = 0;
+        for (float elapsed = step; elapsed <= 78.0f; elapsed += step) {
+            const auto event = sniper.Advance(step, true, pattern);
+            require(sniper.IsTracking() == (elapsed < 38.0f), "sniper lock cue did not match its tracking clock");
+            if (event == EnemyFireControl::Event::Fire) {
+                require(std::abs(elapsed - (60.0f + shots * 18.0f)) < 0.01f, "sniper burst timing changed");
+                ++shots;
+            }
+        }
+        require(shots == 2, "sniper must fire exactly two fixed-aim shots");
+    }
 }
 
 // 実際のPlayerと入力経路を使う回避回帰試験。描画しない独立自機なので本編へ影響しない。
@@ -238,6 +255,12 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     static float longestEmptyGap = 0.0f;
     static int encounterGapCount = 0;
     static bool wasEmpty = false;
+    static int overlappingEncounters = 0;
+    static int maximumStageEnemies = 0;
+    static int maximumStagePressure = 0;
+    static size_t previousScheduledEnemies = 0;
+    static const char* previousCombatBeat = "Intro";
+    static std::vector<const Enemy*> previousStageEnemies;
     static std::vector<float> pausedState;
     static int delayedEscapeEvents = 0;
     static unsigned int sceneryCoverage = 0;
@@ -278,6 +301,9 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             playerShotsFired_ != 0 || !enemies_.empty() ||
             sceneryCanyonStartZ_ != 450.0f || sceneryPlazaStartZ_ != 866.0f ||
             flightReleaseKick_ != 0.0f || previousFlightTimeScale_ != 1.0f || sfxAccentUntil_ != 0.0f ||
+            combatRadioCue_ != CombatRadioCue::None || combatRadioSeen_ != 0 ||
+            combatRadioRemaining_ != 0.0f || combatRadioSilence_ != 0.0f ||
+            stageHandoffFrames_ != 1.0f || // 再入場後の最初の通常Updateで開始カウントが一フレーム進む。
             // 再入場後の最初の通常Updateは実行済み。初速への小さな反応だけを許容する。
             flightCameraMotion_.blurStrength > 0.02f || std::abs(flightCameraMotion_.acceleration) > 0.03f ||
             std::any_of(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), [](bool v) { return v; })) {
@@ -516,6 +542,30 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         throw std::runtime_error("Playthrough pilot was defeated; no invulnerability or forced clear used");
     }
     if (frame == 0) {
+        // 本編の四機編隊が分断されず、一機残しから入場できることを実アクターで検証。
+        auto savedEnemies = std::move(enemies_);
+        const auto addFixture = [&](Enemy::Behavior behavior) {
+            auto enemy = std::make_unique<Enemy>();
+            enemy->Initialize(object3dCommon_.get(), GetEnemyModelForBehavior(behavior),
+                { 0.0f, 1.0f, railDistance_ + 44.0f }, behavior);
+            enemies_.push_back(std::move(enemy));
+        };
+        addFixture(Enemy::Behavior::Formation);
+        if (!CanSpawnStageEnemyGroup(11)) { throw std::runtime_error("Last light enemy prevented sniper-wing overlap"); }
+        addFixture(Enemy::Behavior::Formation);
+        if (CanSpawnStageEnemyGroup(11)) { throw std::runtime_error("Four-ship group admitted without all four slots"); }
+        enemies_.back()->Kill();
+        if (!CanSpawnStageEnemyGroup(11)) { throw std::runtime_error("Destroyed enemy retained an admission slot"); }
+        enemies_.clear();
+        addFixture(Enemy::Behavior::Sniper);
+        if (CanSpawnStageEnemyGroup(27) || CanSpawnStageEnemyGroup(28)) {
+            throw std::runtime_error("Sniper overlapped another primary threat or crossfire pair");
+        }
+        if (!CanSpawnStageEnemyGroup(0)) { throw std::runtime_error("Primary threat prevented light reinforcements"); }
+        enemies_.clear();
+        enemies_ = std::move(savedEnemies);
+        previousStageEnemies.reserve(5);
+        log("FLOW_ADMISSION_OK last_enemy_overlap=1 whole_formation_reserved=1 dead_slots_released=1 primary_threat_bounded=1");
         CheckEnemyFireControl();
         CheckSniperPosture(object3dCommon_.get(), enemyShooterModel_);
         log("SNIPER_POSTURE_OK brace_still=1 rail_relative=1 recoil_on_shot=1 recovery_open=1 death_cancels=1");
@@ -529,10 +579,13 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     // 実際のESC経路で停止し、各フレームの進行値と全アクター位置が不変であることを検証する。
     const auto snapshot = [&]() {
         std::vector<float> values{ gameplayElapsedSeconds_, stageProgress_, railDistance_, cameraTimer_,
+            stageHandoffFrames_, stageEmptyFrames_, stageTimelineSpeed_,
             flightReleaseKick_, previousFlightTimeScale_, cameraFovY_, sfxAccentUntil_,
             flightCameraMotion_.fovVelocity, flightCameraMotion_.acceleration,
             flightCameraMotion_.previousSpeed, flightCameraMotion_.blurStrength,
             static_cast<float>(chargeTimer_), static_cast<float>(feverTimer_), static_cast<float>(feverGauge_), phantomCooldown_,
+            static_cast<float>(combatRadioCue_), combatRadioRemaining_, combatRadioSilence_,
+            static_cast<float>(combatRadioSeen_),
             static_cast<float>(score_), static_cast<float>(player_->GetHp()),
             static_cast<float>(enemies_.size()), static_cast<float>(playerBullets_.size()),
             static_cast<float>(enemyBullets_.size()), static_cast<float>(playerShotsFired_) };
@@ -581,16 +634,48 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     const bool empty = !bossSpawned_ && enemies_.empty() && defeatedEnemyCount_ > 0;
     if (empty && std::any_of(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), [](bool v) { return !v; })) {
         longestEmptyGap = (std::max)(longestEmptyGap, stageEmptyFrames_);
-        if (stageEmptyFrames_ > 62.0f) {
-            throw std::runtime_error("Empty encounter gap exceeded one second: frames=" +
+        if (stageEmptyFrames_ > 14.0f) {
+            throw std::runtime_error("Empty encounter gap exceeded the continuous-flow deadline: frames=" +
                 std::to_string(stageEmptyFrames_) + " stage=" + std::to_string(stageProgress_) +
                 " speed=" + std::to_string(stageTimelineSpeed_) + " slow=" +
-                std::to_string(GetCinematicWorldTimeScale()) + " breather=" +
-                std::to_string(stageEncounterBreatherTimer_));
+                std::to_string(GetCinematicWorldTimeScale()) + " handoff=" +
+                std::to_string(stageHandoffFrames_));
         }
     }
     if (wasEmpty && !empty) { ++encounterGapCount; }
     wasEmpty = empty;
+    int activeStageEnemies = 0;
+    int pressure = 0;
+    bool retainedEnemy = false;
+    for (const auto& enemy : enemies_) {
+        if (!enemy || enemy->IsDead() || enemy->IsBoss()) { continue; }
+        ++activeStageEnemies;
+        const auto behavior = enemy->GetBehavior();
+        pressure += behavior == Enemy::Behavior::Sniper || behavior == Enemy::Behavior::Shield ||
+            behavior == Enemy::Behavior::Support ? 2 :
+            behavior == Enemy::Behavior::Crossfire || behavior == Enemy::Behavior::StrafeShooter ? 1 : 0;
+        retainedEnemy |= std::find(previousStageEnemies.begin(), previousStageEnemies.end(), enemy.get()) !=
+            previousStageEnemies.end();
+    }
+    maximumStageEnemies = (std::max)(maximumStageEnemies, activeStageEnemies);
+    maximumStagePressure = (std::max)(maximumStagePressure, pressure);
+    if (activeStageEnemies > 5 || pressure > 2) {
+        throw std::runtime_error("Continuous flow exceeded the live enemy or attack-pressure bound");
+    }
+    const size_t scheduledEnemies = static_cast<size_t>(std::count(
+        stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), true));
+    if (scheduledEnemies > previousScheduledEnemies && retainedEnemy &&
+        std::string_view(previousCombatBeat) != std::string_view(stageCombatBeatName_)) {
+        ++overlappingEncounters;
+        log("FLOW_OVERLAP beat=" + std::string(stageCombatBeatName_) +
+            " active=" + std::to_string(activeStageEnemies));
+    }
+    previousStageEnemies.clear();
+    for (const auto& enemy : enemies_) {
+        if (enemy && !enemy->IsDead() && !enemy->IsBoss()) { previousStageEnemies.push_back(enemy.get()); }
+    }
+    previousScheduledEnemies = scheduledEnemies;
+    previousCombatBeat = stageCombatBeatName_;
     if (frame == 61 && (!showControlsHelp_ || !isPaused_)) {
         throw std::runtime_error("H did not open controls help");
     }
@@ -653,6 +738,14 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
                 " pause_freezes_springs=1");
             log("PACING_OK encounter_gaps=" + std::to_string(encounterGapCount) +
                 " longest_empty_frames=" + std::to_string(longestEmptyGap));
+            if (overlappingEncounters == 0) { throw std::runtime_error("Continuous flow never handed over before a wipe"); }
+            if (scheduledEnemies != stageEnemyEventTriggered_.size() ||
+                playerBulletPoolMisses_ != 0 || enemyBulletPoolMisses_ != 0 || hitEffectObjectPoolMisses_ != 0) {
+                throw std::runtime_error("Continuous flow skipped scheduled enemies or exhausted a combat pool");
+            }
+            log("FLOW_OK overlapping_encounters=" + std::to_string(overlappingEncounters) +
+                " max_active=" + std::to_string(maximumStageEnemies) +
+                " max_pressure=" + std::to_string(maximumStagePressure) + " whole_schedule=1");
             log("CLEAR hp=" + std::to_string(player_->GetHp()) +
                 " defeated=" + std::to_string(defeatedEnemyCount_) +
                 " escaped=" + std::to_string(escapedEnemyCount_) +
@@ -694,6 +787,9 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             break;
         }
     }
+    // フィーバーを持ち込んでも、試験ではボスの初撃と回避を観察してから反撃する。
+    // 通常プレイのHP・ダメージ・ボスの被弾条件には手を加えない。
+    if (target && target->IsBoss() && bossShotsFired_ == 0) { target = nullptr; }
     if (target) {
         // 硬い敵へはチャージ、それ以外には連射。性能・弾・敵HPは通常値のまま。
         if (target->GetHp() < 7 || chargeTimer_ >= chargeShotThreshold_ || feverTimer_ > 0) {
@@ -782,6 +878,12 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
     }
     ++frame;
     require(!isGameOver_, "fixture player died");
+    if (frame < 620) {
+        // 検証用に全編隊を消化済みにしているため、空の時間を短縮する本編進行は区切る。
+        // レール・敵・射撃・回避は通常更新のまま。ボス試験から本編進行へ戻す。
+        stageProgress_ = 0.0f;
+        stageHandoffFrames_ = 0.0f;
+    }
     if (frame == 1) {
         CheckEnemyFireControl();
         log("ENEMY_FIRE_CONTROL_OK rail_intercept=1 fixed_aim=1 windup_burst_recovery=1");
@@ -1026,6 +1128,11 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
 bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
+    // リザルトを詰める際は、戦闘の確認停止を省いて勝敗の三画面だけを確認できる。
+    static const bool resultOnlyPreview = [] {
+        char value[2]{};
+        return GetEnvironmentVariableA("AZRAID_RESULT_PREVIEW", value, 2) > 0 && value[0] == '1';
+    }();
     const auto log = [&](const std::string& message) {
         std::ofstream file(logPath, std::ios::app);
         file << "BOSS_TEST " << message << '\n';
@@ -1033,20 +1140,31 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
     const auto require = [&](bool ok, const char* message) {
         if (!ok) { log(std::string("FAIL ") + message); throw std::runtime_error(message); }
     };
-    if (preview && (frame == 30 || frame == 31 || frame == 138 || frame == 172 || frame == 366 || frame == 606 || frame == 773 ||
+    if (preview && ((!resultOnlyPreview && (frame == 30 || frame == 31 || frame == 55 || frame == 138 || frame == 172 || frame == 366 || frame == 606 || frame == 700 || frame == 773)) ||
+        (resultOnlyPreview && (frame == 890 || frame == 897)) ||
         frame == 880 || frame == 901 || frame == 931)) {
         phantomPreviewPaused_ = true;
         // 同じHUDを背後に残したポーズ・操作方法も、通常起動を変えずに実画面で確認する。
         isPaused_ = frame == 30 || frame == 31;
         showControlsHelp_ = frame == 31;
-        ImGui::SetNextWindowPos({ 20.0f, 150.0f }, ImGuiCond_Always);
-        ImGui::Begin("Boss visual fixture", nullptr,
-            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
-        ImGui::TextUnformatted("TEST ONLY: pause / controls / boss / results");
-        ImGui::Text("Frame %d   Pattern %d   Counter %d", frame, bossAttackPattern_, bossCounterTimer_);
-        // 全画面の操作説明ウィンドウがマウスを覆っていても、映像試験を進められる。
-        const bool next = ImGui::Button("NEXT / F8", { 220.0f, 36.0f }) || ImGui::IsKeyPressed(ImGuiKey_F8, false);
-        ImGui::End();
+        bool next = ImGui::IsKeyPressed(ImGuiKey_F8, false);
+        if (resultOnlyPreview) {
+            static int heldFrame = -1;
+            static double heldSince = 0.0;
+            if (heldFrame != frame) { heldFrame = frame; heldSince = ImGui::GetTime(); }
+            // 記録のために停止してもテストを放置しない。通常の手動映像試験には適用しない。
+            next |= ImGui::GetTime() - heldSince >= (frame == 931 ? 3.0 : 15.0);
+        }
+        if (frame < 880) {
+            ImGui::SetNextWindowPos({ 20.0f, 150.0f }, ImGuiCond_Always);
+            ImGui::Begin("Boss visual fixture", nullptr,
+                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+            ImGui::TextUnformatted("TEST ONLY: pause / controls / boss / results");
+            ImGui::Text("Frame %d   Pattern %d   Counter %d", frame, bossAttackPattern_, bossCounterTimer_);
+            // 全画面の操作説明ウィンドウがマウスを覆っていても、映像試験を進められる。
+            next |= ImGui::Button("NEXT / F8", { 220.0f, 36.0f });
+            ImGui::End();
+        }
         if (!next) { input_->SetTestFrame({}, { 640, 320 }); return false; }
         phantomPreviewPaused_ = false;
         isPaused_ = showControlsHelp_ = false;
@@ -1073,6 +1191,7 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
             for (auto& effect : hitEffects_) { RecycleHitEffectVisuals(effect); }
             hitEffects_.clear();
             SpawnBossEnemy();
+            require(combatRadioCue_ == CombatRadioCue::Boss, "boss entry did not request control warning");
             return enemies_.back().get();
         };
         for (int phase : { 1, 2 }) {
@@ -1129,6 +1248,13 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         UpdateBossActions();
         require(bossPhase_ == 2 && bossPhaseTransitionTimer_ > 0 && enemyBullets_.empty(),
             "phase transition retained dangerous bullets");
+        require(combatRadioCue_ == CombatRadioCue::BossPhase, "phase escalation failed to replace arrival radio");
+        const float phaseRadioRemaining = combatRadioRemaining_;
+        RequestCombatRadio(CombatRadioCue::RiftFever);
+        RequestCombatRadio(CombatRadioCue::Boss);
+        require(combatRadioCue_ == CombatRadioCue::BossPhase && combatRadioRemaining_ == phaseRadioRemaining,
+            "routine communication interrupted escalation warning");
+        log("RADIO_OK arrival=1 phase_escalation=1 warning_priority=1 no_repeat_on_entry=1");
         log("PHASE_OK hp_half_transition=1 bullets_recycled=1");
         boss->Damage(999);
         OnEnemyDestroyed(*boss, true, false);
@@ -1153,6 +1279,11 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         require(musicTrack_ == 1 && sound_->GetLoopCount() == 1, "boss music did not resume");
         log("BOSS_MUSIC_OK one_loop=1");
     }
+    if (frame == 660) {
+        // 第2段階の警告も、実際のHP条件と通常Updateから表示する映像試験。
+        auto* boss = enemies_.front().get();
+        boss->Damage(boss->GetMaxHp() / 2);
+    }
     if (frame == 750) {
         auto* boss = enemies_.front().get();
         boss->Damage(999); // 撃破映像の固定サンプル。通常通し試験ではこの操作を使わない。
@@ -1165,8 +1296,15 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         input_->SetTestFrame({}, { 640, 320 });
         if (!preview) { return true; }
     }
+    if (preview && resultOnlyPreview && (frame == 880 || frame == 890 || frame == 897)) {
+        playerDamageCount_ = frame == 880 ? 2 : (frame == 890 ? 0 : 3);
+        log(std::string("RESULT_GRADE_SAMPLE rank=") + (frame == 880 ? "A" : (frame == 890 ? "S" : "B")));
+    }
     // リザルトの分岐は映像検証時だけ切り替える。通常プレイ・通常の通し試験は実際の勝敗を使う。
-    if (preview && frame == 900) { isGameClear_ = false; isGameOver_ = true; }
+    if (preview && frame == 900) {
+        if (resultOnlyPreview) { playerDamageCount_ = 2; }
+        isGameClear_ = false; isGameOver_ = true;
+    }
     if (preview && frame == 930) {
         playMode_ = PlayMode::Tutorial;
         isGameClear_ = true;
@@ -1182,6 +1320,13 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
     static int impactFrame = -1;
+    static int strategy = 0;
+    static int strategyFrame = 0;
+    static int sniperShots = 0;
+    static bool counterFired = false;
+    static bool sawLockedAim = false;
+    static Math::Vector3 lockedAim{};
+    static unsigned int previewSamples = 0;
     const auto log = [&](const std::string& message) {
         std::ofstream file(logPath, std::ios::app);
         file << "CHARGE_TEST " << message << '\n';
@@ -1191,6 +1336,119 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
     };
     std::array<BYTE, 256> keys{};
     Math::Vector2 mouse = input_->GetMousePosition();
+    const auto beginEncounter = [&](int nextStrategy) {
+        DebugJumpToStagePhase(0);
+        std::fill(stageEnemyEventTriggered_.begin(), stageEnemyEventTriggered_.end(), true);
+        for (auto& effect : hitEffects_) { RecycleHitEffectVisuals(effect); }
+        hitEffects_.clear();
+        player_ = std::make_unique<Player>();
+        player_->Initialize(object3dCommon_.get(), playerModel_);
+        player_->SetRailZ(railDistance_);
+        score_ = feverGauge_ = feverTimer_ = chargeTimer_ = shootCooldown_ = shootBufferTimer_ = 0;
+        justDodgeSlowTimer_ = justDodgeFlashTimer_ = playerImpactSlowTimer_ = cameraShakeTimer_ = 0;
+        strategy = nextStrategy;
+        strategyFrame = sniperShots = 0;
+        counterFired = sawLockedAim = false;
+        previewSamples = 0;
+        const float mirror = strategy == 3 ? -1.0f : 1.0f;
+        SpawnStageEnemy(-4.6f * mirror, -0.6f, 44, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1);
+        SpawnStageEnemy(-2.0f * mirror, 0.5f, 44, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1);
+        SpawnStageEnemy(0.6f * mirror, -0.6f, 44, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1);
+        SpawnStageEnemy(5.3f * mirror, 2.0f, 48, Enemy::Behavior::Sniper, Enemy::EntryStyle::PopShooter, 6, 1.18f);
+        log("STRATEGY_BEGIN case=" + std::to_string(strategy) + " real_input=1 hp=100 charge=0");
+    };
+    if (strategy > 0) {
+        Enemy* sniper = nullptr;
+        Enemy* center = nullptr;
+        int smallCount = 0;
+        for (const auto& enemy : enemies_) {
+            if (enemy->IsDead()) { continue; }
+            if (enemy->IsSniper()) { sniper = enemy.get(); }
+            else { if (++smallCount == 2) { center = enemy.get(); } }
+        }
+        if (sniper) {
+            const auto& fire = sniper->GetFireControl();
+            if (fire.ShotFlash() > 0.0f) { sniperShots = (std::max)(sniperShots, fire.ShotIndex() + 1); }
+            if (fire.IsBraced() && !fire.IsTracking()) {
+                if (!sawLockedAim) { lockedAim = fire.aimPoint; sawLockedAim = true; }
+                require(std::abs(lockedAim.x - fire.aimPoint.x) < 0.001f &&
+                    std::abs(lockedAim.y - fire.aimPoint.y) < 0.001f, "locked sniper followed the dodge");
+            }
+        }
+        bool incoming = false;
+        const auto playerPosition = player_->GetTranslate();
+        for (const auto& bullet : enemyBullets_) {
+            const auto p = bullet->GetTranslate();
+            incoming |= !bullet->IsDead() && p.z > playerPosition.z && p.z - playerPosition.z < 4.0f &&
+                std::abs(p.x - playerPosition.x) < 1.4f && std::abs(p.y - playerPosition.y) < 1.4f;
+        }
+        unsigned int sample = 0;
+        if (strategy == 2 && preview) {
+            if (sawLockedAim && !(previewSamples & 1)) { sample = 1; }
+            else if (incoming && !(previewSamples & 2)) { sample = 2; }
+            else if (justDodgeCount_ > 0 && !(previewSamples & 4)) { sample = 4; }
+            else if (sniper && sniper->IsChargeCounterOpen() && !(previewSamples & 8)) { sample = 8; }
+            else if (defeatedEnemyCount_ == 4 && !(previewSamples & 16)) { sample = 16; }
+        }
+        if (sample != 0) {
+            phantomPreviewPaused_ = true;
+            ImGui::SetNextWindowPos({ 20, 165 }, ImGuiCond_Always);
+            ImGui::Begin("Sniper encounter fixture", nullptr,
+                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+            ImGui::Text("TEST ONLY: lock / dodge / counter   sample=%u", sample);
+            ImGui::Text("Frame: %d  Kills: %d  Shots: %d  Dodge: %d", strategyFrame,
+                defeatedEnemyCount_, playerShotsFired_, justDodgeCount_);
+            const bool next = ImGui::Button("NEXT / F8", { 220, 36 }) || ImGui::IsKeyPressed(ImGuiKey_F8, false);
+            ImGui::End();
+            if (!next) { input_->SetTestFrame(keys, mouse); return false; }
+            previewSamples |= sample;
+            phantomPreviewPaused_ = false;
+        }
+        ++strategyFrame;
+        require(strategyFrame < 520 && !isGameOver_ && escapedEnemyCount_ == 0, "encounter strategy timed out or lost a ship");
+        Enemy* target = strategy == 1 && sniper ? sniper : (smallCount > 0 ? center : sniper);
+        if (target && target->IsTargetable()) {
+            Math::Vector2 screen{};
+            require(TryProjectToScreen(target->GetAimPosition(), screen), "strategy target offscreen");
+            const auto origin = ImGui::GetMainViewport()->Pos;
+            mouse = { screen.x - origin.x, screen.y - origin.y };
+            const bool aimed = lockedEnemy_ == target && isReticleOnTarget_;
+            if (strategy == 1 && sniper) {
+                if (aimed && (playerShotsFired_ > 0 || chargeTimer_ >= chargeShotThreshold_)) { keys[DIK_SPACE] = 0x80; }
+            } else if (smallCount > 0) {
+                if (aimed && chargeTimer_ >= chargeShotThreshold_) { keys[DIK_SPACE] = 0x80; }
+            } else if (sniper && aimed && !counterFired && justDodgeCount_ > 0 &&
+                chargeTimer_ >= chargeShotThreshold_ && sniper->IsChargeCounterOpen()) {
+                keys[DIK_SPACE] = 0x80;
+                counterFired = true;
+                log("COUNTER_FIRED recovery=" + std::to_string(sniper->GetFireControl().RecoveryElapsed()));
+            }
+        }
+        if (incoming && !player_->IsDodging()) {
+            keys[strategy == 3 ? DIK_A : DIK_D] = keys[DIK_LSHIFT] = 0x80;
+        }
+        if (strategy == 1 && !sniper) { require(sniperShots == 0, "priority fire did not stop sniper's first volley"); }
+        if (strategy >= 2 && defeatedEnemyCount_ >= 3) {
+            require(smallCount == 0 && playerShotsFired_ <= 2, "center charge failed to clear exactly three small ships");
+        }
+        if (defeatedEnemyCount_ == 4) {
+            require(playerDamageCount_ == 0 && player_->GetHp() == 100, "strategy took damage");
+            require(playerBulletPoolMisses_ == 0 && enemyBulletPoolMisses_ == 0 && hitEffectObjectPoolMisses_ == 0,
+                "strategy exhausted fixed pools");
+            if (strategy >= 2) {
+                require(sniperShots == 2 && sawLockedAim && justDodgeCount_ > 0 && counterFired &&
+                    playerShotsFired_ == 2 && playerHitCount_ == 2, "dodge counter did not kill sniper in one real charged hit");
+            }
+            log("STRATEGY_PASS case=" + std::to_string(strategy) + " kills=4 hp=100 sniper_shots=" +
+                std::to_string(sniperShots) + " player_shots=" + std::to_string(playerShotsFired_) +
+                " dodge=" + std::to_string(justDodgeCount_) + " frames=" + std::to_string(strategyFrame));
+            if (strategy == 3) { input_->SetTestFrame({}, mouse); log("PASS sniper_priority_and_dodge_counter=1 mirrored_encounter=1"); return true; }
+            beginEncounter(strategy + 1);
+            keys = {};
+        }
+        input_->SetTestFrame(keys, mouse);
+        return false;
+    }
     if (frame > 102 && defeatedEnemyCount_ == 3 && impactFrame < 0) { impactFrame = frame; }
     if (preview && (frame == 100 || frame == 105 || frame == 161 || frame == 166 || frame == 174 || (impactFrame >= 0 &&
         (frame == impactFrame || frame == impactFrame + 5 || frame == impactFrame + 12)))) {
@@ -1326,6 +1584,23 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         require(center->GetHp() == 40, "boss counter damage changed");
         log("DEFENSE_OK shield_absorbs=3 boss_direct=4 boss_counter=8");
 
+        // 狙撃の反撃倍率は、指定の隙へ当てた通常チャージ直撃だけ。
+        for (int mode = 0; mode < 6; ++mode) {
+            reset();
+            auto* sniper = spawn(0, 0, 6, Enemy::Behavior::Sniper);
+            auto& fire = sniper->GetFireControl();
+            const EnemyFireControl::Pattern pattern{ 60, 18, 128, 2, 22 };
+            fire.Advance(1, true, pattern);
+            const int elapsed = mode == 0 ? 85 : (mode == 5 ? 144 : 86);
+            for (int step = 0; step < elapsed; ++step) { fire.Advance(1, true, pattern); }
+            require(sniper->IsChargeCounterOpen() == (mode >= 1 && mode <= 4), "sniper counter window boundary incorrect");
+            if (mode == 3) { DealPlayerShotDamage(*sniper, sniper->GetAimPosition(), true, false, true); }
+            else { hit(*sniper, mode != 2, mode == 4); }
+            require(sniper->GetHp() == (mode == 1 ? 0 : (mode == 2 ? 5 : (mode == 4 ? 2 : 3))),
+                "sniper multiplier leaked to normal shots/fever/splash/outside window");
+        }
+        log("SNIPER_COUNTER_RULE_OK open=[8,66) charge_direct=6 normal=1 fever=4 splash=3 outside=3");
+
         reset();
         center = spawn(0, 0);
         neighbor = spawn(0, 0, 6, Enemy::Behavior::Sniper);
@@ -1395,9 +1670,10 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         require(enemies_.size() == 1 && enemies_.front()->IsSniper() && enemies_.front()->GetHp() == 6,
             "real splash reached distant sniper");
         require(playerBulletPoolMisses_ == 0 && hitEffectObjectPoolMisses_ == 0, "effect/bullet pool exhausted");
-        log("PASS real_projectile_kills=3 sniper_hp=6 shots=1 hits=1 pool_misses=0");
+        log("LIVE_FORMATION_PASS real_projectile_kills=3 sniper_hp=6 shots=1 hits=1 pool_misses=0");
+        beginEncounter(1);
         input_->SetTestFrame(keys, mouse);
-        return true;
+        return false;
     }
     input_->SetTestFrame(keys, mouse);
     return false;
@@ -1454,7 +1730,7 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
             ImGui::TextUnformatted("TEST ONLY: real shot -> steer through kill location");
             ImGui::Text("Step %d  Passes %d  Gauge %d  Fever %d", previewStep,
                 riftPassCount_, feverGauge_, feverTimer_);
-            const bool next = ImGui::Button("NEXT / resume test", { 220.0f, 36.0f });
+            const bool next = ImGui::Button("NEXT / F8", { 220.0f, 36.0f }) || ImGui::IsKeyPressed(ImGuiKey_F8, false);
             ImGui::End();
             if (!next) { input_->SetTestFrame(keys, mouse); return false; }
             ++previewStep;
@@ -1463,10 +1739,52 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
     }
     ++frame;
     ++phaseFrame;
+    // 固定配置の射撃・通過試験に、本編の増援やボスを混ぜない。
+    stageProgress_ = stageHandoffFrames_ = 0.0f;
     if (frame == 1) {
         reset();
         const float z = railDistance_ + 30.0f;
         const Math::Vector3 location{ 2.5f, 1.6f, z };
+        SpawnRift(location);
+        require(combatRadioCue_ == CombatRadioCue::Rift, "rift did not request radio");
+        UpdateCombatRadio(0.05f);
+        const float radioRemaining = combatRadioRemaining_;
+        SpawnRift(location);
+        require(combatRadioRemaining_ == radioRemaining, "repeated rift restarted radio");
+        isPaused_ = true;
+        UpdateCombatRadio(0.1f);
+        require(combatRadioRemaining_ == radioRemaining, "paused radio advanced");
+        isPaused_ = false;
+        SpawnStageEnemy(3, 1, 44, Enemy::Behavior::Sniper, Enemy::EntryStyle::Direct, 3, 1);
+        require(combatRadioCue_ == CombatRadioCue::Sniper, "sniper failed to interrupt low-priority radio");
+        RequestCombatRadio(CombatRadioCue::Boss);
+        feverTimer_ = 420;
+        SpawnRift(location);
+        require(combatRadioCue_ == CombatRadioCue::Boss, "rift interrupted boss warning");
+        for (int step = 0; step < 40; ++step) { UpdateCombatRadio(0.1f); }
+        require(combatRadioCue_ == CombatRadioCue::None && combatRadioSilence_ > 0, "radio failed to expire");
+        SpawnRift(location);
+        require(combatRadioCue_ == CombatRadioCue::None, "radio cooldown ignored");
+        for (int step = 0; step < 21; ++step) { UpdateCombatRadio(0.1f); }
+        SpawnRift(location);
+        require(combatRadioCue_ == CombatRadioCue::RiftFever, "suppressed new cue was lost permanently");
+        for (int step = 0; step < 61; ++step) { UpdateCombatRadio(0.1f); }
+        RequestCombatRadio(CombatRadioCue::Sniper);
+        require(combatRadioCue_ == CombatRadioCue::None, "old warning repeated after expiry");
+        reset();
+        require(combatRadioSeen_ == 0 && combatRadioRemaining_ == 0 && combatRadioSilence_ == 0,
+            "retry retained radio history");
+        playMode_ = PlayMode::Tutorial;
+        RequestCombatRadio(CombatRadioCue::Boss);
+        require(combatRadioCue_ == CombatRadioCue::None, "combat radio leaked into training");
+        playMode_ = PlayMode::Game;
+        RequestCombatRadio(CombatRadioCue::Boss);
+        isGameClear_ = true;
+        UpdateCombatRadio(0.1f);
+        require(combatRadioCue_ == CombatRadioCue::None, "radio remained on results");
+        isGameClear_ = false;
+        log("RADIO_OK actual_spawn=1 priority=1 once=1 cooldown=1 pause=1 retry=1 tutorial=1 results=1");
+        reset();
         const auto cross = [&](float x, float y) {
             UpdateRifts({ x, y, z - 2.0f }, { x, y, z + 2.0f });
         };

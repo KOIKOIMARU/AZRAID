@@ -68,6 +68,10 @@ bool SceneManager::IsScenePrepared(SceneType sceneType) const {
     return hasPreparedScene_ && preparedSceneType_ == sceneType;
 }
 
+BaseScene* SceneManager::GetPreparedScene(SceneType sceneType) const {
+    return IsScenePrepared(sceneType) ? preparedScene_.get() : nullptr;
+}
+
 void SceneManager::FinalizeCurrentScene()
 {
     if (scene_) {

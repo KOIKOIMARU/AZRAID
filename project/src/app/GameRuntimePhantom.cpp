@@ -461,10 +461,10 @@ void GameRuntime::DrawPhantomRaidOverlay()
         }
         const char* title = "残像連撃";
         const float textSize = 30.0f * hudScale;
-        const float width = CombatHud::ReadoutWidth(title, textSize);
+        const float width = CombatHud::ReadoutWidth(title, textSize, true);
         const float titleX = min.x + (size.x - width) * 0.5f;
         const float titleY = min.y + size.y - 152.0f * hudScale;
-        PhantomText(draw, { titleX, titleY }, textSize, CombatHud::White, title);
+        CombatHud::Heading(draw, { titleX, titleY }, textSize, CombatHud::White, title);
     }
     for (const auto& slash : phantomSlashes_) {
         if (slash.age < 0.0f) {
@@ -478,40 +478,44 @@ void GameRuntime::DrawPhantomRaidOverlay()
                 fade, phantomEmpowered_);
         }
     }
-    const ImVec2 panel{ min.x + size.x - 264.0f * hudScale, min.y + size.y - 82.0f * hudScale };
+    draw->PopClipRect();
+}
+
+void GameRuntime::DrawPhantomRaidHud()
+{
+    if (!player_ || isGameOver_ || (isGameClear_ && resultTransitionTimer_ <= 0)) { return; }
+    Math::Vector2 min{}, size{};
+    GetEffectiveHudViewportRect(min, size);
+    const CombatHud::Layout layout(min, size);
+    const float hudScale = layout.scale;
+    const ImVec2 panel = layout.skill;
+    auto* draw = ImGui::GetForegroundDrawList();
+    const bool active = IsPhantomRaidActive();
     const auto p = [&](float x, float y) { return ImVec2(panel.x + x * hudScale, panel.y + y * hudScale); };
     // フィーバー中も「スキル＝青」の意味は変えない。強化演出の金色は斬撃側だけに使う。
     const ImU32 hudAccent = CombatHud::Energy;
     const bool lessonLocked = IsTutorial() && tutorial_.lesson < TutorialLesson::Skill;
     const bool ready = !lessonLocked && (phantomReady_ || active);
     const float readyBurst = std::clamp(phantomReadyFlash_ / 72.0f, 0.0f, 1.0f);
-    CombatHud::Shade(draw, p(-30, -12), { min.x + size.x, min.y + size.y }, true);
-    // 弾薬表示と同じ小さな枠。回復完了は紋章の点灯で伝え、巨大な色面を置かない。
-    CombatHud::Panel(draw, p(0, 0), p(48, 48), hudScale);
-    draw->AddRect(p(0, 0), p(48, 48), ready ? hudAccent : CombatHud::Muted,
-        3.0f * hudScale, 0, hudScale);
-    CombatHud::BladeIcon(draw, p(24, 24), 0.85f * hudScale, ready ? hudAccent : CombatHud::Muted);
-    PhantomText(draw, p(62, 0), 20.0f * hudScale, CombatHud::White, "残像連撃");
-    draw->AddRectFilled(p(202, 2), p(230, 28), CombatHud::Track, 3.0f * hudScale);
-    draw->AddRect(p(202, 2), p(230, 28), ready ? hudAccent : CombatHud::Muted, 3.0f * hudScale);
-    CombatHud::Readout(draw, p(208, 3), 18.0f * hudScale, ready ? hudAccent : CombatHud::Muted, "Q");
-    if (readyBurst > 0.0f) {
-        const int alpha = static_cast<int>(210.0f * readyBurst * readyBurst);
-        const float travel = (1.0f - readyBurst) * 8.0f;
-        draw->AddRect(p(-travel, -travel), p(48 + travel, 48 + travel),
-            (hudAccent & ~IM_COL32_A_MASK) | (static_cast<ImU32>(alpha) << IM_COL32_A_SHIFT),
-            3.0f * hudScale, 0, hudScale);
-    }
+    CombatHud::Heading(draw, p(0, 0), 26.0f * hudScale, CombatHud::White, "残像連撃");
+    CombatHud::KeyBadge(draw, p(212, 2), p(244, 28), hudScale, "Q", ready);
     if (lessonLocked) {
-        PhantomText(draw, p(62, 28), 14.0f * hudScale, CombatHud::Muted, "練習待機");
+        PhantomText(draw, p(0, 36), 16.0f * hudScale, CombatHud::Muted, "練習待機");
     } else if (!active && phantomNoTargetNotice_ > 0.0f) {
-        PhantomText(draw, p(62, 28), 14.0f * hudScale, CombatHud::Muted, "対象なし");
+        PhantomText(draw, p(0, 36), 16.0f * hudScale, CombatHud::Muted, "対象なし");
     } else if (!active && !phantomReady_ && phantomCooldown_ > 0.0f) {
         char cooldown[24]{};
         std::snprintf(cooldown, sizeof(cooldown), "%.1f秒", static_cast<double>(phantomCooldown_ / 60.0f));
-        CombatHud::Readout(draw, p(62, 27), 18.0f * hudScale, CombatHud::White, cooldown);
+        CombatHud::Readout(draw, p(0, 36), 18.0f * hudScale, CombatHud::White, cooldown);
+    } else {
+        PhantomText(draw, p(0, 36), 18.0f * hudScale, CombatHud::White, active ? "発動中" : "使用可能");
     }
     const float recovery = lessonLocked ? 0.0f : (ready ? 1.0f : 1.0f - std::clamp(phantomCooldown_ / kPhantomCooldownFrames, 0.0f, 1.0f));
-    CombatHud::Meter(draw, p(62, 50), p(230, 61), recovery, hudAccent, hudScale);
-    draw->PopClipRect();
+    CombatHud::WingMeter(draw, p(0, 76), 244 * hudScale, 12 * hudScale, recovery,
+        ready ? CombatHud::White : hudAccent, hudScale,
+        ready ? std::fmod(cameraTimer_ * 0.45f, 1.0f) : -1.0f);
+    if (readyBurst > 0.0f) {
+        draw->AddQuadFilled(p(10, 75.25f), p(244, 57.7f), p(234, 70.45f), p(0, 88),
+            CombatHud::SurfaceColor(IM_COL32(239, 241, 244, static_cast<int>(80 * readyBurst * readyBurst))));
+    }
 }
