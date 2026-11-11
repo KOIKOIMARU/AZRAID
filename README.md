@@ -181,8 +181,8 @@ HUDとダメージ計算は同じ反撃時間を読み、表示と実際の倍�
 `CombatEffects` は `GameRuntime` や `CombatResolver` から発生地点と演出の種類を受け取り、色・大きさ・速度などを決めます。
 `CombatEffectPlayback` はシーンの準備中に描画物体を用意し、寿命が終わった物体を再利用枠へ戻します。
 
-ゲーム固有の処理は主に `project/src/app` と `project/include/app` にあります。タイトルやシーン管理、共通の描画・入力・音声処理は `project/src/engine` と `project/include/engine` にあります。
-Visual Studioでは、ゲーム固有の処理を `app` フィルタから開けます。エンジン側は `src\engine` と `include\engine` のフィルタにあります。
+ゲーム固有の処理は `project/src/app` にあり、タイトルやシーン管理、共通の描画・入力・音声処理は `project/src/engine` にあります。ヘッダーと実装は機能ごとに同じフォルダに置いています。
+Visual Studioでは、ゲーム固有の処理は `app`、エンジン側は `engine` のフィルタから開けます。
 
 | ファイル | 主な内容 |
 |---|---|
@@ -198,8 +198,8 @@ Visual Studioでは、ゲーム固有の処理を `app` フィルタから開け
 | `project/src/app/player/Player.cpp` | 自機の動作 |
 | `project/src/app/enemy/Enemy.cpp` | 敵の動作 |
 | `project/src/app/combat/Bullet.cpp` | 弾の動作 |
-| `project/include/app/runtime/GameRuntimeTuning.h` | 複数の処理から参照する調整値 |
-| `project/include/app/runtime/GameRuntimeMath.h` | 距離、補間、座標変換などの共通計算 |
+| `project/src/app/runtime/GameRuntimeTuning.h` | 複数の処理から参照する調整値 |
+| `project/src/app/runtime/GameRuntimeMath.h` | 距離、補間、座標変換などの共通計算 |
 
 `GameRuntime*.cpp` は同じ `GameRuntime` クラスの実装を、機能別に分けたものです。
 

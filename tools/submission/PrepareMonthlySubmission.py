@@ -46,7 +46,7 @@ def main() -> None:
     # directory is never traversed, even when untracked files are included.
     command = [
         "rg", "--files", "--hidden", "--no-ignore",
-        "src", "include", "shaders", "resources", "externals", "tools",
+        "src", "shaders", "resources", "externals", "tools",
         "-g", "!**/enc_temp_folder/**", "-g", "!**/.git/**",
         "-g", "!**/.vs/**", "-g", "!**/generated/**", "-g", "!**/x64/**",
         "-g", "!**/__pycache__/**", "-g", "!**/Shaders/Compiled/**",

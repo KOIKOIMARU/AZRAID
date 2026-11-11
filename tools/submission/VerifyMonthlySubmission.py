@@ -42,7 +42,7 @@ def main():
     assert sha256(args.portfolio) == sha256(contents / "00_ポートフォリオ" / (account + "_ポートフォリオ.pdf"))
 
     checked = 0
-    for folder in ("src", "include", "shaders", "resources", "externals", "tools"):
+    for folder in ("src", "shaders", "resources", "externals", "tools"):
         for file in (source / "project" / folder).rglob("*"):
             if not file.is_file():
                 continue

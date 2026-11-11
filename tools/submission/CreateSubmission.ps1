@@ -24,7 +24,7 @@ function Copy-ProjectFile([string]$relative) {
 # 保護対象やビルドキャッシュを走査しないよう、必要なディレクトリだけを列挙する。
 Push-Location $project
 try {
-    $files = & rg --files --hidden --no-ignore src include shaders resources externals tools `
+    $files = & rg --files --hidden --no-ignore src shaders resources externals tools `
         -g '!**/enc_temp_folder/**' -g '!**/.git/**' -g '!**/.vs/**' `
         -g '!**/generated/**' -g '!**/x64/**' -g '!**/__pycache__/**' `
         -g '!**/Shaders/Compiled/**'

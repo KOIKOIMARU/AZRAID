@@ -83,7 +83,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -110,7 +110,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,7 +141,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\ImGuizmo;$(ProjectDir)externals\ImGuiFileDialog;$(ProjectDir)externals\ImGuiFileDialog\dirent;$(ProjectDir)externals\ImGuiFileDialog\stb;$(ProjectDir)externals\implot;$(ProjectDir)externals\imgui-node-editor;$(ProjectDir)externals\ImGuiColorTextEdit;$(ProjectDir)externals\IconFontCppHeaders;$(ProjectDir)externals\imgui;$(ProjectDir)externals\assimp\include;$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
@@ -471,18 +471,18 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\engine\scene\AbstractSceneFactory.h" />
-    <ClInclude Include="include\engine\scene\BaseScene.h" />
-    <ClInclude Include="include\engine\scene\GameScene.h" />
-    <ClInclude Include="include\engine\scene\EditorScene.h" />
-    <ClInclude Include="include\engine\scene\SceneSerializer.h" />
-    <ClInclude Include="include\engine\editor\EditorManager.h" />
-    <ClInclude Include="include\engine\editor\EditorPlayController.h" />
-    <ClInclude Include="include\engine\base\Framework.h" />
-    <ClInclude Include="include\engine\base\ImGuiManager.h" />
-    <ClInclude Include="include\engine\3d\Camera.h" />
-    <ClInclude Include="include\engine\base\D3DResourceLeakChecker.h" />
-    <ClInclude Include="include\engine\base\DirectXCommon.h" />
+    <ClInclude Include="src\engine\scene\AbstractSceneFactory.h" />
+    <ClInclude Include="src\engine\scene\BaseScene.h" />
+    <ClInclude Include="src\engine\scene\GameScene.h" />
+    <ClInclude Include="src\engine\scene\EditorScene.h" />
+    <ClInclude Include="src\engine\scene\SceneSerializer.h" />
+    <ClInclude Include="src\engine\editor\EditorManager.h" />
+    <ClInclude Include="src\engine\editor\EditorPlayController.h" />
+    <ClInclude Include="src\engine\base\Framework.h" />
+    <ClInclude Include="src\engine\base\ImGuiManager.h" />
+    <ClInclude Include="src\engine\3d\Camera.h" />
+    <ClInclude Include="src\engine\base\D3DResourceLeakChecker.h" />
+    <ClInclude Include="src\engine\base\DirectXCommon.h" />
     <ClInclude Include="externals\imgui\imconfig.h" />
     <ClInclude Include="externals\imgui\imgui.h" />
     <ClInclude Include="externals\imgui\imgui_impl_dx12.h" />
@@ -510,97 +510,97 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui-node-editor\imgui_node_editor_internal.inl" />
     <ClInclude Include="externals\ImGuiColorTextEdit\TextEditor.h" />
     <ClInclude Include="externals\IconFontCppHeaders\IconsFontAwesome6.h" />
-    <ClInclude Include="include\engine\3d\ResourceObject.h" />
-    <ClInclude Include="include\engine\base\WinApp.h" />
-    <ClInclude Include="include\engine\io\Input.h" />
-    <ClInclude Include="include\engine\base\Logger.h" />
-    <ClInclude Include="include\engine\base\Math.h" />
-    <ClInclude Include="include\engine\3d\Object3d.h" />
-    <ClInclude Include="include\engine\3d\Object3dCommon.h" />
-    <ClInclude Include="include\engine\3d\Skybox.h" />
-    <ClInclude Include="include\engine\3d\Model.h" />
-    <ClInclude Include="include\engine\3d\ModelCommon.h" />
-    <ClInclude Include="include\engine\3d\ModelManager.h" />
-    <ClInclude Include="include\engine\3d\Particle.h" />
-    <ClInclude Include="include\engine\3d\ParticleManager.h" />
-    <ClInclude Include="include\engine\3d\ParticleEmitter.h" />
-    <ClInclude Include="include\app\combat\Bullet.h" />
-    <ClInclude Include="include\app\enemy\Enemy.h" />
-    <ClInclude Include="include\app\enemy\EnemyFlight.h" />
-    <ClInclude Include="include\app\enemy\EnemyFireControl.h" />
-    <ClInclude Include="include\app\enemy\EnemyAttackPatterns.h" />
-    <ClInclude Include="include\app\combat\FeverState.h" />
-    <ClInclude Include="include\app\combat\CombatRewards.h" />
-    <ClInclude Include="include\app\player\PlayerShooting.h" />
-    <ClInclude Include="include\app\player\PlayerControl.h" />
-    <ClInclude Include="include\app\player\PlayerSkill.h" />
-    <ClInclude Include="include\app\player\PlayerSkillPresentation.h" />
-    <ClInclude Include="include\app\player\PlayerFlightEffects.h" />
-    <ClInclude Include="include\app\player\PlayerCombatFeedback.h" />
-    <ClInclude Include="include\app\ui\GameplayHud.h" />
-    <ClInclude Include="include\app\stage\TutorialProgress.h" />
-    <ClInclude Include="include\app\ui\GameplayMenu.h" />
-    <ClInclude Include="include\app\ui\StageResultMenu.h" />
-    <ClInclude Include="include\app\ui\StageResults.h" />
-    <ClInclude Include="include\app\presentation\GameplayCamera.h" />
-    <ClInclude Include="include\app\presentation\ClearResultPresentation.h" />
-    <ClInclude Include="include\app\presentation\FlightSpeedEffects.h" />
-    <ClInclude Include="include\app\presentation\CameraMotionBlur.h" />
-    <ClInclude Include="include\app\presentation\FlightMotionBlur.h" />
-    <ClInclude Include="include\app\presentation\GameplayShadows.h" />
-    <ClInclude Include="include\app\enemy\EnemyTypes.h" />
-    <ClInclude Include="include\app\stage\MainStage.h" />
-    <ClInclude Include="include\app\stage\StageDirector.h" />
-    <ClInclude Include="include\app\stage\StageFlight.h" />
-    <ClInclude Include="include\app\enemy\StageEnemyFactory.h" />
-    <ClInclude Include="include\app\enemy\StageEnemies.h" />
-    <ClInclude Include="include\app\enemy\BossAttackController.h" />
-    <ClInclude Include="include\app\enemy\BossPresentation.h" />
-    <ClInclude Include="include\app\combat\BulletPool.h" />
-    <ClInclude Include="include\app\combat\ProjectileSystem.h" />
-    <ClInclude Include="include\app\stage\RailScenery.h" />
-    <ClInclude Include="include\app\stage\RingGates.h" />
-    <ClInclude Include="include\app\player\JustDodgeFeedback.h" />
-    <ClInclude Include="include\engine\3d\ScreenProjection.h" />
-    <ClInclude Include="include\app\stage\SceneryAssets.h" />
-    <ClInclude Include="include\app\combat\CombatEffects.h" />
-    <ClInclude Include="include\app\combat\CombatEffectPlayback.h" />
-    <ClInclude Include="include\app\combat\CombatResolver.h" />
-    <ClInclude Include="include\app\combat\CombatOverlay.h" />
-    <ClInclude Include="include\app\combat\CombatProgress.h" />
-    <ClInclude Include="include\app\ui\StageRecords.h" />
-    <ClInclude Include="include\app\runtime\GameRuntime.h" />
-    <ClInclude Include="include\app\runtime\GameResources.h" />
-    <ClInclude Include="include\app\runtime\GameplaySceneSetup.h" />
-    <ClInclude Include="include\app\runtime\RuntimeSceneObjects.h" />
-    <ClInclude Include="include\app\stage\StageEntryTiming.h" />
-    <ClInclude Include="include\app\stage\StageEntryPresentation.h" />
-    <ClInclude Include="include\app\runtime\GameRuntimeMath.h" />
-    <ClInclude Include="include\app\runtime\GameRuntimeTuning.h" />
-    <ClInclude Include="include\app\ui\CombatHud.h" />
-    <ClInclude Include="include\app\ui\MenuUi.h" />
-    <ClInclude Include="include\app\runtime\MyGame.h" />
-    <ClInclude Include="include\app\debug\GameplaySmokeTest.h" />
-    <ClInclude Include="include\app\presentation\GameplayAudio.h" />
-    <ClInclude Include="include\app\player\GameplayAim.h" />
-    <ClInclude Include="include\app\player\Player.h" />
-    <ClInclude Include="include\app\player\PlayerDodge.h" />
-    <ClInclude Include="include\app\player\PlayerDefeatPresentation.h" />
+    <ClInclude Include="src\engine\3d\ResourceObject.h" />
+    <ClInclude Include="src\engine\base\WinApp.h" />
+    <ClInclude Include="src\engine\io\Input.h" />
+    <ClInclude Include="src\engine\base\Logger.h" />
+    <ClInclude Include="src\engine\base\Math.h" />
+    <ClInclude Include="src\engine\3d\Object3d.h" />
+    <ClInclude Include="src\engine\3d\Object3dCommon.h" />
+    <ClInclude Include="src\engine\3d\Skybox.h" />
+    <ClInclude Include="src\engine\3d\Model.h" />
+    <ClInclude Include="src\engine\3d\ModelCommon.h" />
+    <ClInclude Include="src\engine\3d\ModelManager.h" />
+    <ClInclude Include="src\engine\3d\Particle.h" />
+    <ClInclude Include="src\engine\3d\ParticleManager.h" />
+    <ClInclude Include="src\engine\3d\ParticleEmitter.h" />
+    <ClInclude Include="src\app\combat\Bullet.h" />
+    <ClInclude Include="src\app\enemy\Enemy.h" />
+    <ClInclude Include="src\app\enemy\EnemyFlight.h" />
+    <ClInclude Include="src\app\enemy\EnemyFireControl.h" />
+    <ClInclude Include="src\app\enemy\EnemyAttackPatterns.h" />
+    <ClInclude Include="src\app\combat\FeverState.h" />
+    <ClInclude Include="src\app\combat\CombatRewards.h" />
+    <ClInclude Include="src\app\player\PlayerShooting.h" />
+    <ClInclude Include="src\app\player\PlayerControl.h" />
+    <ClInclude Include="src\app\player\PlayerSkill.h" />
+    <ClInclude Include="src\app\player\PlayerSkillPresentation.h" />
+    <ClInclude Include="src\app\player\PlayerFlightEffects.h" />
+    <ClInclude Include="src\app\player\PlayerCombatFeedback.h" />
+    <ClInclude Include="src\app\ui\GameplayHud.h" />
+    <ClInclude Include="src\app\stage\TutorialProgress.h" />
+    <ClInclude Include="src\app\ui\GameplayMenu.h" />
+    <ClInclude Include="src\app\ui\StageResultMenu.h" />
+    <ClInclude Include="src\app\ui\StageResults.h" />
+    <ClInclude Include="src\app\presentation\GameplayCamera.h" />
+    <ClInclude Include="src\app\presentation\ClearResultPresentation.h" />
+    <ClInclude Include="src\app\presentation\FlightSpeedEffects.h" />
+    <ClInclude Include="src\app\presentation\CameraMotionBlur.h" />
+    <ClInclude Include="src\app\presentation\FlightMotionBlur.h" />
+    <ClInclude Include="src\app\presentation\GameplayShadows.h" />
+    <ClInclude Include="src\app\enemy\EnemyTypes.h" />
+    <ClInclude Include="src\app\stage\MainStage.h" />
+    <ClInclude Include="src\app\stage\StageDirector.h" />
+    <ClInclude Include="src\app\stage\StageFlight.h" />
+    <ClInclude Include="src\app\enemy\StageEnemyFactory.h" />
+    <ClInclude Include="src\app\enemy\StageEnemies.h" />
+    <ClInclude Include="src\app\enemy\BossAttackController.h" />
+    <ClInclude Include="src\app\enemy\BossPresentation.h" />
+    <ClInclude Include="src\app\combat\BulletPool.h" />
+    <ClInclude Include="src\app\combat\ProjectileSystem.h" />
+    <ClInclude Include="src\app\stage\RailScenery.h" />
+    <ClInclude Include="src\app\stage\RingGates.h" />
+    <ClInclude Include="src\app\player\JustDodgeFeedback.h" />
+    <ClInclude Include="src\engine\3d\ScreenProjection.h" />
+    <ClInclude Include="src\app\stage\SceneryAssets.h" />
+    <ClInclude Include="src\app\combat\CombatEffects.h" />
+    <ClInclude Include="src\app\combat\CombatEffectPlayback.h" />
+    <ClInclude Include="src\app\combat\CombatResolver.h" />
+    <ClInclude Include="src\app\combat\CombatOverlay.h" />
+    <ClInclude Include="src\app\combat\CombatProgress.h" />
+    <ClInclude Include="src\app\ui\StageRecords.h" />
+    <ClInclude Include="src\app\runtime\GameRuntime.h" />
+    <ClInclude Include="src\app\runtime\GameResources.h" />
+    <ClInclude Include="src\app\runtime\GameplaySceneSetup.h" />
+    <ClInclude Include="src\app\runtime\RuntimeSceneObjects.h" />
+    <ClInclude Include="src\app\stage\StageEntryTiming.h" />
+    <ClInclude Include="src\app\stage\StageEntryPresentation.h" />
+    <ClInclude Include="src\app\runtime\GameRuntimeMath.h" />
+    <ClInclude Include="src\app\runtime\GameRuntimeTuning.h" />
+    <ClInclude Include="src\app\ui\CombatHud.h" />
+    <ClInclude Include="src\app\ui\MenuUi.h" />
+    <ClInclude Include="src\app\runtime\MyGame.h" />
+    <ClInclude Include="src\app\debug\GameplaySmokeTest.h" />
+    <ClInclude Include="src\app\presentation\GameplayAudio.h" />
+    <ClInclude Include="src\app\player\GameplayAim.h" />
+    <ClInclude Include="src\app\player\Player.h" />
+    <ClInclude Include="src\app\player\PlayerDodge.h" />
+    <ClInclude Include="src\app\player\PlayerDefeatPresentation.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="include\engine\base\StringUtility.h" />
-    <ClInclude Include="include\engine\2d\Sprite.h" />
-    <ClInclude Include="include\engine\2d\SpriteCommon.h" />
-    <ClInclude Include="include\engine\3d\TextureManager.h" />
-    <ClInclude Include="include\engine\base\SrvManager.h" />
-    <ClInclude Include="include\engine\audio\SoundManager.h" />
-    <ClInclude Include="include\engine\scene\TitleScene.h" />
-    <ClInclude Include="include\engine\scene\StageSelectionPresentation.h" />
-    <ClInclude Include="include\engine\scene\TitleMotion.h" />
-    <ClInclude Include="include\engine\scene\TitleRift.h" />
-    <ClInclude Include="include\engine\scene\TitleWordmark.h" />
-    <ClInclude Include="include\engine\scene\SceneManager.h" />
-    <ClInclude Include="include\engine\scene\SceneType.h" />
-    <ClInclude Include="include\engine\scene\SceneFactory.h" />
+    <ClInclude Include="src\engine\base\StringUtility.h" />
+    <ClInclude Include="src\engine\2d\Sprite.h" />
+    <ClInclude Include="src\engine\2d\SpriteCommon.h" />
+    <ClInclude Include="src\engine\3d\TextureManager.h" />
+    <ClInclude Include="src\engine\base\SrvManager.h" />
+    <ClInclude Include="src\engine\audio\SoundManager.h" />
+    <ClInclude Include="src\engine\scene\TitleScene.h" />
+    <ClInclude Include="src\engine\scene\StageSelectionPresentation.h" />
+    <ClInclude Include="src\engine\scene\TitleMotion.h" />
+    <ClInclude Include="src\engine\scene\TitleRift.h" />
+    <ClInclude Include="src\engine\scene\TitleWordmark.h" />
+    <ClInclude Include="src\engine\scene\SceneManager.h" />
+    <ClInclude Include="src\engine\scene\SceneType.h" />
+    <ClInclude Include="src\engine\scene\SceneFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt" />

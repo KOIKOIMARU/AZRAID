@@ -17,7 +17,7 @@ function Get-CppFunction([string]$text, [string]$signature) {
 # キー判定、メニュー遷移、ショートカットの振り分けには本体の実装を使う。
 $runtime = Get-Content -LiteralPath (Join-Path $project 'src\app\runtime\GameRuntime.cpp') -Raw -Encoding utf8
 $menu = Get-Content -LiteralPath (Join-Path $project 'src\app\ui\GameplayMenu.cpp') -Raw -Encoding utf8
-$menuUi = Get-Content -LiteralPath (Join-Path $project 'include\app\ui\MenuUi.h') -Raw -Encoding utf8
+$menuUi = Get-Content -LiteralPath (Join-Path $project 'src\app\ui\MenuUi.h') -Raw -Encoding utf8
 $inputFunctions = @(
     Get-CppFunction $menuUi 'inline bool Pressed(Input* input, BYTE key)'
     Get-CppFunction $menuUi 'inline bool ConfirmPressed(Input* input)'
@@ -201,7 +201,7 @@ $sdk = 'C:\Program Files (x86)\Windows Kits\10'
 $sdkVersion = ($configuration.Project.PropertyGroup | Where-Object Label -eq 'Globals').WindowsTargetPlatformVersion
 $sdkLibraries = Join-Path $sdk "Lib\$sdkVersion"
 $ucrtInclude = Join-Path $sdk "Include\$sdkVersion\ucrt"
-$include = Join-Path $project 'include'
+$include = Join-Path $project 'src'
 foreach ($name in @('Debug', 'Release', 'Development')) {
     $group = $configuration.Project.ItemDefinitionGroup | Where-Object { $_.Condition -like "*'$name|x64'*" }
     $definitions = @($group.ClCompile.PreprocessorDefinitions.Split(';') | Where-Object { $_ -and $_ -notlike '%*' } | ForEach-Object { "/D$_" })

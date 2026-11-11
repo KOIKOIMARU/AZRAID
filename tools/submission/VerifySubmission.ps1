@@ -25,7 +25,7 @@ foreach ($temporary in @(
 }
 
 $checked = 0
-foreach ($directory in @('src', 'include', 'shaders', 'resources')) {
+foreach ($directory in @('src', 'shaders', 'resources')) {
     $sourceDirectory = Join-Path $project $directory
     foreach ($source in Get-ChildItem -LiteralPath $sourceDirectory -Recurse -File) {
         $relative = [IO.Path]::GetRelativePath($project, $source.FullName)

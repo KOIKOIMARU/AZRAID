@@ -17,9 +17,10 @@ foreach ($relative in @('include\engine\audio\SoundManager.h', 'src\engine\audio
     'src\engine\3d\Object3d.cpp', 'include\engine\3d\Object3d.h',
     'include\engine\3d\Camera.h', 'src\engine\scene\TitleScene.cpp',
     'tools\TestRuntimeShortcuts.ps1', 'tools\GenerateCombatSounds.py')) {
-    $sourceRelative = switch ($relative) {
+    $sourceRelative = switch -Wildcard ($relative) {
         'src\app\GameRuntime.cpp' { 'src\app\runtime\GameRuntime.cpp' }
-        'include\app\GameRuntime.h' { 'include\app\runtime\GameRuntime.h' }
+        'include\app\GameRuntime.h' { 'src\app\runtime\GameRuntime.h' }
+        'include\engine\*' { 'src' + $relative.Substring('include'.Length) }
         default { $relative }
     }
     $copies.Add(@{ Source = Join-Path $workspace "project\$sourceRelative"; Relative = $relative })
