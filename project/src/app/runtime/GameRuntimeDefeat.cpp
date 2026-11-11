@@ -1,3 +1,6 @@
+// ===== GameRuntimeDefeat.cpp =====
+// 撃墜後の戦闘を止め、墜落演出を進めて敗北リザルトにつなぐ。
+
 #include "app/runtime/GameRuntime.h"
 
 #include "engine/3d/Skybox.h"

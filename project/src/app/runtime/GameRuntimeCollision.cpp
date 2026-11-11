@@ -1,3 +1,6 @@
+// ===== GameRuntimeCollision.cpp =====
+// 当たり判定に必要な情報をCombatResolverに渡し、ボス撃破後の演出と進行につなぐ。
+
 #include "app/runtime/GameRuntime.h"
 
 // 衝突判定が使う敵、弾、得点、演出への参照をそろえる。命中とダメージの計算はCombatResolverが担当する。

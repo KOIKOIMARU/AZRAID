@@ -1,3 +1,6 @@
+// ===== GameRuntimeTutorial.cpp =====
+// チュートリアルの練習用の敵やリングを出し、達成状況に応じて次の課題へ進める。
+
 #include "app/runtime/GameRuntime.h"
 #include "engine/base/DirectXCommon.h"
 #include "engine/io/Input.h"

@@ -1,3 +1,6 @@
+// ===== CombatOverlay.cpp =====
+// 敵の攻撃予告とフィーバー中の画面演出を、プレイ画面に重ねて描く。
+
 #include "app/combat/CombatOverlay.h"
 
 #include "app/enemy/BossAttackController.h"

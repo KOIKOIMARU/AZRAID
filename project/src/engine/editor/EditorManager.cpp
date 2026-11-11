@@ -1,3 +1,6 @@
+// ===== EditorManager.cpp =====
+// エディタで選んだシーンやオブジェクト、インスペクターの設定を管理する。
+
 #include "engine/editor/EditorManager.h"
 
 bool EditorManager::playOnNextEditorOpen_ = false;

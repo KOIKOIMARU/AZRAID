@@ -1,3 +1,6 @@
+// ===== Math.cpp =====
+// 移動、座標変換、投影で使うベクトルと行列の計算をまとめる。
+
 #include "engine/base/Math.h"
 #include <DirectXMath.h>
 

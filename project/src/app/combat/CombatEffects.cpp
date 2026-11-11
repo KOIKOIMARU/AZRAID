@@ -1,3 +1,6 @@
+// ===== CombatEffects.cpp =====
+// 命中や撃破の種類に応じて、火花や爆発の形・色・出し方を決める。
+
 #include "app/combat/CombatEffects.h"
 
 #include <algorithm>

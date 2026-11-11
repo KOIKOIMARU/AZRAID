@@ -1,3 +1,6 @@
+// ===== BossAttackController.cpp =====
+// ボスの攻撃選択と溜め・発射・隙の進行を管理し、各段階の切り替わりを通知する。
+
 #include "app/enemy/BossAttackController.h"
 #include <algorithm>
 #include <cmath>

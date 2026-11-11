@@ -1,3 +1,6 @@
+// ===== GameplayHud.cpp =====
+// HP、照準、チャージ、スコアなどを描き、命中や被弾時の表示変化を管理する。
+
 #include "app/ui/GameplayHud.h"
 #include "app/ui/CombatHud.h"
 #include "app/runtime/GameRuntimeMath.h"

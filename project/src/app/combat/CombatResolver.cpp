@@ -1,3 +1,6 @@
+// ===== CombatResolver.cpp =====
+// 弾や機体の当たり判定を行い、命中・撃破に応じてダメージや報酬を反映する。
+
 #include "app/combat/CombatResolver.h"
 
 #include "app/enemy/BossAttackController.h"

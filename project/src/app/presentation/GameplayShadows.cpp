@@ -1,3 +1,6 @@
+// ===== GameplayShadows.cpp =====
+// 影を落とす機体を選んでシャドウマップを描き、接地感を出す影も表示する。
+
 #include "app/presentation/GameplayShadows.h"
 
 #include "app/enemy/Enemy.h"

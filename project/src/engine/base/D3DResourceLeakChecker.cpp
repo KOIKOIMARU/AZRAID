@@ -1,3 +1,6 @@
+// ===== D3DResourceLeakChecker.cpp =====
+// Debug版の終了時に、解放されずに残ったDirectXのオブジェクトを報告する。
+
 #include "engine/base/D3DResourceLeakChecker.h"
 
 #include <dxgidebug.h>

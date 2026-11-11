@@ -1,3 +1,6 @@
+// ===== FeverState.cpp =====
+// フィーバーゲージと残り時間を持ち、発動・延長・終了の状態を管理する。
+
 #include "app/combat/FeverState.h"
 
 #include <algorithm>

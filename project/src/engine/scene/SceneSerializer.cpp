@@ -1,3 +1,6 @@
+// ===== SceneSerializer.cpp =====
+// シーンに配置したオブジェクトの情報をJSONに保存し、読み込み時に復元する。
+
 #include "engine/scene/SceneSerializer.h"
 
 #include <filesystem>

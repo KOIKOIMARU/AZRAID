@@ -1,3 +1,6 @@
+// ===== TitleMotion.cpp =====
+// タイトルの自機の飛行軌道と、ロゴや背景を切り裂く位置・タイミングを計算する。
+
 #include "engine/scene/TitleMotion.h"
 
 #include "engine/3d/Camera.h"

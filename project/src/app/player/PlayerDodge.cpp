@@ -1,3 +1,6 @@
+// ===== PlayerDodge.cpp =====
+// 回避入力を受け付けて横移動を進め、ジャスト回避が成立したかを確定する。
+
 #include "app/player/PlayerDodge.h"
 
 #include <algorithm>

@@ -1,3 +1,6 @@
+// ===== PlayerControl.cpp =====
+// 操作入力を読み取り、自機の移動、照準、発射に必要な情報を作る。
+
 #include "app/player/PlayerControl.h"
 
 #include "app/enemy/Enemy.h"

@@ -1,3 +1,6 @@
+// ===== TextureManager.cpp =====
+// テクスチャを読み込んでGPUに転送し、描画で使うSRVとともに再利用できるようにする。
+
 #include "engine/3d/TextureManager.h"
 #include "engine/base/DirectXCommon.h"
 #include "engine/base/SrvManager.h"

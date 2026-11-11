@@ -1,3 +1,6 @@
+// ===== RailScenery.cpp =====
+// レールに沿って街並みを配置し、進行位置に合わせて繰り返し使う背景を更新する。
+
 #include "app/stage/RailScenery.h"
 #include "app/stage/SceneryAssets.h"
 #include "app/runtime/GameRuntimeMath.h"

@@ -1,3 +1,6 @@
+// ===== PlayerShooting.cpp =====
+// 射撃入力の受付、連射間隔、チャージ量を管理し、発射できるタイミングを決める。
+
 #include "app/player/PlayerShooting.h"
 
 #include <algorithm>

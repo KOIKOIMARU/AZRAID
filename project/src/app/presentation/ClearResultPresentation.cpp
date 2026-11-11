@@ -1,3 +1,6 @@
+// ===== ClearResultPresentation.cpp =====
+// クリア結果の背景で、自機の飛行とカメラの動きを演出する。
+
 #include "app/presentation/ClearResultPresentation.h"
 #include "app/runtime/GameRuntimeMath.h"
 

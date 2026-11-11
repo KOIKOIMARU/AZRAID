@@ -1,3 +1,6 @@
+// ===== EnemyFlight.cpp =====
+// 敵の種類に応じて飛行軌道と機体の向きを計算する。
+
 #include "app/enemy/EnemyFlight.h"
 
 #include <algorithm>

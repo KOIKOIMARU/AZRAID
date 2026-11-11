@@ -1,3 +1,6 @@
+// ===== BossPresentation.cpp =====
+// ボスの警告、登場、形態移行、撃破に合わせて、演出と管制表示のタイミングを決める。
+
 #include "app/enemy/BossPresentation.h"
 
 #include <algorithm>

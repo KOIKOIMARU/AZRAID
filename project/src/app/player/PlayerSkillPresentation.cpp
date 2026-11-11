@@ -1,3 +1,6 @@
+// ===== PlayerSkillPresentation.cpp =====
+// スキルの連撃と最後の一撃に合わせて、斬撃や画面エフェクトを表示する。
+
 #include "app/player/PlayerSkillPresentation.h"
 
 #include "app/combat/Bullet.h"

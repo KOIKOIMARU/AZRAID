@@ -1,3 +1,6 @@
+// ===== ParticleManager.cpp =====
+// パーティクル群をGPUで生成・更新する処理と、インスタンシング描画を管理する。
+
 #include "engine/3d/ParticleManager.h"
 
 #include <array>

@@ -1,3 +1,6 @@
+// ===== SceneManager.cpp =====
+// 現在のシーンを保持し、次のシーンの事前準備と切り替え、終了処理を管理する。
+
 #include "engine/scene/SceneManager.h"
 #include "engine/scene/BaseScene.h"
 #include "engine/scene/AbstractSceneFactory.h"

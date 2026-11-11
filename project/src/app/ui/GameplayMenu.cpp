@@ -1,3 +1,6 @@
+// ===== GameplayMenu.cpp =====
+// ポーズと操作ガイドを表示し、再開や画面移動の操作を受け付ける。
+
 #include "app/ui/GameplayMenu.h"
 
 #include "app/ui/CombatHud.h"

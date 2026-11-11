@@ -1,3 +1,6 @@
+// ===== StageRecords.cpp =====
+// クリア時のランクを判定し、ステージごとの記録を保存・読み込みする。
+
 #include "app/ui/StageRecords.h"
 
 #include <Windows.h>

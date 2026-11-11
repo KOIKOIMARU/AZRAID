@@ -1,3 +1,6 @@
+// ===== StageEntryPresentation.cpp =====
+// ステージのプレビュー、出撃、再挑戦で使う機体とカメラの動きや目標表示を作る。
+
 #include "app/stage/StageEntryPresentation.h"
 
 #include "app/ui/CombatHud.h"

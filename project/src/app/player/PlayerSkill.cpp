@@ -1,3 +1,6 @@
+// ===== PlayerSkill.cpp =====
+// スキルの対象選びと発動条件、連撃の進行、再発動までの状態を管理する。
+
 #include "app/player/PlayerSkill.h"
 #include <algorithm>
 #include <limits>

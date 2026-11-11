@@ -1,3 +1,6 @@
+// ===== WinApp.cpp =====
+// Windowsのウィンドウを作成し、メッセージ処理と全画面の切り替えを扱う。
+
 #include "engine/base/WinApp.h"
 
 #ifdef USE_IMGUI

@@ -1,3 +1,6 @@
+// ===== PlayerDefeatPresentation.cpp =====
+// 自機が撃墜された後の墜落、破片、炎とカメラの動きを進める。
+
 #include "app/player/PlayerDefeatPresentation.h"
 
 #include "app/ui/CombatHud.h"

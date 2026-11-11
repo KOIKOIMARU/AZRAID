@@ -1,3 +1,6 @@
+// ===== GameRuntimeEntry.cpp =====
+// ステージ選択中のプレビューと出撃・再挑戦の演出を進め、プレイ開始につなぐ。
+
 #include "app/runtime/GameRuntime.h"
 
 #include "app/ui/MenuUi.h"

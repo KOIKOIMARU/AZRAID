@@ -1,3 +1,6 @@
+// ===== RingGates.cpp =====
+// リングの出現・描画と通過判定を担当し、通過後の加速を管理する。
+
 #include "app/stage/RingGates.h"
 #include "engine/3d/Object3dCommon.h"
 #include <algorithm>

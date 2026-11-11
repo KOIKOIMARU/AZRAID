@@ -1,3 +1,6 @@
+// ===== TutorialProgress.cpp =====
+// 課題ごとの達成条件と計測値を持ち、練習開始・成功・やり直しのタイミングを決める。
+
 #include "app/stage/TutorialProgress.h"
 
 #include "app/ui/CombatHud.h"

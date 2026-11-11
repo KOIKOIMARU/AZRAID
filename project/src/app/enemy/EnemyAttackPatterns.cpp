@@ -1,3 +1,6 @@
+// ===== EnemyAttackPatterns.cpp =====
+// 通常敵の射撃タイミングを決め、自機の移動を見越して弾の発射方向を求める。
+
 #include "app/enemy/EnemyAttackPatterns.h"
 
 #include "app/enemy/Enemy.h"

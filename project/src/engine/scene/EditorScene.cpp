@@ -1,3 +1,6 @@
+// ===== EditorScene.cpp =====
+// ステージ配置の編集、ファイルの読み書き、エディタ内での試遊を取りまとめる。
+
 #include "engine/scene/EditorScene.h"
 
 #include "engine/3d/Object3dCommon.h"

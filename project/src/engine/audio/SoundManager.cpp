@@ -1,3 +1,6 @@
+// ===== SoundManager.cpp =====
+// 音源の読み込みとXAudio2での単発・ループ再生を管理する。
+
 #include "engine/audio/SoundManager.h"
 #include "engine/base/Logger.h"
 #include "engine/base/StringUtility.h"

@@ -1,3 +1,4 @@
+// ===== MainStage.cpp =====
 // 本編の配置データ。区間ごとの飛行設定と、敵・リング・カメラ演出が出る進行度を定義する。
 
 #include "app/stage/MainStage.h"

@@ -1,3 +1,6 @@
+// ===== CombatProgress.cpp =====
+// 撃破チェーンの継続時間と倍率を管理し、戦闘中のスコアを集計する。
+
 #include "app/combat/CombatProgress.h"
 
 #include <algorithm>

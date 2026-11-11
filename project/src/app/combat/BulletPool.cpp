@@ -1,3 +1,6 @@
+// ===== BulletPool.cpp =====
+// 弾をあらかじめ用意し、発射時に貸し出して、消えた弾を再利用できる状態に戻す。
+
 #include "app/combat/BulletPool.h"
 
 #include <algorithm>

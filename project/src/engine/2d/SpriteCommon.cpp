@@ -1,3 +1,6 @@
+// ===== SpriteCommon.cpp =====
+// スプライト描画で共有するルートシグネチャとパイプラインを準備し、描画前に設定する。
+
 #include "engine/2d/SpriteCommon.h"
 #include "engine/base/DirectXCommon.h"
 #include "engine/3d/TextureManager.h"

@@ -1,3 +1,6 @@
+// ===== StringUtility.cpp =====
+// Windowsの処理とファイル読み込みで使うUTF-8とワイド文字列を相互に変換する。
+
 #include "engine/base/StringUtility.h"
 #include <Windows.h>
 

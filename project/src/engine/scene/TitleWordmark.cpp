@@ -1,3 +1,6 @@
+// ===== TitleWordmark.cpp =====
+// タイトルロゴの形状と切断面を作り、機体の動きに合わせて断片と光を描く。
+
 #include "engine/scene/TitleWordmark.h"
 
 #include "app/ui/CombatHud.h"

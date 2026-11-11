@@ -1,3 +1,6 @@
+// ===== StageEnemies.cpp =====
+// ステージ内の敵を生成・更新し、退場時には照準などからの参照を解除する。
+
 #include "app/enemy/StageEnemies.h"
 
 #include "app/enemy/BossAttackController.h"

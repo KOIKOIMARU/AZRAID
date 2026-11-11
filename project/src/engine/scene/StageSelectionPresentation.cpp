@@ -1,3 +1,6 @@
+// ===== StageSelectionPresentation.cpp =====
+// ステージ選択の待機中と出撃時に、裂け目の開閉や自機を見せる演出を進める。
+
 #include "engine/scene/StageSelectionPresentation.h"
 
 #include "app/stage/StageEntryPresentation.h"

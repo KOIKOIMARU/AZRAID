@@ -1,3 +1,6 @@
+// ===== GameScene.cpp =====
+// 本編シーンの準備と更新・描画をGameRuntimeにつなぎ、画面の切り替えを受け渡す。
+
 #include "engine/scene/GameScene.h"
 
 #include "app/runtime/GameResources.h"

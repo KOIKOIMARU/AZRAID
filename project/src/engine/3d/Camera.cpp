@@ -1,3 +1,6 @@
+// ===== Camera.cpp =====
+// カメラの位置・向き・画角から、ビュー行列と射影行列を更新する。
+
 #include "engine/3d/Camera.h"
 #include "engine/base/WinApp.h"
 

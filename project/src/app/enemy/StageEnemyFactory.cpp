@@ -1,3 +1,6 @@
+// ===== StageEnemyFactory.cpp =====
+// 敵の種類に合ったモデルと外見を選び、ステージに出す敵を生成する。
+
 #include "app/enemy/StageEnemyFactory.h"
 
 #include "app/enemy/Enemy.h"

@@ -1,3 +1,6 @@
+// ===== Input.cpp =====
+// キーボードとマウスの状態を毎フレーム取得し、押しっぱなしと押した瞬間を判定する。
+
 #include "engine/io/Input.h"
 #include <cassert>
 #include <algorithm>

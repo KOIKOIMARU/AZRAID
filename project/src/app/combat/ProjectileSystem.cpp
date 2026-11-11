@@ -1,3 +1,6 @@
+// ===== ProjectileSystem.cpp =====
+// 自機弾と敵弾の発射、誘導、描画をまとめ、消えた弾をプールに戻す。
+
 #include "app/combat/ProjectileSystem.h"
 
 #include "app/enemy/Enemy.h"

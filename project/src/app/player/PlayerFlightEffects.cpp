@@ -1,3 +1,6 @@
+// ===== PlayerFlightEffects.cpp =====
+// 自機の排気、回避時の残像、チャージ中の光などを更新して描く。
+
 #include "app/player/PlayerFlightEffects.h"
 #include "app/runtime/GameRuntimeMath.h"
 #include "app/player/JustDodgeFeedback.h"

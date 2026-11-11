@@ -1,3 +1,6 @@
+// ===== TitleRift.cpp =====
+// タイトルから出撃までの裂け目をシェーダーで描き、機体と背景の重なりを処理する。
+
 #include "engine/scene/TitleRift.h"
 
 #include "engine/base/DirectXCommon.h"

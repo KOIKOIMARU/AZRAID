@@ -1,3 +1,6 @@
+// ===== Skybox.cpp =====
+// カメラの向きに合わせて、キューブマップをステージの空として描く。
+
 #include "engine/3d/Skybox.h"
 
 #include <array>

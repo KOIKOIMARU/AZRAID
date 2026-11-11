@@ -1,3 +1,6 @@
+// ===== ModelManager.cpp =====
+// モデルの読み込みとキャッシュを担当し、先読みしたデータからGPU用のモデルを準備する。
+
 #include "engine/3d/ModelManager.h"
 #include "engine/3d/Model.h"
 #include "engine/3d/ModelCommon.h"

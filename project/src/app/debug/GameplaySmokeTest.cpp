@@ -1,3 +1,6 @@
+// ===== GameplaySmokeTest.cpp =====
+// 自動検証で画面遷移とプレイ中の状態を監視し、結果をログに残して終了する。
+
 #include "app/debug/GameplaySmokeTest.h"
 
 #include "engine/base/DirectXCommon.h"

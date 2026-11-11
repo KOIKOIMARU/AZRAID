@@ -1,3 +1,6 @@
+// ===== FlightMotionBlur.cpp =====
+// カメラの動きや飛行速度から、モーションブラーに渡す値を更新する。
+
 #include "app/presentation/FlightMotionBlur.h"
 
 #include "engine/3d/Camera.h"

@@ -1,3 +1,6 @@
+// ===== GameplayAudio.cpp =====
+// 戦闘で使う音源を準備し、プレイの状態に応じてBGMや効果音の再生を切り替える。
+
 #include "app/presentation/GameplayAudio.h"
 
 #include "engine/audio/SoundManager.h"

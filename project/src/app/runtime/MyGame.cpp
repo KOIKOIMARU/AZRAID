@@ -1,3 +1,6 @@
+// ===== MyGame.cpp =====
+// 起動時の読み込みを進め、アプリ全体の更新・描画・終了を管理する。
+
 #include "app/runtime/MyGame.h"
 #include "app/ui/MenuUi.h"
 #include "engine/base/WinApp.h"

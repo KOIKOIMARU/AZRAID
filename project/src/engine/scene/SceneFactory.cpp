@@ -1,3 +1,6 @@
+// ===== SceneFactory.cpp =====
+// 要求されたシーンの種類に応じて、タイトル・本編・エディタなどの実体を作る。
+
 #include "engine/scene/SceneFactory.h"
 #include "engine/scene/TitleScene.h"
 #include "engine/scene/GameScene.h"

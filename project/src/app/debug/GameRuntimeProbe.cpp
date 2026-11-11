@@ -1,4 +1,6 @@
-// 通常起動やReleaseには自動操作を含めない。明示したDebug試験だけで使用。
+// ===== GameRuntimeProbe.cpp =====
+// 明示的に起動したDebug版の検証で、操作入力を再現し、戦闘や通しプレイの結果を確かめる。
+
 #ifdef _DEBUG
 #include "app/runtime/GameRuntime.h"
 #include "app/runtime/GameRuntimeMath.h"

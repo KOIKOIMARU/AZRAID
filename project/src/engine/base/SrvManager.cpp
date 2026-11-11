@@ -1,3 +1,6 @@
+// ===== SrvManager.cpp =====
+// 描画や計算で使うSRVなどのディスクリプタの割り当て、解放、登録を管理する。
+
 #include "engine/base/SrvManager.h"
 #include "engine/base/DirectXCommon.h"
 #include <cassert>

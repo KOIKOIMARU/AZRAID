@@ -1,3 +1,6 @@
+// ===== ImGuiManager.cpp =====
+// ImGuiの初期化とフレーム描画を担当し、UIで使うフォントやエディタの表示を用意する。
+
 #include "engine/base/ImGuiManager.h"
 #include "engine/base/WinApp.h"
 #include "engine/base/DirectXCommon.h"

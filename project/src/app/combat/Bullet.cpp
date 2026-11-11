@@ -1,3 +1,6 @@
+// ===== Bullet.cpp =====
+// 弾1発の移動・寿命・描画を扱い、貫通弾が同じ相手に繰り返し当たらないようにする。
+
 #include "app/combat/Bullet.h"
 
 #include <algorithm>

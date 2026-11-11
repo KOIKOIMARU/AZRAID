@@ -1,3 +1,6 @@
+// ===== StageResultMenu.cpp =====
+// クリア・敗北・チュートリアルの結果画面を描き、項目の選択を受け付ける。
+
 #include "app/ui/StageResultMenu.h"
 
 #include "app/ui/CombatHud.h"

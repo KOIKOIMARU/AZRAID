@@ -1,3 +1,6 @@
+// ===== GameplayAim.cpp =====
+// 照準位置を更新し、画面に投影した敵の位置から狙っている相手を選ぶ。
+
 #include "app/player/GameplayAim.h"
 
 #include "app/enemy/Enemy.h"

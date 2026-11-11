@@ -1,3 +1,6 @@
+// ===== Object3d.cpp =====
+// 3Dオブジェクトごとの位置・姿勢やアニメーションを更新し、モデルと影を描く。
+
 #include <vector>
 #include <fstream>
 #include <algorithm>

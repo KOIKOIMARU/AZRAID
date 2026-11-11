@@ -1,3 +1,6 @@
+// ===== Framework.cpp =====
+// ウィンドウのメッセージ処理とゲームループを回し、初期化から終了までの順序を管理する。
+
 #include "engine/base/Framework.h"
 
 #include "engine/base/WinApp.h"

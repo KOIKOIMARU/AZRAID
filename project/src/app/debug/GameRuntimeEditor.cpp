@@ -1,3 +1,6 @@
+// ===== GameRuntimeEditor.cpp =====
+// 開発中に特定の場面へ移動する機能と、配置の保存や処理時間の表示を担当する。
+
 #include "app/runtime/GameRuntime.h"
 
 #ifdef ENABLE_DEBUG_GUI

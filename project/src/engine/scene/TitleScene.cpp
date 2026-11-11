@@ -1,3 +1,6 @@
+// ===== TitleScene.cpp =====
+// タイトルとステージ選択の入力・表示を担当し、出撃のタイミングで本編へ切り替える。
+
 #include "engine/scene/TitleScene.h"
 #include "app/ui/CombatHud.h"
 #include "app/runtime/GameResources.h"

@@ -1,3 +1,6 @@
+// ===== Sprite.cpp =====
+// テクスチャの表示範囲と位置・大きさを頂点へ反映し、2Dスプライトを描く。
+
 #include "engine/2d/Sprite.h"
 #include "engine/2d/SpriteCommon.h"
 #include "engine/base/DirectXCommon.h"

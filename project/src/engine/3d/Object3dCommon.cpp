@@ -1,3 +1,6 @@
+// ===== Object3dCommon.cpp =====
+// 3D描画で共有するパイプラインを準備し、シャドウマップの描画と切り替えを管理する。
+
 #include "engine/3d/Object3dCommon.h"
 #include "engine/3d/Model.h"
 #include "engine/base/DirectXCommon.h"

@@ -1,3 +1,6 @@
+// ===== StageResults.cpp =====
+// 結果画面を開くタイミングを管理し、クリア記録の保存と結果表示を取りまとめる。
+
 #include "app/ui/StageResults.h"
 
 #include "app/stage/TutorialProgress.h"

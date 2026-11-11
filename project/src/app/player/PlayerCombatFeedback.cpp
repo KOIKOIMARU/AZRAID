@@ -1,3 +1,6 @@
+// ===== PlayerCombatFeedback.cpp =====
+// 被弾とジャスト回避に応じて、カメラの揺れやスローの強さと長さを管理する。
+
 #include "app/player/PlayerCombatFeedback.h"
 
 #include "app/player/JustDodgeFeedback.h"

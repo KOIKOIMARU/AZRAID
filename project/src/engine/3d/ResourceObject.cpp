@@ -1,3 +1,6 @@
+// ===== ResourceObject.cpp =====
+// DirectXリソースへの参照を保持し、このオブジェクトの破棄時に解放する。
+
 #include "engine/3d/ResourceObject.h"
 
 ResourceObject::ResourceObject(ID3D12Resource* resource)

@@ -1,3 +1,6 @@
+// ===== Model.cpp =====
+// モデルの頂点・材質・アニメーションを読み込み、描画用バッファを作ってメッシュを描く。
+
 #include "engine/3d/Model.h"
 
 #include <algorithm>

@@ -1,3 +1,6 @@
+// ===== CombatEffectPlayback.cpp =====
+// 戦闘エフェクトを時間に合わせて動かし、表示に使う3Dオブジェクトを再利用する。
+
 #include "app/combat/CombatEffectPlayback.h"
 
 #include "app/combat/Bullet.h"

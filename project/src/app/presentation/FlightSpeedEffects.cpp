@@ -1,3 +1,6 @@
+// ===== FlightSpeedEffects.cpp =====
+// 飛行速度やブーストに合わせて、空間と画面上に速度線を出す。
+
 #include "app/presentation/FlightSpeedEffects.h"
 #include "app/combat/FeverState.h"
 #include "app/runtime/GameRuntimeMath.h"

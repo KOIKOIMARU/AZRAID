@@ -1,3 +1,6 @@
+// ===== GameplayCamera.cpp =====
+// 自機を追うカメラの位置と画角を求め、加速や被弾による変化を加える。
+
 #include "app/presentation/GameplayCamera.h"
 #include "app/runtime/GameRuntimeMath.h"
 #include "app/player/JustDodgeFeedback.h"

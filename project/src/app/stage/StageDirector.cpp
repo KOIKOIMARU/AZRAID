@@ -1,3 +1,6 @@
+// ===== StageDirector.cpp =====
+// ステージの進行度と出現中の敵の状況に応じて、敵・リング・レール演出を順に出す。
+
 #include "app/stage/StageDirector.h"
 
 #include <algorithm>

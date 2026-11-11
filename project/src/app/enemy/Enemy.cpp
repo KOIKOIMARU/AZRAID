@@ -1,3 +1,6 @@
+// ===== Enemy.cpp =====
+// 敵1体のHPと生存状態を持ち、飛行計算の結果を機体の姿勢と表示に反映する。
+
 #include "app/enemy/Enemy.h"
 
 #include "engine/3d/Model.h"

@@ -1,3 +1,6 @@
+// ===== CombatRewards.cpp =====
+// リング通過やジャスト回避の報酬を反映し、フィーバーの発動と終了を扱う。
+
 #include "app/combat/CombatRewards.h"
 
 #include "app/combat/CombatProgress.h"

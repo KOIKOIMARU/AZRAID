@@ -1,3 +1,6 @@
+// ===== GameRuntime.cpp =====
+// ゲームプレイを初期化し、各フレームでステージ・自機・敵を更新して描画へつなぐ。
+
 #include "app/runtime/GameRuntime.h"
 #include "app/runtime/GameResources.h"
 #include "app/runtime/GameRuntimeTuning.h"

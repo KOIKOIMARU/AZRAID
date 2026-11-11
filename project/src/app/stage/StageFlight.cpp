@@ -1,3 +1,6 @@
+// ===== StageFlight.cpp =====
+// 区間ごとの速度や加速に従ってレール上の進行距離を更新し、ステージ進行に反映する。
+
 #include "app/stage/StageFlight.h"
 
 #include "app/runtime/GameRuntimeMath.h"

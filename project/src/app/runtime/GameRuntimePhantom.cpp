@@ -1,3 +1,6 @@
+// ===== GameRuntimePhantom.cpp =====
+// スキルの発動時に対象を決め、連撃のタイミングに合わせてダメージと演出を反映する。
+
 #include "app/runtime/GameRuntime.h"
 
 #include "engine/base/DirectXCommon.h"

@@ -1,3 +1,6 @@
+// ===== DirectXCommon.cpp =====
+// Direct3D 12の初期化とフレームの同期を行い、描画先とポストエフェクトを管理する。
+
 #include "engine/base/DirectXCommon.h"
 #include "engine/base/Logger.h"
 #include "engine/base/SrvManager.h"

@@ -1,3 +1,6 @@
+// ===== ParticleEmitter.cpp =====
+// 指定した位置と間隔に応じて、ParticleManagerへ粒子の生成を要求する。
+
 #include "engine/3d/ParticleEmitter.h"
 
 #include "engine/3d/ParticleManager.h"

@@ -1,3 +1,6 @@
+// ===== EditorPlayController.cpp =====
+// エディタからの試遊を開始・終了し、エディタ内でゲームの更新と描画を行う。
+
 #include "engine/editor/EditorPlayController.h"
 
 #include "app/runtime/GameRuntime.h"

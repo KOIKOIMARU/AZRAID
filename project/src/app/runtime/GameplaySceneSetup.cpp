@@ -1,3 +1,6 @@
+// ===== GameplaySceneSetup.cpp =====
+// ゲームシーンの描画や配置物を段階的に準備し、終了時に解放する。
+
 #include "app/runtime/GameplaySceneSetup.h"
 
 #include "app/presentation/ClearResultPresentation.h"

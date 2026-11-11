@@ -1,3 +1,6 @@
+// ===== GameResources.cpp =====
+// タイトルと本編で共有する素材を先読みし、リングや演出に使う形状も生成する。
+
 #include "app/runtime/GameResources.h"
 #include "app/stage/SceneryAssets.h"
 

@@ -1,3 +1,6 @@
+// ===== RuntimeSceneObjects.cpp =====
+// シーンに配置したオブジェクトを読み込み、更新・描画・保存する。
+
 #include "app/runtime/RuntimeSceneObjects.h"
 
 #include <iterator>

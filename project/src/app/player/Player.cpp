@@ -1,3 +1,6 @@
+// ===== Player.cpp =====
+// 自機のHPと位置・姿勢を管理し、移動や回避の結果を機体モデルに反映する。
+
 #include "app/player/Player.h"
 #include "app/runtime/GameRuntimeMath.h"
 
