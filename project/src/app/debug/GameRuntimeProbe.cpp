@@ -1343,13 +1343,13 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         require(audio_.SoundForProbe() && audio_.SoundForProbe()->GetVoiceCount() == 29, "all sounds loaded");
         if (!SoundManager::kSoundEffectsEnabled) {
             for (const char* key : { "shot", "charge", "skill_start", "hit", "destroy", "damage",
-                "fever", "clear", "fail", "skill_ready", "slash", "slash_finish" }) {
+                "dodge", "gate_boost", "fever", "clear", "fail", "skill_ready", "slash", "slash_finish" }) {
                 require(!audio_.SoundForProbe()->Play(key), "disabled sound effect was submitted");
             }
             require(audio_.SoundForProbe()->GetPlayCount() == 0, "disabled sound effects changed playback count");
             require(audio_.SoundForProbe()->PlayLoop("music_stage") && audio_.SoundForProbe()->GetLoopCount() == 1,
                 "sound effect disable also stopped BGM");
-            log("SFX_DISABLED_OK unreviewed_one_shots_blocked=1 bgm_loop=1");
+            log("SFX_DISABLED_OK one_shots_blocked=1 bgm_loop=1");
         }
         log(std::string("AUDIO_BANK mode=") + (audio_.UsesLocalSkillAudioForProbe() ? "local_cinematic" : "original_cc0") +
             " voices=29");

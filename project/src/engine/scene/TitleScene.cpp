@@ -276,7 +276,6 @@ void TitleScene::PrepareBackdrop()
     if (sound_->Initialize()) {
         sound_->Load("confirm", "resources/audio/combat/skill_ready.wav", 1, 0.22f);
         sound_->Load("launch", "resources/audio/combat/gate_boost.wav", 1, 0.40f);
-        sound_->EnableWhileEffectsMuted("launch");
     }
 }
 

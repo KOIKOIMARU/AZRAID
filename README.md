@@ -10,37 +10,44 @@ Windows向けに、C++ / DirectX 12で開発しています。
 - ソリューション: `project/CG2.sln`
 - プロジェクト: `project/CG2.vcxproj`
 - ビルド環境: Visual StudioのC++開発環境、MSVC v145、Windows SDK 10.0.26100.0
-- 構成: `Debug / x64` または `Release / x64`
+- 構成は `Debug / x64`、`Release / x64`、`Development / x64` です。DebugとDevelopmentでは開発用の表示を使えます。
 
 既存のビルド構成を維持するため、フォルダ・ソリューション・実行ファイルの内部名は `CG2` のままです。
 ゲームの正式名称は「アズレイド」、英字表記は「AZRAID」です。
 
 Releaseの出力先は `generated/outputs/Release/CG2.exe` です。
 実行ファイルをダブルクリックして起動できます。
+実行用パッケージでは `AZRAID.exe` を起動します。パッケージ内の `resources`、`shaders`、DLLは実行ファイルと同じフォルダに置きます。
 
 Debug版では、本編中にF1を押し「デバッグ操作」の「フェーズ移動」から確認したい地点に移れます。
 起動時から特定の地点を確認するには、Debug / x64でビルドして `project/tools/RunDebugScene.cmd` を開き、
 1〜5を選びます。必要な素材の読み込みが終わると、選んだ地点からすぐ操作できます。
 この起動方法では、戦績の保存を無効にしています。
 
+起動から本編までの動作は、リポジトリのルートから `& .\project\tools\RunSmokeTest.ps1 -Configuration Release -GameplaySeconds 15` で確認できます。
+
 ## 操作
 
 通常起動ではタイトルを表示します。「航空都市」へ出撃し、敵編隊を突破してボスを撃破するとクリアです。
 結果画面から再挑戦・タイトルへの移動ができます。クリア時のベストスコアと最高ランクは、
-Windowsのユーザー別保存先（LocalAppData/AZRAID/record-v3.txt）へ保存し、次回起動でも引き継ぎます。
+ユーザーごとの `%LOCALAPPDATA%\AZRAID\record-v3.txt` へ保存し、次回起動でも引き継ぎます。
 チュートリアルや自動検証の記録は、通常プレイの成績に混ぜません。
 ランクは得点で決まり、Aは80,000点、Sは150,000点からです。以前の得点ルールの記録は元のファイルに残しています。
-金色の印がある敵を倒すとリングが残り、通過すると得点・チャージ補充・ゲージ増加、発動中ならフィーバー延長を得られます。
-射撃を止めるとチャージでき、密集した編隊には爆風でまとめてダメージを与えられます。
+リングはステージの進行に合わせてコース上に出現します。くぐると短時間加速し、得点が入り、チャージが補充されます。通常時はフィーバーゲージが増え、発動中は残り時間が延びます。
+射撃を止めてチャージをためると、次に撃つときにチャージ弾を出せます。密集した編隊には爆風でまとめてダメージを与えられます。
+フィーバーゲージが満タンになると、自動でフィーバーが発動します。
+現在の設定では効果音をオフにしています。BGMは通常戦闘・ボス戦・フィーバーに合わせて切り替わります。
 
 | 操作 | 入力 |
 |---|---|
 | 移動 | W / A / S / D（矢印キーも使用可能） |
 | 照準 | マウス |
-| 射撃・連射 | SPACE / 長押し |
-| 回避 | A または D + SHIFT |
+| 射撃・連射 | Space（長押しで連射） |
+| 回避 | Shift（A / D または ← / → で方向を指定。左右の入力がないときは最後に入力した方向） |
 | スキル | Q |
-| ポーズ | ESC |
+| ポーズ | Esc |
+| 操作方法を開く | H（プレイ中） |
+| 再挑戦 | R（リザルト表示後） |
 | 全画面切替 | F11 / Alt + Enter |
 
 タイトル画面からチュートリアルと操作方法を確認できます。
@@ -51,27 +58,30 @@ Windowsのユーザー別保存先（LocalAppData/AZRAID/record-v3.txt）へ保�
 ## ソースの構成
 
 ゲームの開始処理は `main.cpp` → `MyGame` → `SceneManager` の順に進みます。
-`GameScene` はシーンの切り替えを担当し、ゲーム中の処理を `GameRuntime` に渡します。
+`GameScene` は `GameRuntime` を更新し、再挑戦やタイトルへ戻る操作を受け取ると、`SceneManager` に次のシーンを指定します。
 
 | ファイル・クラス | 担当 |
 |---|---|
 | `MyGame` | 起動時の準備、フレームの更新・描画、終了時の解放 |
 | `GameResources` | タイトルと本編で共有するモデル・画像・シェーダーの事前読み込み |
+| `ModelManager` | 読み込み済みモデルの管理、別スレッドでのモデル解析、GPU用データと材質画像の準備 |
 | `TitleScene` | タイトルとステージ選択の入力、出撃への切り替え |
 | `TitleMotion` / `TitleWordmark` / `TitleRift` | 飛行と切断の時刻・位置の計算、ロゴの描画、背景の断面と航跡の描画 |
 | `StageSelectionPresentation` | 選択画面の裂け目、待機中の時計、機体の戻りから本編へ出撃するまでの時刻 |
-| `StageEntryTiming` | タイトルと本編の間で引き継ぐ出撃演出の時刻 |
+| `StageEntryTiming` | タイトルと本編で使う出撃演出の時間設定 |
 | `Enemy` / `Player` | 各機体の位置、姿勢、HP。敵の飛行は `EnemyFlight` が計算する |
 | `EnemyFlight` | 機種ごとの進入・飛行・離脱、狙撃の構え、ボスの飛行先と反動 |
 | `PlayerDodge` | 回避の先行入力・再使用時間・横移動・成功判定の受付 |
 | `GameplaySmokeTest` | 明示的に起動した自動テストの操作、計測、終了判定 |
 
+タイトルからステージ選択へ移るときは、カメラの位置・向きと切断線を引き継ぎます。
+選択画面では準備済みの本編を描き、出撃後はそのシーンを本編として使います。自機のモデルはタイトルと本編で共有し、機体の位置や向きはそれぞれの `Object3d` が持ちます。
+
 `GameRuntime` が使う主なクラスは次のとおりです。
-描画や敵の情報を必要としないルールは、各クラスの中で完結させています。
 
 | クラス | 担当 |
 |---|---|
-| `CombatProgress` | スコア、連続撃破の猶予時間、倍率、最高記録 |
+| `CombatProgress` | スコア、連続撃破の猶予時間、倍率、プレイ中の最大チェイン数 |
 | `CombatRewards` | リング通過・ジャスト回避の報酬と、フィーバー中のチャージ補充 |
 | `StageRecords` | クリア時のベストスコア・最高ランク・クリア回数の保存と読込み |
 | `FeverState` | ゲージ、発動・終了、残り時間、発動回数 |
@@ -89,11 +99,11 @@ Windowsのユーザー別保存先（LocalAppData/AZRAID/record-v3.txt）へ保�
 | `StageEntryPresentation` | 選択画面での周回、出撃・再挑戦時の機体とカメラの姿勢、目標表示 |
 | `FlightSpeedEffects` | 飛行中に流れる光と画面端の風の線の配置、更新、描画 |
 | `FlightMotionBlur` | ブラー用の画面座標とカメラの履歴、比較表示 |
-| `GameplayAudio` | 本編の音声読み込み、効果音の優先度、通常・ボス・フィーバー間のBGM切り替え |
+| `GameplayAudio` | 本編の音声読み込み、通常・ボス・フィーバー間のBGM切り替えと音量調整 |
 | `GameplayShadows` | ステージ中の影を投影するモデルの選別と接地影の描画 |
 | `GameplayMenu` | ポーズ、操作説明、メニュー決定から画面切り替えまでの状態 |
 | `StageResultMenu` | クリア・敗北・練習終了画面の表示、詳細切り替えと項目選択 |
-| `StageResults` | リザルトを開くタイミング、結果音の一度きりの再生、クリア記録の確定 |
+| `StageResults` | リザルトを開くタイミング、クリア画面の演出更新、クリア記録の確定 |
 | `StageDirector` | 配置の進行、編隊を出せる空き枠、出現済みの状態、区間の判定 |
 | `StageFlight` | レールの位置・速度とステージ進行、区間ごとの速度・カメラ設定、リングの配置位置 |
 | `StageEnemyFactory` | 機種に合うモデルとテクスチャの選択、敵機の生成 |
@@ -114,14 +124,14 @@ Windowsのユーザー別保存先（LocalAppData/AZRAID/record-v3.txt）へ保�
 | `RingGates` | リングの生成、寿命、移動経路との通過判定、描画物体の再利用 |
 
 `BossAttackController` はHPと攻撃可能かどうかを受け取り、発射要求を固定長の配列で返します。
-`GameRuntime` がボスの発射要求や段階移行を `ProjectileSystem` へ渡し、入場・撃破演出を進めます。
+`GameRuntime` は発射要求を受けて `ProjectileSystem` から弾を出します。形態変更時は `BossPresentation` の演出を開始し、前の形態の敵弾を回収します。
 HUDとダメージ計算は同じ反撃時間を読み、表示と実際の倍率がずれないようにしています。
 待機・予備動作・連射・反撃時間は名前付きの状態で追えます。初期化と攻撃中断もクラスへ集約しています。
-攻撃時刻・弾数・照準の固定・段階移行・再挑戦は `project/tests/BossAttackControllerTests.vcxproj` で確認できます。
+攻撃時刻・弾数・照準の固定・段階移行・再挑戦時のリセットは `project/tests/BossAttackControllerTests.vcxproj` で確認できます。
 
 `ProjectileSystem` は自機用と敵用の `BulletPool` を保持し、弾の回収と同時に追尾先や回避済みの記録を解除します。
-起動時に弾とリストのノードを用意し、射撃・回収時はノードを移して使い回します。
-弾の移動は `Bullet`、当たり判定とダメージの適用は `GameRuntimeCollision.cpp` が担当します。
+シーンの準備中に弾とリストのノードを用意し、射撃・回収時はノードを移して使い回します。
+弾の移動は `Bullet`、当たり判定とダメージの適用は `CombatResolver` が担当します。`GameRuntime::UpdateGameplayCollisions()` が自機弾、敵弾の順に判定を呼びます。
 
 `PlayerControl` はキー入力を読み、移動方向と回避入力を `Player` に渡します。照準と射撃状態は内部で管理します。
 `PlayerShooting` は射撃キーを押下中・押した瞬間の2つの値として受け取り、発射要求を返します。
@@ -132,13 +142,12 @@ HUDとダメージ計算は同じ反撃時間を読み、表示と実際の倍�
 
 `PlayerSkill` は画面内の候補を照準に近い順へ並べ、通常は3機、フィーバー中は5機まで選びます。
 選択した敵は所有せず、敵を破棄する前に参照を外します。対象が消えても別の敵へ勝手に切り替えません。
-攻撃時刻・無敵時間・スロー・再使用時間は同じ状態を読み、実際のダメージ・弾消去・音・描画は本編側で扱います。
-対象選択、攻撃時刻、再使用の境界、対象の消滅、再挑戦は `project/tests/PlayerSkillTests.vcxproj` で確認できます。
+`PlayerSkill` は攻撃の進行と再使用までの時間を管理し、無敵やスローが有効な区間も判定します。`GameRuntime` が攻撃のタイミングを受け取り、ダメージ処理を `CombatResolver` に渡します。
+対象選択、攻撃時刻、再使用の境界、対象の消滅、再挑戦時のリセットは `project/tests/PlayerSkillTests.vcxproj` で確認できます。
 
 `PlayerFlightEffects` は演出用の値を受け取り、自機の噴射・チャージの光・残像を更新します。
 入力、回避の成否、得点、カメラの揺れは決めません。回避開始だけを呼び出し側へ返します。
-描画物体は起動時に24個を用意して再利用します。描画では時計や噴射の強さを進めず、ポーズ中は同じ状態を保ちます。
-旧方式の噴射パーティクルと未使用の64個の準備は削除し、現在のObject3dによる噴射を使っています。
+自機の噴射には `Object3d` を使います。噴射や残像の描画物体はシーンの準備中に用意して再利用します。演出の時間は更新処理で進めるため、ポーズ中は同じ状態を保ちます。
 
 `GameplayHud` はアクターやゲーム進行クラスを参照せず、`GameRuntime::BuildHudFrame` が集めた表示値を読みます。
 命中・被弾・チャージの閃光の時間はHUD内に持ち、更新と描画を分けています。
@@ -147,43 +156,41 @@ HUDとダメージ計算は同じ反撃時間を読み、表示と実際の倍�
 `GameplayCamera` は本編のばね追従と練習用の補間を分け、位置・画角・揺れの履歴を管理します。
 アクターやDirectXには依存せず、演出の値を受け取って最終姿勢を返します。行列への反映は `GameRuntime` が担当します。
 出撃・死亡の経路は演出側で求め、完成した姿勢と自機の位置・時計を明示的に引き継ぎます。
-引き継ぎ、更新間隔、揺れの寿命、停止中の参照、再挑戦は `project/tests/GameplayCameraTests.vcxproj` で確認できます。
+引き継ぎ、更新間隔、揺れの寿命、停止中の参照、再挑戦時のリセットは `project/tests/GameplayCameraTests.vcxproj` で確認できます。
 
 航空都市の敵・区間・カメラ演出の配置は `MainStage.cpp` にまとめています。
-`StageDirector` は本編から生存敵の数と攻撃の負荷を受け取り、次に出せる配置を一度だけ返します。
-次の編隊全体の空き枠を確認してから出すので、狙撃編隊や左右の挟撃を途中で分断しません。
+`StageDirector` は生存敵の数と攻撃の負荷を見て、次の編隊の残りが出現上限に収まるかを確認します。
+条件を満たしたら配置を1件ずつ取り出し、出現済みとして記録します。1フレームに生成する通常敵の数にも上限があります。
 `StageFlight` は背景の飛行距離と速度を管理し、敵配置の進行値と待ち時間は内部の `StageDirector` が管理します。
 `StageEnemies` が敵を生成し、`GameRuntime` がカメラ演出とボス撃破後の遷移を調整します。
-出現順、編隊の上限、進行の境界、再挑戦、練習との分離は `project/tests/StageDirectorTests.vcxproj` で確認できます。
-使われていなかった旧ウェーブ生成処理と、それに対応する開発画面の調整項目は削除しました。
+出現順、編隊の上限、進行の境界、再挑戦時のリセット、練習との分離は `project/tests/StageDirectorTests.vcxproj` で確認できます。
 
 `StageRecords` は `MyGame` が所有し、シーン生成時にタイトルと本編へ参照を渡します。
 戦闘中の得点は `CombatProgress` が管理し、`StageResults` がクリア演出後に `StageRecords` へ渡します。
 記録の読込み・保存失敗・破損データの退避は `project/tests/StageRecordsTests.vcxproj` で確認できます。
 
 `ClearResultPresentation` はクリア画面の専用カメラと機体・噴射をシーンの準備中に確保します。
-`GameRuntime` が戦績の表示時刻と画面の縦横比を渡し、クリア表示中は専用カメラの投影行列を使います。
+`StageResults` が結果画面の経過時間と縦横比を渡して演出を更新します。クリア画面の描画では専用カメラの投影行列を使います。
 戦績の保存は `StageRecords`、結果画面の選択は `StageResultMenu` が担当します。
 `GameplayMenu` が決定後の演出と遷移要求を管理し、`GameScene` が次のシーンを指定します。
 
 `RingGates` は前後の自機位置を受け取り、その間に通過したリングの個数を返します。
-リングの面を横切った瞬間の位置を補間するので、高速移動や横回避でも通過を判定できます。
-得点・チャージ・フィーバーの報酬は `GameRuntime::ApplyRingPassReward()` が反映します。
-リング側は自機・敵・得点クラスを参照せず、外部から読み取れる状態も変更不可にしています。
-画面への座標変換は `ScreenProjection::ToViewport()` を照準とリングで共用します。
+リングの面を横切った瞬間の位置を補間し、その点が開口部の楕円に入っているかを判定します。
+`GameRuntime::ApplyRingPassReward()` が加速を開始し、得点・チャージ・フィーバーの報酬は `CombatRewards` が反映します。
 
-`CombatEffects` はダメージや得点を変更しません。`GameRuntime` から発生地点と演出の種類を受け取り、
-色・大きさ・速度などの設定を使って表示します。描画物体と演出の記録は起動時に確保し、
-寿命が終わった物体は再利用枠へ戻します。設定値には項目名を付け、時間と座標の単位はヘッダーに記載しています。
+`CombatEffects` は `GameRuntime` や `CombatResolver` から発生地点と演出の種類を受け取り、色・大きさ・速度などを決めます。
+`CombatEffectPlayback` はシーンの準備中に描画物体を用意し、寿命が終わった物体を再利用枠へ戻します。
 
-ソースは `project/src/app`、ヘッダーは `project/include/app` にあり、どちらも役割ごとに同じ名前のフォルダで分けています。
-Visual Studioでは、`app` フィルタから同じ役割のソースとヘッダーをまとめて開けます。
+ゲーム固有の処理は主に `project/src/app` と `project/include/app` にあります。タイトルやシーン管理、共通の描画・入力・音声処理は `project/src/engine` と `project/include/engine` にあります。
+Visual Studioでは、ゲーム固有の処理を `app` フィルタから開けます。エンジン側は `src\engine` と `include\engine` のフィルタにあります。
 
 | ファイル | 主な内容 |
 |---|---|
 | `project/src/app/runtime/GameRuntime.cpp` | 初期化、各担当クラスの呼び出し、敵の出現、戦闘演出とHUD |
-| `project/src/app/runtime/GameRuntimeCollision.cpp` | 弾の命中判定、ダメージ、チャージ弾の爆風、敵撃破、回避判定 |
+| `project/src/app/runtime/GameRuntimeCollision.cpp` | 戦闘判定への参照の受け渡し、自機弾と敵弾の判定順、ボス撃破からクリアへの切り替え |
+| `project/src/app/combat/CombatResolver.cpp` | 弾の命中判定、チャージ弾の爆風、ダメージ、撃破報酬、ジャスト回避の判定 |
 | `project/src/app/runtime/GameRuntimeEntry.cpp` | ステージ選択中の飛行、出撃、再挑戦時の導入 |
+| `project/src/app/runtime/GameRuntimeDefeat.cpp` | 敗北時の戦闘終了、敵の離脱と自機の墜落、リザルト表示のタイミング |
 | `project/src/app/debug/GameRuntimeEditor.cpp` | 開発用の編集画面・性能表示。`ENABLE_DEBUG_GUI` 有効時だけ使用 |
 | `project/src/app/runtime/GameRuntimePhantom.cpp` | Qキーで使うスキルの対象選択、連撃、演出、効果音 |
 | `project/src/app/runtime/GameRuntimeTutorial.cpp` | チュートリアルの進行と説明表示 |
@@ -195,13 +202,13 @@ Visual Studioでは、`app` フィルタから同じ役割のソースとヘッ�
 | `project/include/app/runtime/GameRuntimeMath.h` | 距離、補間、座標変換などの共通計算 |
 
 `GameRuntime*.cpp` は同じ `GameRuntime` クラスの実装を、機能別に分けたものです。
-これらは独立したクラスではありません。戦闘演出やHUDなど、引き続き `GameRuntime` に集まっている処理には整理の余地があります。
 
-ゲーム中の更新は `GameRuntime::Update()` を入口に、移動・射撃・敵の行動・弾の更新・当たり判定・画面表示の順で追えます。
-当たり判定を確認するときは `UpdateGameplayCollisions()` から `GameRuntimeCollision.cpp` の各判定関数へ進みます。
+ゲーム中の更新は `GameRuntime::Update()` が入口です。レール、自機、カメラ、照準の順で更新し、自機と敵の発射を処理します。敵と弾を動かしたあとに当たり判定を取り、照準表示やHUDに戦闘結果を反映します。
+当たり判定を確認するときは `UpdateGameplayCollisions()` から `CombatResolver::ResolvePlayerShots()` と `ResolveEnemyShots()` へ進みます。
 
 ## 素材
 
 第三者素材の利用条件は各素材のクレジット・ライセンスを参照してください。
-戦闘効果音の配布元は [CREDITS.md](project/resources/audio/combat/CREDITS.md) に記載しています。
+自機モデルの出典と加工内容は [OmenのREADME](project/resources/free_models/player_candidates/README.md) に記載しています。
+音源の配布元は [戦闘効果音のクレジット](project/resources/audio/combat/CREDITS.md) と [BGMのクレジット](project/resources/audio/music/CREDITS.md) を参照してください。
 開発用の元素材と試聴データは `assets_source/` と `generated/` に置き、Gitの管理対象から除外しています。

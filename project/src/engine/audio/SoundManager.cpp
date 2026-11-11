@@ -183,21 +183,14 @@ void SoundManager::Unload(const std::string& key)
     }
 }
 
-// 効果音を抑える区間でも鳴らしてよい音として登録する。
-void SoundManager::EnableWhileEffectsMuted(const std::string& key)
-{
-    if (const auto it = sounds_.find(key); it != sounds_.end()) { it->second.enabledWhileMuted = true; }
-}
-
 // 空いている再生枠を使って効果音を鳴らす。音量と再生ピッチも呼び出し側から指定できる。
 bool SoundManager::Play(const std::string& key, float gain, float pitchScale)
 {
     const auto it = sounds_.find(key);
-    if (it == sounds_.end()) {
+    if (!kSoundEffectsEnabled || it == sounds_.end()) {
         return false;
     }
     Entry& entry = it->second;
-    if (!kSoundEffectsEnabled && !entry.enabledWhileMuted) { return false; }
     if (entry.looping) { return false; }
     const auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration<float>(now - entry.lastPlay).count() < entry.minimumInterval) {

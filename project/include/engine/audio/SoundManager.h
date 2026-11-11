@@ -19,7 +19,7 @@ struct SoundData {
 // 効果音と短いBGMループ用。ロード時だけボイスとPCMを確保し、戦闘中にはデコードしない。
 class SoundManager {
 public:
-    // 既存の効果音は方向性を見直すまで停止。確認した音は個別に有効化できる。
+    // 効果音を再開するときはtrueにする。BGMの再生可否は別に扱う。
     static constexpr bool kSoundEffectsEnabled = false;
     SoundManager() = default;
     ~SoundManager();
@@ -40,7 +40,6 @@ public:
     void Unload(const std::string& key);
     // pitchは演出の音程倍率。連撃の段階に使い、BGMには適用しない。
     bool Play(const std::string& key, float gain = 1.0f, float pitch = 1.0f); // 満杯時は追加生成しない。
-    void EnableWhileEffectsMuted(const std::string& key); // 読込済みの一音だけを明示的に採用する。
     bool PlayLoop(const std::string& key); // 1ボイスでロードした曲を無限ループ。再呼び出しで重ねない。
     void Stop(const std::string& key);
     void SetVolume(const std::string& key, float volume);
@@ -58,7 +57,6 @@ private:
         uint32_t lastVariation = 0;
         uint32_t randomState = 0xA341316Cu; // ゲームの敵配置等とは独立した、音専用の乱数状態。
         bool looping = false;
-        bool enabledWhileMuted = false;
         std::chrono::steady_clock::time_point lastPlay{};
     };
     static SoundData LoadFile(const std::string& filename);

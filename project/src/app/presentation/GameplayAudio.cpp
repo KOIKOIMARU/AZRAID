@@ -69,17 +69,13 @@ bool GameplayAudio::LoadStep()
     case 4: varied("hit", 3, 0.35f, 0.075f, 0.025f); break;
     case 5: varied("destroy", 3, 0.49f, 0.12f, 0.025f); break;
     case 6: sound_->Load("damage", "resources/audio/combat/damage.wav", 2, 0.60f, 0.15f, 0.012f); break;
-    case 7:
-        sound_->Load("dodge", "resources/audio/combat/just_dodge.wav", 2, 0.48f, 0.12f);
-        sound_->EnableWhileEffectsMuted("dodge");
-        break;
+    case 7: sound_->Load("dodge", "resources/audio/combat/just_dodge.wav", 2, 0.48f, 0.12f); break;
     case 8: sound_->Load("fever", "resources/audio/combat/fever.wav", 1, 0.59f, 0.5f); break;
     case 9: sound_->Load("clear", "resources/audio/combat/clear.wav", 1, 0.54f, 1.0f); break;
     case 10: sound_->Load("fail", "resources/audio/combat/fail.wav", 1, 0.48f, 1.0f); break;
     case 11:
         sound_->Load("skill_ready", "resources/audio/combat/skill_ready.wav", 1, 0.29f, 0.5f);
         sound_->Load("gate_boost", "resources/audio/combat/gate_boost.wav", 1, 0.62f, 0.30f);
-        sound_->EnableWhileEffectsMuted("gate_boost");
         break;
     case 12: LoadSkillSounds(); break;
     case 13: if (!sound_->PreloadLoopStep("music_stage", "resources/audio/music/stage.wav")) { return false; } break;
