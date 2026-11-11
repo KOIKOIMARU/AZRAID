@@ -1,3 +1,5 @@
+// 画面中心を基準に放射方向へ色を複数回サンプリングし、動きのブラーを作る。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

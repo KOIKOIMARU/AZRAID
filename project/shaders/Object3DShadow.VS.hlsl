@@ -1,3 +1,5 @@
+// 影用の深度を作るために、頂点を光源から見た座標へ写す。
+
 #include "Object3d.hlsli"
 
 cbuffer TransformCB : register(b1)

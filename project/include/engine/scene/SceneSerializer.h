@@ -1,3 +1,5 @@
+// シーンに置いたオブジェクトのモデル名や姿勢をファイルへ保存し、読み戻す。
+
 #pragma once
 #include <string>
 #include <vector>

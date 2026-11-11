@@ -1,3 +1,5 @@
+// 画面全体を覆う三角形を頂点番号だけで作る。ポストエフェクトの各パスで共用する。
+
 #include "Fullscreen.hlsli"
 
 static const uint32_t kNumVertex = 3;

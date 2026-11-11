@@ -1,3 +1,5 @@
+// カメラの位置・回転・画角から、3D座標を画面へ写す行列を作る。
+
 #pragma once
 #include "engine/base/Math.h"
 

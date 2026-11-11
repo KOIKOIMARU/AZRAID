@@ -1,3 +1,5 @@
+// 骨格の変形を頂点ごとにGPUで計算し、描画で使う頂点バッファへ書く。
+
 #include "Object3d.hlsli"
 
 struct Vertex

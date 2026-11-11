@@ -1,3 +1,5 @@
+// 周囲の画素を重み付きで平均し、解像度を落とした画像に明るさを集約する。
+
 #include "BloomCommon.hlsli"
 
 PixelShaderOutput main(VertexShaderOutput input)

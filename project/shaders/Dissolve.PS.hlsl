@@ -1,3 +1,5 @@
+// マスク画像としきい値を比べ、画面が消える範囲と境目を決める。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

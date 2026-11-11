@@ -1,3 +1,5 @@
+// 粒子の初期状態と、発生時に取り出せる空き番号をGPU側で準備する。
+
 static const uint kMaxParticles = 1024;
 
 struct Particle

@@ -1,3 +1,5 @@
+// スプライトで共用するシェーダーと描画設定を管理する。
+
 #pragma once
 #include <d3d12.h>
 #include <wrl.h>

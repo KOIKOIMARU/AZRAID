@@ -17,6 +17,7 @@
 
 
 
+// 物体ごとの変換、材質、ライト、カメラ、骨格をGPUへ渡すバッファを用意する。
 void Object3d::Initialize(Object3dCommon* object3dCommon)
 {
     assert(object3dCommon);
@@ -24,6 +25,7 @@ void Object3d::Initialize(Object3dCommon* object3dCommon)
 
     camera_ = object3dCommon_->GetDefaultCamera();
 
+    CreateConstantBuffer();
     CreateTransformationMatrix();
     CreateDirectionalLight();
     CreateCameraResource();
@@ -41,6 +43,7 @@ void Object3d::Initialize(Object3dCommon* object3dCommon)
 }
 
 
+// 現在の位置・回転・拡大率を描画用の行列に直す。アニメーションの時間はUpdateAnimationで進める。
 void Object3d::Update() {
     // ワールド行列
     Matrix4x4 worldMatrix;
@@ -67,7 +70,7 @@ void Object3d::Update() {
         worldViewProjectionMatrix =
             Multiply(worldMatrix, viewProjection);
     } else {
-        // カメラが無くても一応描画可能
+        // カメラが指定されていない場合は、物体のワールド行列を描画行列として渡す。
         worldViewProjectionMatrix = worldMatrix;
     }
 
@@ -84,6 +87,7 @@ void Object3d::Update() {
     }
 }
 
+// 経過時間から骨格の姿勢を更新し、GPUが頂点を動かすための行列を用意する。
 void Object3d::UpdateAnimation(float deltaTime)
 {
     if (!model_ || !hasSkeleton_) {
@@ -112,6 +116,7 @@ void Object3d::UpdateAnimation(float deltaTime)
 
 
 
+// モデルと物体ごとの描画設定を結び付けて描く。使用できる場合は骨格で変形した頂点を使う。
 void Object3d::Draw(ModelDrawPass drawPass)
 {
     // ポーズ中はゲーム側のUpdateが止まるため、比率が変わった物体だけ描画行列を更新する。
@@ -143,17 +148,17 @@ void Object3d::Draw(ModelDrawPass drawPass)
     }
 
     commandList->SetGraphicsRootConstantBufferView(
-        1, transformationMatrixResource_->GetGPUVirtualAddress());
+        1, materialResource_->GetGPUVirtualAddress() + kTransformOffset);
     commandList->SetGraphicsRootConstantBufferView(
-        2, cameraResource_->GetGPUVirtualAddress());
+        2, materialResource_->GetGPUVirtualAddress() + kCameraOffset);
     commandList->SetGraphicsRootConstantBufferView(
-        5, directionalLightResource_->GetGPUVirtualAddress());
+        5, materialResource_->GetGPUVirtualAddress() + kDirectionalLightOffset);
     commandList->SetGraphicsRootConstantBufferView(
-        6, pointLightResource_->GetGPUVirtualAddress());
+        6, materialResource_->GetGPUVirtualAddress() + kPointLightOffset);
     commandList->SetGraphicsRootConstantBufferView(
-        7, spotLightResource_->GetGPUVirtualAddress());
+        7, materialResource_->GetGPUVirtualAddress() + kSpotLightOffset);
     commandList->SetGraphicsRootConstantBufferView(
-        8, skinningPaletteResource_->GetGPUVirtualAddress());
+        8, materialResource_->GetGPUVirtualAddress() + kSkinningOffset);
     if (srvManager &&
         object3dCommon_->GetShadowMapSrvIndex() != UINT32_MAX) {
         srvManager->SetGraphicsRootDescriptorTable(
@@ -178,6 +183,7 @@ void Object3d::Draw(ModelDrawPass drawPass)
     }
 }
 
+// 光源から見た深度を書き込む。変形するモデルは影にも現在の骨格姿勢を使う。
 void Object3d::DrawShadow(const Matrix4x4& lightViewProjection)
 {
     if (!object3dCommon_ || !model_ || !shadowTransformationMatrixData_) {
@@ -198,10 +204,10 @@ void Object3d::DrawShadow(const Matrix4x4& lightViewProjection)
 
     commandList->SetGraphicsRootConstantBufferView(
         1,
-        transformationMatrixResource_->GetGPUVirtualAddress() + kTransformBufferStride);
+        materialResource_->GetGPUVirtualAddress() + kTransformOffset + kTransformBufferStride);
     commandList->SetGraphicsRootConstantBufferView(
         8,
-        skinningPaletteResource_->GetGPUVirtualAddress());
+        materialResource_->GetGPUVirtualAddress() + kSkinningOffset);
 
     const std::string* textureOverride =
         hasTextureOverride_ ? &textureFilePath_ : nullptr;
@@ -220,20 +226,29 @@ void Object3d::DrawShadow(const Matrix4x4& lightViewProjection)
     }
 }
 
+// オブジェクトごとのパラメータをCPUから書けるよう、定数バッファを作ってアドレスを取得する。
+void Object3d::CreateConstantBuffer()
+{
+    // 同じ所有期間・Upload状態の定数だけをまとめる。通常描画と影行列の領域は共有しない。
+    materialResource_ = object3dCommon_->GetDxCommon()->CreateBufferResource(
+        kSkinningOffset + ((sizeof(SkinningPaletteForGPU) + 255u) & ~size_t(255u)));
+    std::byte* mapped = nullptr;
+    const D3D12_RANGE noRead{0, 0};
+    const HRESULT result = materialResource_->Map(0, &noRead, reinterpret_cast<void**>(&mapped));
+    assert(SUCCEEDED(result));
+    (void)result;
+    materialData_ = reinterpret_cast<Material*>(mapped);
+    transformationMatrixData_ = reinterpret_cast<TransformationMatrix*>(mapped + kTransformOffset);
+    shadowTransformationMatrixData_ = reinterpret_cast<TransformationMatrix*>(mapped + kTransformOffset + kTransformBufferStride);
+    directionalLightData_ = reinterpret_cast<DirectionalLight*>(mapped + kDirectionalLightOffset);
+    cameraData_ = reinterpret_cast<CameraForGPU*>(mapped + kCameraOffset);
+    pointLightData_ = reinterpret_cast<PointLight*>(mapped + kPointLightOffset);
+    spotLightData_ = reinterpret_cast<SpotLight*>(mapped + kSpotLightOffset);
+    skinningPaletteData_ = reinterpret_cast<SkinningPaletteForGPU*>(mapped + kSkinningOffset);
+}
+
+// ワールド、ビュー投影を含めた行列、法線用の行列をGPUへ渡す領域を準備する。
 void Object3d::CreateTransformationMatrix() {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    // 座標変換行列用リソースを作成
-    transformationMatrixResource_ =
-        dxCommon->CreateBufferResource(kTransformBufferStride * 2);
-
-    // Map してポインタ取得
-    transformationMatrixResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&transformationMatrixData_));
-    shadowTransformationMatrixData_ = reinterpret_cast<TransformationMatrix*>(
-        reinterpret_cast<std::byte*>(transformationMatrixData_) + kTransformBufferStride);
-
     // 単位行列で初期化
     transformationMatrixData_->WVP = MakeIdentity4x4();
     transformationMatrixData_->World = MakeIdentity4x4();
@@ -241,17 +256,8 @@ void Object3d::CreateTransformationMatrix() {
     *shadowTransformationMatrixData_ = *transformationMatrixData_;
 }
 
+// 方向光の色・向き・強さと、影の設定をGPUへ渡せるようにする。
 void Object3d::CreateDirectionalLight() {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    // 平行光源用 ConstantBuffer を作成
-    directionalLightResource_ =
-        dxCommon->CreateBufferResource(sizeof(DirectionalLight));
-
-    // Map
-    directionalLightResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&directionalLightData_));
 
     // 初期化（資料準拠）
     directionalLightData_->color = { 1.0f, 0.985f, 0.955f, 1.0f };
@@ -265,28 +271,13 @@ void Object3d::CreateDirectionalLight() {
 }
 
 void Object3d::CreateCameraResource() {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    cameraResource_ =
-        dxCommon->CreateBufferResource(sizeof(CameraForGPU));
-
-    cameraResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&cameraData_));
 
     cameraData_->worldPosition = { 0.0f, 0.0f, -5.0f };
     cameraData_->padding = 0.0f;
 }
 
+// 点光源の位置・色・距離による減衰の初期値を作る。
 void Object3d::CreatePointLight() {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    pointLightResource_ =
-        dxCommon->CreateBufferResource(sizeof(PointLight));
-
-    pointLightResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&pointLightData_));
 
     pointLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
     pointLightData_->position = { 0.0f, 2.0f, 0.0f };
@@ -295,15 +286,8 @@ void Object3d::CreatePointLight() {
     pointLightData_->decay = 2.0f;
 }
 
+// スポットライトの位置・方向・照射角と距離の設定を用意する。
 void Object3d::CreateSpotLight() {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    spotLightResource_ =
-        dxCommon->CreateBufferResource(sizeof(SpotLight));
-
-    spotLightResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&spotLightData_));
 
     spotLightData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
     spotLightData_->position = { 2.0f, 1.25f, 0.0f };
@@ -315,16 +299,9 @@ void Object3d::CreateSpotLight() {
     spotLightData_->cosFalloffStart = std::cos(3.14159265f / 6.0f);
 }
 
+// モデルと共有する材質を、この物体だけ変更できるよう専用の定数データを用意する。
 void Object3d::CreateMaterialOverride()
 {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    materialResource_ =
-        dxCommon->CreateBufferResource(sizeof(Material));
-
-    materialResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&materialData_));
 
     materialData_->color = { 1.0f, 1.0f, 1.0f, 1.0f };
     materialData_->lightingMode = 2;
@@ -340,16 +317,9 @@ void Object3d::CreateMaterialOverride()
     hasTextureOverride_ = false;
 }
 
+// 頂点の骨格変形に使う関節行列の領域を作り、初期状態を設定する。
 void Object3d::CreateSkinningPalette()
 {
-    auto dxCommon = object3dCommon_->GetDxCommon();
-
-    skinningPaletteResource_ =
-        dxCommon->CreateBufferResource(sizeof(SkinningPaletteForGPU));
-
-    skinningPaletteResource_->Map(
-        0, nullptr,
-        reinterpret_cast<void**>(&skinningPaletteData_));
 
     skinningPaletteData_->enableSkinning = 0;
     for (uint32_t jointIndex = 0; jointIndex < kNumMaxSkeletonJoints; ++jointIndex) {
@@ -360,6 +330,7 @@ void Object3d::CreateSkinningPalette()
     }
 }
 
+// コンピュートシェーダーが頂点・関節・変形結果を読み書きするための設定を作る。
 void Object3d::CreateComputeSkinningPipeline()
 {
     auto* device = object3dCommon_->GetDxCommon()->GetDevice();
@@ -450,6 +421,7 @@ void Object3d::CreateComputeSkinningPipeline()
     assert(SUCCEEDED(hr));
 }
 
+// コンピュートでの骨格変形に使った記述子とバッファを解放し、参照番号を無効にする。
 void Object3d::ReleaseComputeSkinningResources()
 {
     if (!object3dCommon_) {
@@ -487,6 +459,7 @@ void Object3d::ReleaseComputeSkinningResources()
     computeOutputVertexState_ = D3D12_RESOURCE_STATE_COMMON;
 }
 
+// 元の頂点と関節の重みをGPUへ渡し、変形結果を書き込むバッファを用意する。
 void Object3d::InitializeComputeSkinningResources()
 {
     if (!model_ || !hasSkeleton_) {
@@ -611,6 +584,7 @@ void Object3d::InitializeComputeSkinningResources()
     UpdateSkinningPalette();
 }
 
+// 骨格に合わせて頂点を変形する処理をGPUへ送り、結果を頂点バッファとして読めるようにする。
 void Object3d::DispatchComputeSkinning()
 {
     if (!enableComputeSkinning_ || !model_) {
@@ -666,6 +640,7 @@ void Object3d::DispatchComputeSkinning()
     computeOutputVertexState_ = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 }
 
+// モデルの骨格をこの物体用に初期化する。骨格がある場合は変形に使う領域を準備する。
 void Object3d::InitializeSkinning()
 {
     hasSkeleton_ = false;
@@ -704,6 +679,7 @@ void Object3d::InitializeSkinning()
     InitializeComputeSkinningResources();
 }
 
+// 現在の骨格の姿勢から、各関節で頂点を変形するための行列を更新する。
 void Object3d::UpdateSkinningPalette()
 {
     if (!skinningPaletteData_) {
@@ -789,6 +765,10 @@ void Object3d::SetPointLightIntensity(float intensity) {
     pointLightData_->intensity = intensity;
 }
 
+void Object3d::SetPointLightColor(const Vector3& color) {
+    pointLightData_->color = { color.x, color.y, color.z, 1.0f };
+}
+
 void Object3d::SetSpotLightPosition(const Vector3& position) {
     spotLightData_->position = position;
 }
@@ -801,6 +781,7 @@ void Object3d::SetSpotLightIntensity(float intensity) {
     spotLightData_->intensity = intensity;
 }
 
+// モデルを切り替え、材質・テクスチャ・骨格の初期状態も新しいモデルに合わせる。
 void Object3d::SetModel(Model* model)
 {
     model_ = model;
@@ -880,6 +861,18 @@ void Object3d::SetLightingMode(int32_t lightingMode)
     }
 }
 
+// 炎の描画モードを選び、模様を動かす時刻と位相をシェーダーへ渡す。
+void Object3d::SetFlameAnimation(float seconds, float seed)
+{
+    if (!materialData_) { return; }
+    materialData_->lightingMode = 3;
+    // 炎専用の描画ではUV変換の平行移動を時間と位相として使う。CBの配置は変えない。
+    materialData_->uvTransform = MakeIdentity4x4();
+    materialData_->uvTransform.m[3][0] = seconds;
+    materialData_->uvTransform.m[3][1] = seed;
+}
+
+// この物体だけ画像を上書きし、描画で参照できるように読み込む。
 void Object3d::SetTextureFilePath(const std::string& textureFilePath)
 {
     if (!textureFilePath.empty()) {
@@ -971,6 +964,7 @@ const std::string& Object3d::GetTextureFilePath() const
     return textureFilePath_;
 }
 
+// 名前から準備済みモデルを取得し、その材質と骨格に切り替える。
 void Object3d::SetModel(const std::string& filePath)
 {
     model_ = ModelManager::GetInstance()->FindModel(filePath);

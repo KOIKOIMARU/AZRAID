@@ -1,3 +1,5 @@
+// ファイルパスや表示文字列を、Windows APIで使う形式へ変換する。
+
 #pragma once
 #include <string>
 

@@ -1,3 +1,5 @@
+// 5×5の範囲の画素を均等に平均する、広めのぼかし。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

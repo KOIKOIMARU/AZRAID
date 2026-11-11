@@ -1,3 +1,5 @@
+// 必要に応じて骨格で頂点を変形し、ワールド座標と画面へ写す座標を作る。
+
 #include "Object3d.hlsli"
 
 cbuffer TransformCB : register(b1)

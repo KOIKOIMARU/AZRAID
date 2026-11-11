@@ -1,3 +1,5 @@
+// 画面の中心から周辺へ向けて明るさを落とす。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

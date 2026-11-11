@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <stdexcept>
 
 TextureManager* TextureManager::instance_ = nullptr;
 
@@ -15,6 +16,7 @@ TextureManager* TextureManager::GetInstance() {
     return instance_;
 }
 
+// テクスチャの確保とビューの登録に使う描画システムを受け取る。
 void TextureManager::Initialize(
     DirectXCommon* dxCommon,
     SrvManager* srvManager) {
@@ -25,14 +27,17 @@ void TextureManager::Initialize(
     CreateSolidTexture2D("resources/default_normal.png", 128, 128, 255, 255);
 }
 
+// 別スレッドで画像を読み込み中なら完了を待ち、管理インスタンスを破棄する。
 void TextureManager::Destroy() {
+    if (instance_ && instance_->pendingImage_.valid()) { instance_->pendingImage_.wait(); }
     delete instance_;
     instance_ = nullptr;
 }
 
+// 同じ画像を二重に作らないよう登録状況を確認し、必要な場合は準備を完了させる。
 void TextureManager::LoadTexture(const std::string& filePath, bool forceSrgb) {
 
-    // ★ 読み込み済みチェック（unordered_map）
+    // 同じ画像が準備済みなら、登録済みのテクスチャを使う。
     if (textureDatas_.contains(filePath)) {
         return;
     }
@@ -40,11 +45,42 @@ void TextureManager::LoadTexture(const std::string& filePath, bool forceSrgb) {
 
 
 
-    TextureData& textureData = textureDatas_[filePath];
-
     // 読み込み
     DirectX::ScratchImage mipImages =
         DirectXCommon::LoadTexture(filePath, forceSrgb);
+    InstallTexture(filePath, mipImages);
+}
+
+// 画像の読み込みとGPU登録を段階的に行い、準備が完了したら成功を返す。
+bool TextureManager::PreloadTextureStep(const std::string& filePath, bool forceSrgb)
+{
+    if (textureDatas_.contains(filePath) && pendingImagePath_ != filePath) { return true; }
+    if (!pendingImage_.valid()) {
+        pendingImagePath_ = filePath;
+        pendingImage_ = std::async(std::launch::async, [filePath, forceSrgb]() {
+            // WICを使うCPU workerにもCOM初期化が必要。GPU・SRV・command listには触れない。
+            const HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+            if (FAILED(hr)) { throw std::runtime_error("Texture worker COM initialization failed"); }
+            try {
+                auto image = DirectXCommon::LoadTexture(filePath, forceSrgb);
+                CoUninitialize();
+                return image;
+            } catch (...) { CoUninitialize(); throw; }
+        });
+        return false;
+    }
+    assert(pendingImagePath_ == filePath);
+    if (pendingImagePath_ != filePath || pendingImage_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) { return false; }
+    auto image = pendingImage_.get();
+    if (!textureDatas_.contains(filePath)) { InstallTexture(filePath, image); }
+    pendingImagePath_.clear();
+    return true;
+}
+
+// 読み込み済みの画素をGPUに転送し、シェーダーから読める番号と一緒に登録する。
+void TextureManager::InstallTexture(const std::string& filePath, const DirectX::ScratchImage& mipImages)
+{
+    TextureData& textureData = textureDatas_[filePath];
     textureData.metadata = mipImages.GetMetadata();
 
     // GPUリソース作成
@@ -75,6 +111,7 @@ void TextureManager::LoadTexture(const std::string& filePath, bool forceSrgb) {
 
 }
 
+// 画像ファイルの代わりに単色の2Dテクスチャを生成して登録する。
 void TextureManager::CreateSolidTexture2D(
     const std::string& name,
     uint8_t red,
@@ -115,6 +152,7 @@ void TextureManager::CreateSolidTexture2D(
         UINT(textureData.metadata.mipLevels));
 }
 
+// 単色で塗った6面の画像を作り、キューブマップとして登録する。
 void TextureManager::CreateSolidCubeTexture(
     const std::string& name,
     uint8_t red,
@@ -158,6 +196,7 @@ void TextureManager::CreateSolidCubeTexture(
         UINT(textureData.metadata.mipLevels));
 }
 
+// 空の高さに応じて色を補間し、背景や反射に使うキューブマップを生成する。
 void TextureManager::CreateSkyGradientCubeTexture(const std::string& name)
 {
     if (textureDatas_.contains(name)) {

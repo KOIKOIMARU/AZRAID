@@ -50,23 +50,23 @@
     {
       "bufferView": 0,
       "componentType": 5126,
-      "count": 432,
+      "count": 576,
       "type": "VEC3",
       "min": [
         -81.75,
         2.6999999999999997,
-        -167.21
+        -234.6
       ],
       "max": [
-        55.5,
+        63.010000000000005,
         45.15,
-        22.5
+        53.1
       ]
     },
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 432,
+      "count": 576,
       "type": "VEC3",
       "min": [
         -1.0,
@@ -82,13 +82,13 @@
     {
       "bufferView": 2,
       "componentType": 5125,
-      "count": 684,
+      "count": 900,
       "type": "SCALAR",
       "min": [
         0
       ],
       "max": [
-        431
+        575
       ]
     }
   ],
@@ -96,23 +96,23 @@
     {
       "buffer": 0,
       "byteOffset": 0,
-      "byteLength": 5184
+      "byteLength": 6912
     },
     {
       "buffer": 0,
-      "byteOffset": 5184,
-      "byteLength": 5184
+      "byteOffset": 6912,
+      "byteLength": 6912
     },
     {
       "buffer": 0,
-      "byteOffset": 10368,
-      "byteLength": 2736
+      "byteOffset": 13824,
+      "byteLength": 3600
     }
   ],
   "buffers": [
     {
       "uri": "AviationGlazing.bin",
-      "byteLength": 13104
+      "byteLength": 17424
     }
   ]
 }

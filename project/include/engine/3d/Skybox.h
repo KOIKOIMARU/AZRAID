@@ -1,3 +1,5 @@
+// 環境画像を遠景として描き、反射に使うキューブマップも公開する。
+
 #pragma once
 #include <cstdint>
 #include <string>

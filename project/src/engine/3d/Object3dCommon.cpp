@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <thread>
+#include <stdexcept>
 
 using Microsoft::WRL::ComPtr;
 using Logger::Log;
@@ -55,6 +57,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle(
 	return handle;
 }
 
+// 視点から注視点を見るように、光源やカメラのビュー行列を作る。
 Math::Matrix4x4 MakeLookAtMatrix(
 	const Math::Vector3& eye,
 	const Math::Vector3& target,
@@ -87,6 +90,7 @@ Math::Matrix4x4 MakeLookAtMatrix(
 	return result;
 }
 
+// 光源の向きと影を落とす範囲から、影用のビュー投影行列を作る。
 Math::Matrix4x4 MakeDirectionalLightViewProjection(
 	const Math::Vector3& focusCenter,
 	const Math::Vector3& lightDirection,
@@ -115,6 +119,7 @@ Math::Matrix4x4 MakeDirectionalLightViewProjection(
 	return result;
 }
 
+// 描画モードに対応した、色と透明度の合成方法を設定する。
 D3D12_BLEND_DESC MakeBlendDesc(BlendMode mode)
 {
 	D3D12_BLEND_DESC desc{};
@@ -174,9 +179,17 @@ D3D12_BLEND_DESC MakeBlendDesc(BlendMode mode)
 
 }
 
+// 3D描画の準備を分割で進め、必要なシェーダーやパイプラインがそろうまで待つ。
 void Object3dCommon::Initialize(
 	DirectXCommon* dxCommon,
 	SrvManager* srvManager)
+{
+    BeginInitialize(dxCommon, srvManager);
+    while (!InitializeStep()) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+}
+
+// 共有の描画設定を作り始め、シェーダーや描画パスの初期化を段階的に進める準備をする。
+void Object3dCommon::BeginInitialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
 	assert(dxCommon);
 	assert(srvManager);
@@ -186,10 +199,13 @@ void Object3dCommon::Initialize(
 	shadowLightDirection_ = Math::Normalize(shadowLightDirection_);
 
 	CreateRootSignature();
-	CreateGraphicsPipelineState();
 	CreateShadowMap();
 }
 
+// 共用シェーダーと描画設定の準備を段階的に進める。
+bool Object3dCommon::InitializeStep() { return CreateGraphicsPipelineStateStep(); }
+
+// 3D描画で使う行列、ライト、材質、画像の参照先をまとめて定義する。
 void Object3dCommon::CreateRootSignature() {
     auto* device = dxCommon_->GetDevice();
     HRESULT hr = S_OK;
@@ -328,12 +344,20 @@ void Object3dCommon::CreateRootSignature() {
 
 }
 
-void Object3dCommon::CreateGraphicsPipelineState() {
+// 段階に応じて描画設定を作る。通常、加算、影などでシェーダーや合成を切り替える。
+bool Object3dCommon::CreateGraphicsPipelineStateStep() {
+    if (pendingPipeline_.valid()) {
+        if (pendingPipeline_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) { return false; }
+        auto pipeline = pendingPipeline_.get();
+        if (pendingShadowPipeline_) { shadowPipelineState_ = std::move(pipeline); return true; }
+        pipelineStates_[pendingDepthMode_][pendingBlendMode_] = std::move(pipeline);
+        return false;
+    }
+    if (shadowPipelineState_) { return true; }
     auto* device = dxCommon_->GetDevice();
-    HRESULT hr = S_OK;
 
 	// InputLayout
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+	static const D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		// POSITION (float4)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
@@ -381,6 +405,23 @@ void Object3dCommon::CreateGraphicsPipelineState() {
 
 	auto shadowVertexShaderBlob =
 		dxCommon_->CompileShader(L"shaders/Object3DShadow.VS.hlsl", L"vs_6_0");
+
+    const auto queuePipeline = [this, device, vertexShaderBlob, pixelShaderBlob, shadowVertexShaderBlob](
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC description, uint32_t depth, uint32_t blend, bool shadow) {
+        pendingDepthMode_ = depth; pendingBlendMode_ = blend; pendingShadowPipeline_ = shadow;
+        ComPtr<ID3D12Device> deviceOwner = device;
+        const auto rootOwner = rootSignature_;
+        // DeviceのPSO生成はfree-threaded。command list・descriptor・共有キャッシュには触れない。
+        // 入力レイアウトはstatic、bytecode/root/deviceは強参照で完了まで保持する。
+        pendingPipeline_ = std::async(std::launch::async,
+            [description, deviceOwner, rootOwner, vertexShaderBlob, pixelShaderBlob, shadowVertexShaderBlob]() mutable {
+                description.pRootSignature = rootOwner.Get();
+                ComPtr<ID3D12PipelineState> result;
+                const HRESULT hr = deviceOwner->CreateGraphicsPipelineState(&description, IID_PPV_ARGS(&result));
+                if (FAILED(hr)) { throw std::runtime_error("Object pipeline creation failed"); }
+                return result;
+            });
+    };
 
 
 	// PSOを生成する
@@ -442,11 +483,10 @@ void Object3dCommon::CreateGraphicsPipelineState() {
 			graphicsPipelineStateDesc.BlendState =
 				MakeBlendDesc(static_cast<BlendMode>(blendModeIndex));
 
-			hr = device->CreateGraphicsPipelineState(
-				&graphicsPipelineStateDesc,
-				IID_PPV_ARGS(&pipelineStates_[depthModeIndex][blendModeIndex])
-			);
-			assert(SUCCEEDED(hr));
+			if (pipelineStates_[depthModeIndex][blendModeIndex]) { continue; }
+            queuePipeline(graphicsPipelineStateDesc, depthModeIndex, blendModeIndex, false);
+            // 描画で必要になる全状態を、出撃前に1フレーム1つずつ準備する。
+            return false;
 		}
 	}
 
@@ -471,14 +511,11 @@ void Object3dCommon::CreateGraphicsPipelineState() {
 	shadowPipelineStateDesc.RasterizerState.SlopeScaledDepthBias = 1.35f;
 	shadowPipelineStateDesc.RasterizerState.DepthBiasClamp = 0.0f;
 	shadowPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	hr = device->CreateGraphicsPipelineState(
-		&shadowPipelineStateDesc,
-		IID_PPV_ARGS(&shadowPipelineState_)
-	);
-	assert(SUCCEEDED(hr));
-
+    queuePipeline(shadowPipelineStateDesc, 0, 0, true);
+    return false;
 }
 
+// 物体を描く前に、現在選んだ合成方式と共有の描画設定を適用する。
 void Object3dCommon::CommonDrawSetting() {
 	auto* commandList = dxCommon_->GetCommandList();
 
@@ -494,6 +531,7 @@ void Object3dCommon::CommonDrawSetting() {
 		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+// 影用の深度を描く前に、影専用のシェーダーと描画設定を適用する。
 void Object3dCommon::CommonShadowDrawSetting()
 {
 	auto* commandList = dxCommon_->GetCommandList();
@@ -502,6 +540,7 @@ void Object3dCommon::CommonShadowDrawSetting()
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
+// 影用の深度画像と、書き込み用・シェーダー参照用の記述子を作る。
 void Object3dCommon::CreateShadowMap()
 {
 	auto* device = dxCommon_->GetDevice();
@@ -570,6 +609,7 @@ void Object3dCommon::CreateShadowMap()
 	shadowScissorRect_.bottom = static_cast<LONG>(kShadowMapSize);
 }
 
+// 影用画像の用途を切り替え、GPU側のバリアと現在状態の記録をそろえる。
 void Object3dCommon::TransitionShadowMap(D3D12_RESOURCE_STATES nextState)
 {
 	if (!shadowMapResource_ || shadowMapState_ == nextState) {
@@ -587,6 +627,7 @@ void Object3dCommon::TransitionShadowMap(D3D12_RESOURCE_STATES nextState)
 	shadowMapState_ = nextState;
 }
 
+// 光源側のカメラと影用の深度画像を設定し、影を作る物体を描ける状態にする。
 bool Object3dCommon::BeginShadowPass(const Math::Vector3& focusCenter)
 {
 	if (!shadowMapResource_ || !shadowMapDsvHeap_ || !shadowPipelineState_) {
@@ -616,6 +657,7 @@ bool Object3dCommon::BeginShadowPass(const Math::Vector3& focusCenter)
 	return true;
 }
 
+// 影用の深度画像をシェーダーから読める状態へ戻し、通常の描画先を復元する。
 void Object3dCommon::EndShadowPass()
 {
 	TransitionShadowMap(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -623,6 +665,7 @@ void Object3dCommon::EndShadowPass()
 	RestoreMainRenderTarget();
 }
 
+// 影の描画後に通常の色・深度の描画先と表示範囲を戻す。
 void Object3dCommon::RestoreMainRenderTarget()
 {
 	auto* commandList = dxCommon_->GetCommandList();

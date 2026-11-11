@@ -58,6 +58,7 @@ bool IsSameVector3(const Math::Vector3& lhs, const Math::Vector3& rhs)
         std::fabs(lhs.z - rhs.z) <= kTransformHistoryEpsilon;
 }
 
+// 設定ファイルから指定キーの整数を探す。見つからなければ出力値を保ったままfalseを返す。
 bool ExtractSettingsInt(const std::string& source, const char* key, int& out)
 {
     const std::regex pattern(
@@ -72,6 +73,7 @@ bool ExtractSettingsInt(const std::string& source, const char* key, int& out)
     return true;
 }
 
+// 設定ファイルから指定キーの小数を探す。見つからなければ出力値を保ったままfalseを返す。
 bool ExtractSettingsFloat(
     const std::string& source,
     const char* key,
@@ -89,6 +91,7 @@ bool ExtractSettingsFloat(
     return true;
 }
 
+// 設定ファイルから指定キーのtrueまたはfalseを読み取る。
 bool ExtractSettingsBool(const std::string& source, const char* key, bool& out)
 {
     const std::regex pattern(
@@ -103,6 +106,7 @@ bool ExtractSettingsBool(const std::string& source, const char* key, bool& out)
     return true;
 }
 
+// 設定ファイルから指定キーの3成分を読み、XYZの順で出力する。
 bool ExtractSettingsVector3(
     const std::string& source,
     const char* key,
@@ -133,6 +137,7 @@ Math::Vector3 Subtract(const Math::Vector3& a, const Math::Vector3& b)
     return { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
+// カメラの上下角と左右角から、前進操作に使う単位ベクトルを求める。
 Math::Vector3 MakeForwardVector(const Math::Vector3& rotate)
 {
     const float cosPitch = std::cos(rotate.x);
@@ -183,6 +188,7 @@ Math::Vector3 MakeBoneRotate(const Math::Vector3& direction)
 EditorScene::EditorScene() = default;
 EditorScene::~EditorScene() = default;
 
+// 試遊中はゲーム側、編集時はエディタ側の画面効果を返す。
 int EditorScene::GetPostEffectMode() const
 {
     if (editorManager_.IsPlayMode() && playController_.IsRunning()) {
@@ -191,6 +197,7 @@ int EditorScene::GetPostEffectMode() const
     return postEffectMode_;
 }
 
+// 試遊中の投影行列を優先し、取得できなければ編集用カメラの行列を使う。
 const Math::Matrix4x4& EditorScene::GetProjectionMatrix() const
 {
     static const Math::Matrix4x4 kIdentity = Math::MakeIdentity4x4();
@@ -203,6 +210,7 @@ const Math::Matrix4x4& EditorScene::GetProjectionMatrix() const
     return camera_ ? camera_->GetProjectionMatrix() : kIdentity;
 }
 
+// 配置編集で使う描画と入力を準備し、編集対象を画面に表示できる状態にする。
 void EditorScene::Initialize() {
     const std::string environmentTexturePath =
         "resources/skybox/kloofendal_48d_partly_cloudy_puresky_4k_cube.dds";
@@ -358,6 +366,7 @@ void EditorScene::Initialize() {
     }
 }
 
+// シーンの読込に成功したら設定と配置物を復元し、旧配置物を参照していた編集履歴を消す。
 bool EditorScene::LoadPrimitiveObjectsFromSceneFile(const char* path) {
     std::vector<SceneSerializer::ObjectRecord> records;
     SceneSerializer::SceneSettings settings{};
@@ -407,6 +416,7 @@ bool EditorScene::LoadPrimitiveObjectsFromSceneFile(const char* path) {
     return true;
 }
 
+// 編集画面で距離感を確認できるよう、プレイヤーと敵の見本を決まった位置に置く。
 void EditorScene::AddGameplayPreviewObjects()
 {
     AddGameplayPreviewObject(
@@ -431,6 +441,7 @@ void EditorScene::AddGameplayPreviewObjects()
     }
 }
 
+// プレビュー専用の物体を生成し、通常の配置物と区別できるように登録する。
 void EditorScene::AddGameplayPreviewObject(
     const char* name,
     const char* modelName,
@@ -463,6 +474,7 @@ bool EditorScene::SaveSceneToFile(const char* path) const
         BuildSceneSettings());
 }
 
+// モデル一覧から配置物を生成し、追加した物体をインスペクターの選択対象にする。
 void EditorScene::AddEditorPrimitive(int modelIndex)
 {
     const int modelItemCount =
@@ -493,6 +505,7 @@ void EditorScene::AddEditorPrimitive(int modelIndex)
     ClearTransformHistory();
 }
 
+// 選択中の配置物を削除する。プレビュー専用の物体は削除対象から外す。
 void EditorScene::RemoveSelectedEditorObject()
 {
     const int objectIndex = editorManager_.GetSelectedObjectIndex();
@@ -511,6 +524,7 @@ void EditorScene::RemoveSelectedEditorObject()
     ClearTransformHistory();
 }
 
+// 選択中の配置物の見た目と変形を引き継いだ複製を追加する。
 void EditorScene::DuplicateSelectedEditorObject()
 {
     const int objectIndex = editorManager_.GetSelectedObjectIndex();
@@ -551,6 +565,7 @@ void EditorScene::DuplicateSelectedEditorObject()
     ClearTransformHistory();
 }
 
+// 選択中の配置物のモデルと変形を保存用データに写し、選択中のプレハブファイルへ書く。
 void EditorScene::SaveSelectedEditorObjectAsPrefab()
 {
     const int objectIndex = editorManager_.GetSelectedObjectIndex();
@@ -580,6 +595,7 @@ void EditorScene::SaveSelectedEditorObjectAsPrefab()
     SceneSerializer::SaveObjects(editorManager_.GetPrefabFilePath(), { record });
 }
 
+// プレハブから最初の配置データを読み、現在のシーンに追加する。
 void EditorScene::InstantiatePrefab()
 {
     std::vector<SceneSerializer::ObjectRecord> records;
@@ -623,6 +639,7 @@ void EditorScene::InstantiatePrefab()
     ClearTransformHistory();
 }
 
+// インスペクターから変形やモデルを編集できるよう、配置物への参照を一覧にする。
 void EditorScene::BuildInspectableObjects(
     std::vector<ImGuiManager::InspectableObject>& inspectObjects)
 {
@@ -641,6 +658,7 @@ void EditorScene::BuildInspectableObjects(
     }
 }
 
+// エディタの表示中に設定や操作ボタンを描き、UIで変更した値をシーンに反映する。
 void EditorScene::ShowEditorGui(
     std::vector<ImGuiManager::InspectableObject>& inspectObjects)
 {
@@ -692,6 +710,7 @@ void EditorScene::ShowEditorGui(
         debugSettings.inspector);
 }
 
+// シーンに置かれた物体から保存用の配置データを作る。試遊用の見本は除く。
 std::vector<SceneSerializer::ObjectRecord> EditorScene::BuildSceneObjectRecords() const
 {
     std::vector<SceneSerializer::ObjectRecord> records;
@@ -735,6 +754,7 @@ std::vector<SceneSerializer::ObjectRecord> EditorScene::BuildSceneObjectRecords(
     return records;
 }
 
+// カメラと照明の現在値を、シーンに保存する設定へ詰める。
 SceneSerializer::SceneSettings EditorScene::BuildSceneSettings() const
 {
     SceneSerializer::SceneSettings settings{};
@@ -755,6 +775,7 @@ SceneSerializer::SceneSettings EditorScene::BuildSceneSettings() const
     return settings;
 }
 
+// 読み込んだカメラ・照明の設定のうち、ファイルに含まれていた項目を反映する。
 void EditorScene::ApplySceneSettings(
     const SceneSerializer::SceneSettings& settings)
 {
@@ -774,6 +795,7 @@ void EditorScene::ApplySceneSettings(
     }
 }
 
+// 試遊中を除き、UIから受け取った配置変更・履歴・ファイル操作を実行する。
 void EditorScene::ProcessEditorRequests()
 {
     if (editorManager_.IsPlayMode()) {
@@ -825,6 +847,7 @@ void EditorScene::ProcessEditorRequests()
     }
 }
 
+// 選択中の変形が変わったときに前後の値を記録し、新しい編集でやり直し履歴を消す。
 void EditorScene::TrackTransformHistory(
     const std::vector<ImGuiManager::InspectableObject>& inspectObjects)
 {
@@ -882,6 +905,7 @@ void EditorScene::TrackTransformHistory(
     lastObservedScale_ = scale;
 }
 
+// シーンを読み直すなど、配置物への参照が変わるときに変形履歴と直前の選択をリセットする。
 void EditorScene::ClearTransformHistory()
 {
     undoStack_.clear();
@@ -889,6 +913,7 @@ void EditorScene::ClearTransformHistory()
     lastTransformHistoryObjectIndex_ = -1;
 }
 
+// 元に戻すときは変更前、やり直すときは変更後の位置・回転・拡縮を適用する。
 void EditorScene::ApplyTransformHistory(
     const TransformHistoryRecord& record,
     bool useAfter)
@@ -905,6 +930,7 @@ void EditorScene::ApplyTransformHistory(
         useAfter ? record.afterScale : record.beforeScale);
 }
 
+// エディタで調整した平行光と点光源の値を、指定のモデルへ反映する。
 void EditorScene::ApplyLightingToObject(Object3d* object)
 {
     if (!object) {
@@ -920,6 +946,7 @@ void EditorScene::ApplyLightingToObject(Object3d* object)
     object->SetSpotLightIntensity(spotLightIntensity_);
 }
 
+// エディタのアニメーション確認用の処理をまとめる。現在は条件付きコンパイルで無効。
 void EditorScene::UpdateAnimations(float deltaTime)
 {
     (void)deltaTime;
@@ -974,6 +1001,7 @@ void EditorScene::UpdateAnimations(float deltaTime)
 #endif
 }
 
+// 編集中のシーンを保存してから試遊を始め、編集用の自由カメラ操作を切る。
 void EditorScene::EnterPlayMode()
 {
     isDebugCameraEnabled_ = false;
@@ -981,6 +1009,7 @@ void EditorScene::EnterPlayMode()
     playController_.Start();
 }
 
+// 試遊を終了し、編集用カメラの位置・回転・画角を初期状態へ戻す。
 void EditorScene::ExitPlayMode()
 {
     playController_.Stop();
@@ -991,6 +1020,7 @@ void EditorScene::ExitPlayMode()
     camera_->SetFovY(kGameCameraFovY);
 }
 
+// エディタの表示やカメラ操作などのショートカットを処理する。
 void EditorScene::HandleEditorShortcuts()
 {
 #ifdef ENABLE_DEBUG_GUI
@@ -1016,6 +1046,7 @@ void EditorScene::HandleEditorShortcuts()
     }
 }
 
+// 再生モードが切り替わったフレームを検出し、試遊の開始または終了を処理する。
 void EditorScene::ApplyPlayModeRequests(bool& startedPlayModeThisFrame)
 {
     if (editorManager_.ConsumeStartPlayModeRequest()) {
@@ -1033,6 +1064,7 @@ void EditorScene::ApplyPlayModeRequests(bool& startedPlayModeThisFrame)
     wasPlayMode_ = editorManager_.IsPlayMode();
 }
 
+// 入力と編集UIを処理した後、そのフレームで試遊中かどうかに応じて更新先を切り替える。
 void EditorScene::Update() {
     const float deltaTime = dxCommon_->GetDeltaTime();
 
@@ -1098,6 +1130,7 @@ void EditorScene::Update() {
 
 }
 
+// 前回保存した表示・照明・ファイル選択などを復元する。設定ファイルがなければ初期値で始める。
 void EditorScene::LoadEditorSettings()
 {
     std::ifstream file(kEditorSettingsPath);
@@ -1139,6 +1172,7 @@ void EditorScene::LoadEditorSettings()
     }
 }
 
+// 表示設定やファイルの選択状態を、次回エディタを開いたときに復元できるよう保存する。
 void EditorScene::SaveEditorSettings() const
 {
     std::filesystem::path path(kEditorSettingsPath);
@@ -1182,6 +1216,7 @@ void EditorScene::SaveEditorSettings() const
     file << "}\n";
 }
 
+// キー入力と経過時間から、編集カメラを回転・移動させる。
 void EditorScene::UpdateDebugCamera(float deltaTime)
 {
     if (!input_ || !camera_) {
@@ -1240,6 +1275,7 @@ void EditorScene::UpdateDebugCamera(float deltaTime)
     camera_->SetTranslate(translate);
 }
 
+// 試遊中はビューポートに合わせてゲームを描き、編集時はエディタの配置物を描く。
 void EditorScene::Draw() {
     if (editorManager_.IsPlayMode() && playController_.IsRunning()) {
         Math::Vector2 hudViewportMin{};
@@ -1265,6 +1301,7 @@ void EditorScene::Draw() {
 
 }
 
+// 試遊を止めて設定を保存し、エディタの配置物や描画用リソースを破棄する。
 void EditorScene::Finalize() {
     ExitPlayMode();
     SaveEditorSettings();
@@ -1290,6 +1327,7 @@ void EditorScene::Finalize() {
 
 }
 
+// スケルトンの関節と親子を結ぶ骨を可視化するためのオブジェクトを用意する。
 void EditorScene::InitializeSkeletonDebugSet(
     SkeletonDebugSet& debugSet,
     Object3d* source,
@@ -1330,6 +1368,7 @@ void EditorScene::InitializeSkeletonDebugSet(
     }
 }
 
+// モデルの現在の関節座標をワールド座標に移し、表示用の点と骨の位置・向きを更新する。
 void EditorScene::UpdateSkeletonDebugSet(SkeletonDebugSet& debugSet)
 {
     if (!debugSet.source || !debugSet.source->HasSkeleton()) {

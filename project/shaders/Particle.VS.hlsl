@@ -1,3 +1,5 @@
+// 粒子ごとの姿勢と色を使い、同じ四角形を複数の粒子として描く。
+
 struct VertexIn
 {
     float4 position : POSITION;

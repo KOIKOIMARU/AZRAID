@@ -1,4 +1,4 @@
-// Sprite.PS.hlsl
+// スプライトの画像を読み、設定された色と透明度を反映する。
 
 struct VSOutput
 {

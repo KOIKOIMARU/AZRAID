@@ -1,3 +1,5 @@
+// 粒子の位置と寿命をGPUで更新し、寿命が尽きた番号を空き枠へ戻す。
+
 static const uint kMaxParticles = 1024;
 
 struct Particle

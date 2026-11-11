@@ -1,3 +1,5 @@
+// DirectX 12のデバイス、描画コマンド、画面用バッファ、ポストエフェクトを管理する。
+
 #pragma once
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -99,6 +101,8 @@ public:
     // UV座標で消失点と保護領域を指定。HUDはこの処理より後に描画される。
     void SetFlightBlur(float strength = 0.0f, Math::Vector2 center = { 0.5f, 0.45f },
         Math::Vector2 player = { 0.5f, 0.7f }, Math::Vector2 reticle = { 0.5f, 0.5f }, float aspect = 1.777778f);
+    void SetCameraMotionBlur(const Math::Matrix4x4& clipToPreviousClip, float exposureScale, int mode);
+    void SetRiftLens(size_t index, Math::Vector4 centerRadius, Math::Vector4 phaseDepth);
 	// 描画後処理
 	void PostDraw();
 
@@ -135,6 +139,12 @@ public:
     };
     FrameTiming& EditFrameTiming() { return frameTiming_; }
     const FrameTiming& GetFrameTiming() const { return frameTiming_; }
+    struct BlurGpuTiming {
+        uint32_t samples = 0;
+        double totalMs = 0.0;
+    };
+    const std::array<BlurGpuTiming, 4>& GetBlurGpuTiming() const { return blurGpuTiming_; }
+    bool IsBlurGpuTimingEnabled() const { return blurTimestampHeap_ != nullptr; }
 
     // ★追加：スワップチェーンリソース数（バックバッファ数）
     size_t GetSwapChainResourcesNum() const { return kBackBufferCount; }
@@ -178,6 +188,12 @@ private:
         float flightBlurAspect; // 保護領域を画面比率に合わせる。
         Math::Vector2 flightBlurPlayer; // 自機と噴射を保護する楕円の中心。
         Math::Vector2 flightBlurReticle; // 照準付近の敵・弾を保護する中心。
+        Math::Matrix4x4 cameraClipToPreviousClip;
+        float cameraBlurExposureScale;
+        int flightBlurMode;
+        Math::Vector2 cameraBlurPadding;
+        Math::Vector4 riftCenterRadius[8];
+        Math::Vector4 riftPhaseDepth[8];
     };
 
     struct DepthOutlineParameter {
@@ -384,4 +400,13 @@ private:
 
     float deltaTime_ = 1.0f / 60.0f;
     FrameTiming frameTiming_{};
+    // 比較起動だけで確保。既存の毎フレームのfence待機後に読み戻す。
+    Microsoft::WRL::ComPtr<ID3D12QueryHeap> blurTimestampHeap_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> blurTimestampReadback_;
+    UINT64 blurTimestampFrequency_ = 0;
+    bool blurTimestampRecorded_ = false;
+    int blurTimestampMode_ = 1;
+    int blurTimingPreviousMode_ = -1;
+    uint32_t blurTimingWarmup_ = 0;
+    std::array<BlurGpuTiming, 4> blurGpuTiming_{};
 };

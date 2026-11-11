@@ -1,3 +1,5 @@
+// 空き番号を取り出し、発生元の指定と乱数から新しい粒子の初期値を書く。
+
 static const uint kMaxParticles = 1024;
 
 struct Particle

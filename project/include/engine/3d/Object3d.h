@@ -1,3 +1,5 @@
+// 配置された3Dオブジェクト1個分の姿勢、色、アニメーション状態とGPUへの描画を担当する。
+
 #pragma once
 #include <cstddef>
 #include <vector>
@@ -105,6 +107,7 @@ public:
     void SetDirectionalLightIntensity(float intensity);
     void SetPointLightPosition(const Vector3& position);
     void SetPointLightIntensity(float intensity);
+    void SetPointLightColor(const Vector3& color);
     void SetSpotLightPosition(const Vector3& position);
     void SetSpotLightDirection(const Vector3& direction);
     void SetSpotLightIntensity(float intensity);
@@ -118,6 +121,7 @@ public:
     void SetShadowReceiveStrength(float strength);
     void SetUVTransform(const Matrix4x4& uvTransform);
     void SetLightingMode(int32_t lightingMode);
+    void SetFlameAnimation(float seconds, float seed);
     void SetTextureFilePath(const std::string& textureFilePath);
     bool HasSkeleton() const { return hasSkeleton_; }
     const Skeleton& GetSkeleton() const { return skeleton_; }
@@ -144,6 +148,7 @@ public:
 
 
 private:
+    void CreateConstantBuffer();
     void CreateTransformationMatrix();
     void CreateDirectionalLight();
     void CreateCameraResource();
@@ -169,24 +174,26 @@ private:
     float lastCameraAspectRatio_ = -1.0f; // 転送済み行列の縦横比。停止中のリサイズ検出用。
     Matrix4x4 worldMatrix_ = MakeIdentity4x4();
 
-    ComPtr<ID3D12Resource> transformationMatrixResource_;
+    // 物体ごとに一度だけ確保する。各CBVの先頭は256バイト境界、材質はModel::Draw用に先頭。
+    static constexpr size_t kTransformOffset = (sizeof(Material) + 255u) & ~size_t(255u);
     TransformationMatrix* transformationMatrixData_ = nullptr;
     // 同じUpload Buffer内の別領域。影描画後に通常行列を書いてもGPUの参照先を壊さない。
     static constexpr size_t kTransformBufferStride =
         (sizeof(TransformationMatrix) + 255u) & ~size_t(255u);
+    static constexpr size_t kDirectionalLightOffset = kTransformOffset + kTransformBufferStride * 2;
+    static constexpr size_t kCameraOffset = kDirectionalLightOffset + ((sizeof(DirectionalLight) + 255u) & ~size_t(255u));
+    static constexpr size_t kPointLightOffset = kCameraOffset + ((sizeof(CameraForGPU) + 255u) & ~size_t(255u));
+    static constexpr size_t kSpotLightOffset = kPointLightOffset + ((sizeof(PointLight) + 255u) & ~size_t(255u));
+    static constexpr size_t kSkinningOffset = kSpotLightOffset + ((sizeof(SpotLight) + 255u) & ~size_t(255u));
     TransformationMatrix* shadowTransformationMatrixData_ = nullptr;
 
-    ComPtr<ID3D12Resource> directionalLightResource_;
     DirectionalLight* directionalLightData_ = nullptr;
     float shadowReceiveStrength_ = 1.0f;
 
-    ComPtr<ID3D12Resource> cameraResource_;
     CameraForGPU* cameraData_ = nullptr;
 
-    ComPtr<ID3D12Resource> pointLightResource_;
     PointLight* pointLightData_ = nullptr;
 
-    ComPtr<ID3D12Resource> spotLightResource_;
     SpotLight* spotLightData_ = nullptr;
 
     ComPtr<ID3D12Resource> materialResource_;
@@ -194,7 +201,6 @@ private:
     std::string textureFilePath_;
     bool hasTextureOverride_ = false;
 
-    ComPtr<ID3D12Resource> skinningPaletteResource_;
     SkinningPaletteForGPU* skinningPaletteData_ = nullptr;
     ComPtr<ID3D12RootSignature> computeRootSignature_;
     ComPtr<ID3D12PipelineState> computePipelineState_;

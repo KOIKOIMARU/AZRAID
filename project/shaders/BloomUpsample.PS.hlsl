@@ -1,3 +1,5 @@
+// 細かい光と低解像度の広い光を足し、離れた範囲まで発光を広げる。
+
 #include "BloomCommon.hlsli"
 
 PixelShaderOutput main(VertexShaderOutput input)

@@ -1,3 +1,5 @@
+// 近くの画素の輝度差から輪郭を求める。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

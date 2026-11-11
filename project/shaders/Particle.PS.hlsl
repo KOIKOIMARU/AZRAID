@@ -1,3 +1,5 @@
+// 粒子のテクスチャと個別の色を掛けて表示する。
+
 struct VertexOut
 {
     float4 position : SV_POSITION;

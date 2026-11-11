@@ -9,6 +9,7 @@
 
 using Microsoft::WRL::ComPtr;
 
+// デバッグビルドの終了時に、解放されずに残ったDirectX関連のオブジェクトを報告する。
 D3DResourceLeakChecker::~D3DResourceLeakChecker()
 {
 #ifdef _DEBUG

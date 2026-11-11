@@ -1,3 +1,5 @@
+// 座標・回転・行列の共通計算。ゲームと描画側で同じ座標変換を使うためにまとめている。
+
 // engine/base/Math.h
 #pragma once
 #include <cmath>
@@ -56,6 +58,7 @@ namespace Math {
 
 
 
+    // 変換前と同じ座標を返す単位行列を作る。複数の変換を合成する際の初期値にも使う。
     inline Matrix4x4 MakeIdentity4x4() {
         Matrix4x4 result{};
         for (int i = 0; i < 4; ++i) {
@@ -66,6 +69,7 @@ namespace Math {
         return result;
     }
 
+    // 左右の行列を積の順番どおりに合成し、まとめて座標へ適用できるようにする。
     inline Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
         Matrix4x4 result{};
         for (int i = 0; i < 4; ++i) {
@@ -80,6 +84,7 @@ namespace Math {
         return result;
     }
 
+    // 各軸の倍率を対角成分に入れ、拡大縮小用の行列を作る。
     inline Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
         Matrix4x4 result{};
         result.m[0][0] = scale.x;
@@ -89,6 +94,7 @@ namespace Math {
         return result;
     }
 
+    // 移動量を最終行に入れ、行ベクトルの座標へ平行移動を加える。
     inline Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
         Matrix4x4 result{};
         result.m[0][0] = 1.0f;
@@ -101,6 +107,7 @@ namespace Math {
         return result;
     }
 
+    // ラジアンで受け取った角度からX軸周りの回転行列を作る。
     inline Matrix4x4 MakeRotateXMatrix(float angle) {
         Matrix4x4 result{};
         result.m[0][0] = 1.0f;
@@ -114,6 +121,7 @@ namespace Math {
         return result;
     }
 
+    // ラジアンで受け取った角度からY軸周りの回転行列を作る。
     inline Matrix4x4 MakeRotateYMatrix(float angle) {
         Matrix4x4 result{};
         result.m[1][1] = 1.0f;
@@ -127,6 +135,7 @@ namespace Math {
         return result;
     }
 
+    // ラジアンで受け取った角度からZ軸周りの回転行列を作る。
     inline Matrix4x4 MakeRotateZMatrix(float angle) {
         Matrix4x4 result{};
         result.m[2][2] = 1.0f;
@@ -140,6 +149,7 @@ namespace Math {
         return result;
     }
 
+    // クォータニオンで表した回転を、座標変換に使える4×4の行列へ変換する。
     inline Matrix4x4 MakeRotateMatrix(const Quaternion& q)
     {
         Matrix4x4 result = MakeIdentity4x4();
@@ -166,6 +176,7 @@ namespace Math {
         return result;
     }
 
+    // 各軸の拡大、オイラー角の回転、移動を順に合成する。
     inline Matrix4x4 MakeAffineMatrix(
         const Vector3& scale,
         const Vector3& rotate,
@@ -194,6 +205,7 @@ namespace Math {
         return result;
     }
 
+    // 拡大、クォータニオンの回転、移動を合成し、物体の姿勢を表す行列を作る。
     inline Matrix4x4 MakeAffineMatrix(
         const Vector3& scale,
         const Quaternion& rotate,
@@ -219,6 +231,7 @@ namespace Math {
         return result;
     }
     
+    // 行と列を入れ替える。行列をシェーダーの読み方に合わせる場面でも使う。
     inline Matrix4x4 Transpose(const Matrix4x4& m)
     {
         Matrix4x4 result;
@@ -230,12 +243,14 @@ namespace Math {
     }
 
 
+    // ベクトルを同じ方向の単位ベクトルにし、長さが0ならゼロベクトルを返す。
     inline Vector3 Normalize(const Vector3& v) {
         float len = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         if (len == 0.0f) return { 0.0f, 0.0f, 0.0f };
         return { v.x / len, v.y / len, v.z / len };
     }
 
+    // 回転用クォータニオンの長さを1にそろえ、長さが0なら回転なしに戻す。
     inline Quaternion NormalizeQuaternion(const Quaternion& q) {
         float len = std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
         if (len == 0.0f) {
@@ -244,6 +259,7 @@ namespace Math {
         return { q.x / len, q.y / len, q.z / len, q.w / len };
     }
 
+    // 縦の画角、画面比率、手前と奥の距離から、遠い物体ほど小さく写る投影行列を作る。
     inline Matrix4x4 MakePerspectiveFovMatrix(
         float fovY, float aspectRatio, float nearClip, float farClip)
     {
@@ -257,6 +273,7 @@ namespace Math {
         return result;
     }
 
+    // 左右上下と深度の範囲を、遠近による縮みのない表示範囲へ変換する。
     inline Matrix4x4 MakeOrthographicMatrix(
         float left, float top, float right, float bottom,
         float nearClip, float farClip)

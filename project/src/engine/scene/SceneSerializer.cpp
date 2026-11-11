@@ -8,6 +8,7 @@
 
 namespace {
 
+// 指定キーの3要素配列をXYZとして読む。見つからなければfalseを返す。
 bool ExtractJsonVector3(
     const std::string& source,
     const char* key,
@@ -28,6 +29,7 @@ bool ExtractJsonVector3(
     return true;
 }
 
+// 指定キーの4要素配列をXYZWとして読む。見つからなければfalseを返す。
 bool ExtractJsonVector4(
     const std::string& source,
     const char* key,
@@ -49,6 +51,7 @@ bool ExtractJsonVector4(
     return true;
 }
 
+// 指定キーから小数を読み取る。見つからなければ出力値を保つ。
 bool ExtractJsonFloat(const std::string& source, const char* key, float& out)
 {
     const std::regex pattern(
@@ -63,6 +66,7 @@ bool ExtractJsonFloat(const std::string& source, const char* key, float& out)
     return true;
 }
 
+// 指定キーから真偽値を読み取る。見つからなければ出力値を保つ。
 bool ExtractJsonBool(const std::string& source, const char* key, bool& out)
 {
     const std::regex pattern(
@@ -77,6 +81,7 @@ bool ExtractJsonBool(const std::string& source, const char* key, bool& out)
     return true;
 }
 
+// 指定キーから整数を読み取る。見つからなければ出力値を保つ。
 bool ExtractJsonInt(const std::string& source, const char* key, int& out)
 {
     const std::regex pattern(
@@ -91,6 +96,7 @@ bool ExtractJsonInt(const std::string& source, const char* key, int& out)
     return true;
 }
 
+// 指定キーの引用符で囲まれた文字列を読み取る。
 bool ExtractJsonString(
     const std::string& source,
     const char* key,
@@ -108,6 +114,7 @@ bool ExtractJsonString(
     return true;
 }
 
+// 指定キーのオブジェクトから、波括弧の内側を設定の読取用に取り出す。
 bool ExtractJsonBlock(
     const std::string& source,
     const char* key,
@@ -135,6 +142,7 @@ bool SceneSerializer::SaveObjects(
     return SaveScene(path, records, settings);
 }
 
+// 配置された物体のモデル名、位置、回転、拡大率などを書き出す。
 bool SceneSerializer::SaveScene(
     const char* path,
     const std::vector<ObjectRecord>& records,
@@ -222,6 +230,7 @@ bool SceneSerializer::LoadObjects(
     return LoadScene(path, records, settings);
 }
 
+// 保存した配置データを読み、ゲームやエディタで使えるレコードに戻す。
 bool SceneSerializer::LoadScene(
     const char* path,
     std::vector<ObjectRecord>& records,
@@ -311,6 +320,7 @@ bool SceneSerializer::LoadScene(
     return !records.empty() || settings.hasCamera || settings.hasLighting;
 }
 
+// 名前が一致する最初の配置データを探し、見つからなければnullptrを返す。
 const SceneSerializer::ObjectRecord* SceneSerializer::FindObjectByName(
     const std::vector<ObjectRecord>& records,
     const char* name)

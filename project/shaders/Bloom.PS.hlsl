@@ -1,3 +1,5 @@
+// 周囲の複数方向から明るい色を拾い、1パスで元画像へ光を足すブルーム。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

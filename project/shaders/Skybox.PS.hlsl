@@ -1,3 +1,5 @@
+// カメラから見た方向でキューブマップを読み、背景の色にする。
+
 #include "Skybox.hlsli"
 
 TextureCube<float4> gTexture : register(t0);

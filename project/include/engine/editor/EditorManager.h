@@ -1,3 +1,5 @@
+// エディタの現在モード、選択対象、編集中のファイルなどの状態を持つ。
+
 #pragma once
 #include <array>
 #include "engine/base/ImGuiManager.h"

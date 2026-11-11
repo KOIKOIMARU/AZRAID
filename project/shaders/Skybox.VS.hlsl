@@ -1,3 +1,5 @@
+// 背景の立方体を最も奥に表示できるように座標を変換する。
+
 #include "Skybox.hlsli"
 
 cbuffer ViewProjectionCB : register(b0)

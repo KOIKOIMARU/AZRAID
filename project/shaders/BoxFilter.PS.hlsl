@@ -1,3 +1,5 @@
+// 近くの画素を均等に平均し、画面全体をぼかす。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

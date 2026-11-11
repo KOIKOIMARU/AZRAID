@@ -31,8 +31,32 @@
     <Filter Include="src">
       <UniqueIdentifier>{650138e7-3456-48dc-ac9c-593f411720cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\app">
+    <Filter Include="app">
       <UniqueIdentifier>{fc9b23ad-ef5e-43a7-8d23-861cc28ff451}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\起動・ゲーム進行">
+      <UniqueIdentifier>{1b72c14f-e532-5c91-a8d9-6e1f94bcdfba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\プレイヤー">
+      <UniqueIdentifier>{7627601e-2fe1-5e32-8f7c-b7c3ac0b2d53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\敵・ボス">
+      <UniqueIdentifier>{cbfd31f7-b9d3-51a4-b908-13c850f435c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\ステージ">
+      <UniqueIdentifier>{a8facc44-d012-5332-9737-5292c2a5ecff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\戦闘・エフェクト">
+      <UniqueIdentifier>{e336793c-3bb7-55f1-939f-508c51ce239f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\カメラ・音声・演出">
+      <UniqueIdentifier>{7aa67a52-35e2-5a13-9bd0-df4e7da095d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\HUD・メニュー・リザルト">
+      <UniqueIdentifier>{0fa8bd67-ed49-5b40-8163-6744a5987ccf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\デバッグ">
+      <UniqueIdentifier>{ee4d3acd-61a5-530d-9a04-1dc5f50465e7}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\engine">
       <UniqueIdentifier>{2d3be6c6-d76e-47da-ad6d-05e289153934}</UniqueIdentifier>
@@ -94,9 +118,6 @@
     <Filter Include="src\engine\editor">
       <UniqueIdentifier>{efeb9ce3-9cf2-4730-8b6b-8fdcf75908dc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\app">
-      <UniqueIdentifier>{ec19c3a1-1317-4b46-bfe5-011156ee37e3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\engine\editor">
       <UniqueIdentifier>{cf6cfd83-4227-4b29-bb70-e69e2dcfd395}</UniqueIdentifier>
     </Filter>
@@ -150,8 +171,8 @@
     <ClCompile Include="externals\ImGuiColorTextEdit\TextEditor.cpp">
       <Filter>externals\ImGuiColorTextEdit</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\main.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\runtime\main.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\3d\ResourceObject.cpp">
       <Filter>src\engine\3d</Filter>
@@ -228,29 +249,179 @@
     <ClCompile Include="src\engine\base\Framework.cpp">
       <Filter>src\engine\base</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\MyGame.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\runtime\MyGame.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\Bullet.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\debug\GameplaySmokeTest.cpp">
+      <Filter>app\デバッグ</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\Enemy.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\presentation\GameplayAudio.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\GameRuntime.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\player\GameplayAim.cpp">
+      <Filter>app\プレイヤー</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\GameRuntimeProbe.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\combat\Bullet.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\GameRuntimeTutorial.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\enemy\Enemy.cpp">
+      <Filter>app\敵・ボス</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\GameRuntimePhantom.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\enemy\EnemyFlight.cpp">
+      <Filter>app\敵・ボス</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\Player.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="src\app\combat\FeverState.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatRewards.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerShooting.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerControl.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerSkill.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerSkillPresentation.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerFlightEffects.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerCombatFeedback.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\GameplayHud.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\GameplayMenu.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageResultMenu.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageResults.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\ClearResultPresentation.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\FlightSpeedEffects.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\FlightMotionBlur.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\GameplayShadows.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\GameplayCamera.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\MainStage.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageDirector.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageFlight.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\StageEnemyFactory.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\StageEnemies.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\BossAttackController.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\BossPresentation.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\EnemyAttackPatterns.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\BulletPool.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\ProjectileSystem.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\RailScenery.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\RingGates.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatEffects.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatEffectPlayback.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatOverlay.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatProgress.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageRecords.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntime.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameResources.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameplaySceneSetup.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\RuntimeSceneObjects.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeEntry.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageEntryPresentation.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeCollision.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatResolver.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeDefeat.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\debug\GameRuntimeEditor.cpp">
+      <Filter>app\デバッグ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\debug\GameRuntimeProbe.cpp">
+      <Filter>app\デバッグ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeTutorial.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\TutorialProgress.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimePhantom.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\Player.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerDodge.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerDefeatPresentation.cpp">
+      <Filter>app\プレイヤー</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\scene\GameScene.cpp">
       <Filter>src\engine\scene</Filter>
@@ -271,6 +442,18 @@
       <Filter>src\engine\scene</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\scene\TitleScene.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\StageSelectionPresentation.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleMotion.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleRift.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleWordmark.cpp">
       <Filter>src\engine\scene</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\scene\SceneFactory.cpp">
@@ -512,29 +695,191 @@
     <ClInclude Include="include\engine\base\Framework.h">
       <Filter>include\engine\base</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\MyGame.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\runtime\MyGame.h">
+      <Filter>app\起動・ゲーム進行</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\Bullet.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\debug\GameplaySmokeTest.h">
+      <Filter>app\デバッグ</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\Enemy.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\presentation\GameplayAudio.h">
+      <Filter>app\カメラ・音声・演出</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\EnemyFireControl.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\player\GameplayAim.h">
+      <Filter>app\プレイヤー</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\GameRuntime.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\combat\Bullet.h">
+      <Filter>app\戦闘・エフェクト</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\CombatHud.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\enemy\Enemy.h">
+      <Filter>app\敵・ボス</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\MenuUi.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\enemy\EnemyFlight.h">
+      <Filter>app\敵・ボス</Filter>
     </ClInclude>
-    <ClInclude Include="include\app\Player.h">
-      <Filter>include\app</Filter>
+    <ClInclude Include="include\app\enemy\EnemyFireControl.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyAttackPatterns.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\FeverState.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatRewards.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerShooting.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerControl.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerSkill.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerSkillPresentation.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerFlightEffects.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerCombatFeedback.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\GameplayHud.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\TutorialProgress.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\GameplayMenu.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageResultMenu.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageResults.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\ClearResultPresentation.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\FlightSpeedEffects.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\CameraMotionBlur.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\FlightMotionBlur.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\GameplayShadows.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\GameplayCamera.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyTypes.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\MainStage.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageDirector.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageFlight.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\StageEnemyFactory.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\StageEnemies.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\BossAttackController.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\BossPresentation.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\BulletPool.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\ProjectileSystem.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\RailScenery.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\JustDodgeFeedback.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\RingGates.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ScreenProjection.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\SceneryAssets.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatEffects.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatEffectPlayback.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatResolver.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatOverlay.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatProgress.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageRecords.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntime.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameResources.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameplaySceneSetup.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\RuntimeSceneObjects.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageEntryTiming.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageEntryPresentation.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntimeMath.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntimeTuning.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\CombatHud.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\MenuUi.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\Player.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerDodge.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerDefeatPresentation.h">
+      <Filter>app\プレイヤー</Filter>
     </ClInclude>
     <ClInclude Include="include\engine\scene\GameScene.h">
       <Filter>include\engine\scene</Filter>
@@ -555,6 +900,18 @@
       <Filter>include\engine\scene</Filter>
     </ClInclude>
     <ClInclude Include="include\engine\scene\TitleScene.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\StageSelectionPresentation.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleMotion.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleRift.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleWordmark.h">
       <Filter>include\engine\scene</Filter>
     </ClInclude>
     <ClInclude Include="include\engine\scene\SceneManager.h">
@@ -602,9 +959,6 @@
     <Text Include="resources\fonts\HUD_FONTS.md"><Filter>resources\fonts</Filter></Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\skybox\kloofendal_48d_partly_cloudy_puresky_4k.hdr">
-      <Filter>resources\skybox</Filter>
-    </None>
     <None Include="resources\fonts\fa-solid-900.ttf">
       <Filter>resources\fonts</Filter>
     </None>
@@ -615,9 +969,6 @@
     <None Include="resources\fonts\BarlowCondensed-SemiBold.ttf"><Filter>resources\fonts</Filter></None>
     <None Include="resources\fonts\Rajdhani-SemiBold.ttf"><Filter>resources\fonts</Filter></None>
     <None Include="resources\fonts\MPLUS1p-Medium.ttf"><Filter>resources\fonts</Filter></None>
-    <None Include="resources\skybox\kloofendal_48d_partly_cloudy_puresky_4k.exr">
-      <Filter>resources\skybox</Filter>
-    </None>
     <None Include="resources\skybox\kloofendal_48d_partly_cloudy_puresky_4k_cube.dds">
       <Filter>resources\skybox</Filter>
     </None>
@@ -641,9 +992,6 @@
     </None>
     <None Include="resources\sphere.obj">
       <Filter>resources</Filter>
-    </None>
-    <None Include="resources\skybox\rostock_laage_airport_4k.dds">
-      <Filter>resources\skybox</Filter>
     </None>
     <None Include="shaders\EmitParticle.CS.hlsl">
       <Filter>shaders</Filter>

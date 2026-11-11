@@ -14,6 +14,7 @@
 using Microsoft::WRL::ComPtr;
 SoundManager::~SoundManager() { Finalize(); }
 
+// 音声の読込に使うMedia Foundationと、再生先になるXAudio2を初期化する。
 bool SoundManager::Initialize()
 {
     Finalize();
@@ -33,6 +34,7 @@ bool SoundManager::Initialize()
     return true;
 }
 
+// 登録済みの再生ボイスを破棄してから、ボイスが参照していた音声データを解放する。
 void SoundManager::DestroyEntry(Entry& entry)
 {
     // DestroyVoice完了後はこの波形がオーディオスレッドから参照されない。
@@ -46,8 +48,14 @@ void SoundManager::DestroyEntry(Entry& entry)
     entry.variations.clear();
 }
 
+// BGMの先読みが終わるのを待ち、再生ボイスと音声基盤を順に終了する。
 void SoundManager::Finalize()
 {
+    // デコーダーのCOMオブジェクトが解放されてからMedia Foundationを終了する。
+    if (pendingMusic_.valid()) { pendingMusic_.wait(); }
+    pendingMusic_ = {};
+    pendingMusicKey_.clear();
+    pendingMusicFile_.clear();
     for (auto& item : sounds_) {
         DestroyEntry(item.second);
     }
@@ -71,6 +79,44 @@ bool SoundManager::Load(const std::string& key, const std::string& filename,
         pitchVariation, gainVariation);
 }
 
+// BGMの読込を別スレッドで進め、準備中はfalseを返す。デコード結果がそろったフレームで再生用に登録する。
+bool SoundManager::PreloadLoopStep(const std::string& key, const std::string& filename)
+{
+    if (!xAudio2_ || !masterVoice_) { return true; }
+    if (pendingMusic_.valid()) {
+        if (pendingMusicKey_ != key || pendingMusicFile_ != filename ||
+            pendingMusic_.wait_for(std::chrono::seconds(0)) != std::future_status::ready) { return false; }
+        auto data = pendingMusic_.get();
+        pendingMusicKey_.clear();
+        pendingMusicFile_.clear();
+        if (data.buffer.empty()) {
+            Logger::Log("Audio preload failed: " + filename + "\n");
+            return true;
+        }
+        if (!sounds_.contains(key)) {
+            std::vector<SoundData> variations;
+            variations.push_back(std::move(data));
+            InstallVariations(key, std::move(variations), 1, 0.0f, 0.0f, 0.0f, 0.0f);
+        }
+        return true;
+    }
+    if (sounds_.contains(key)) { return true; }
+    pendingMusicKey_ = key;
+    pendingMusicFile_ = filename;
+    pendingMusic_ = std::async(std::launch::async, [filename]() {
+        const HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        if (FAILED(result)) { return SoundData{}; }
+        // workerは独立したデコーダーとPCMだけを所有。SoundManagerや再生ボイスに触れない。
+        try {
+            auto data = LoadFile(filename);
+            CoUninitialize();
+            return data;
+        } catch (...) { CoUninitialize(); throw; }
+    });
+    return false;
+}
+
+// 同じ効果音として鳴らす複数の素材を読み込み、同時再生数の上限内で登録する。
 bool SoundManager::LoadVariations(const std::string& key, const std::vector<std::string>& filenames,
     uint32_t voiceCount, float volume, float minimumInterval,
     float pitchVariation, float gainVariation)
@@ -83,8 +129,8 @@ bool SoundManager::LoadVariations(const std::string& key, const std::vector<std:
     if (voiceCount_ + voiceCount > 32u) {
         return false;
     }
-    Entry entry;
-    entry.variations.reserve(filenames.size());
+    std::vector<SoundData> variations;
+    variations.reserve(filenames.size());
     for (const auto& filename : filenames) {
         auto data = LoadFile(filename);
         if (data.buffer.empty()) {
@@ -92,13 +138,27 @@ bool SoundManager::LoadVariations(const std::string& key, const std::vector<std:
             return false;
         }
         // LoadFileは全素材を48kHz/16bit/2ch PCMへ統一するので、ボイスを共有できる。
-        entry.variations.push_back(std::move(data));
+        variations.push_back(std::move(data));
     }
+    return InstallVariations(key, std::move(variations), voiceCount, volume, minimumInterval,
+        pitchVariation, gainVariation);
+}
+
+// デコード済みの音声に対して、再生ボイスと音量・ピッチの設定を確保する。
+bool SoundManager::InstallVariations(const std::string& key, std::vector<SoundData> variations,
+    uint32_t voiceCount, float volume, float minimumInterval, float pitchVariation, float gainVariation)
+{
+    if (!xAudio2_ || !masterVoice_ || variations.empty() || variations.size() > 4) { return false; }
+    Unload(key);
+    voiceCount = std::clamp(voiceCount, 1u, 4u);
+    if (voiceCount_ + voiceCount > 32u) { return false; }
+    Entry entry;
+    entry.variations = std::move(variations);
     entry.minimumInterval = (std::max)(minimumInterval, 0.0f);
     entry.volume = std::clamp(volume, 0.0f, 1.0f);
     entry.pitchVariation = std::clamp(pitchVariation, 0.0f, 0.12f);
     entry.gainVariation = std::clamp(gainVariation, 0.0f, 0.20f);
-    entry.lastVariation = static_cast<uint32_t>(filenames.size() - 1);
+    entry.lastVariation = static_cast<uint32_t>(entry.variations.size() - 1);
     for (uint32_t index = 0; index < voiceCount; ++index) {
         auto*& voice = entry.voices[index];
         if (FAILED(xAudio2_->CreateSourceVoice(&voice, &entry.variations.front().wfex))) {
@@ -113,6 +173,7 @@ bool SoundManager::LoadVariations(const std::string& key, const std::vector<std:
     return true;
 }
 
+// 指定した音の再生ボイスとデータを解放し、登録を消す。
 void SoundManager::Unload(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -122,14 +183,21 @@ void SoundManager::Unload(const std::string& key)
     }
 }
 
+// 効果音を抑える区間でも鳴らしてよい音として登録する。
+void SoundManager::EnableWhileEffectsMuted(const std::string& key)
+{
+    if (const auto it = sounds_.find(key); it != sounds_.end()) { it->second.enabledWhileMuted = true; }
+}
+
+// 空いている再生枠を使って効果音を鳴らす。音量と再生ピッチも呼び出し側から指定できる。
 bool SoundManager::Play(const std::string& key, float gain, float pitchScale)
 {
-    if (!kSoundEffectsEnabled) { return false; }
     const auto it = sounds_.find(key);
     if (it == sounds_.end()) {
         return false;
     }
     Entry& entry = it->second;
+    if (!kSoundEffectsEnabled && !entry.enabledWhileMuted) { return false; }
     if (entry.looping) { return false; }
     const auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration<float>(now - entry.lastPlay).count() < entry.minimumInterval) {
@@ -178,6 +246,7 @@ bool SoundManager::Play(const std::string& key, float gain, float pitchScale)
     return false;
 }
 
+// BGMなどを繰り返し再生し、同じ音源のループ状態を管理する。
 bool SoundManager::PlayLoop(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -201,6 +270,7 @@ bool SoundManager::PlayLoop(const std::string& key)
     return true;
 }
 
+// 指定した音の全ボイスを止め、再生待ちデータとループ状態を消す。
 void SoundManager::Stop(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -211,6 +281,7 @@ void SoundManager::Stop(const std::string& key)
     it->second.looping = false;
 }
 
+// 音量を0～1に収め、同じ音を担当する全ボイスへ反映する。
 void SoundManager::SetVolume(const std::string& key, float volume)
 {
     const auto it = sounds_.find(key);
@@ -221,6 +292,7 @@ void SoundManager::SetVolume(const std::string& key, float volume)
     }
 }
 
+// ループ用のボイスに再生データが残っている音の数を返す。
 uint32_t SoundManager::GetLoopCount() const
 {
     uint32_t count = 0;
@@ -233,6 +305,7 @@ uint32_t SoundManager::GetLoopCount() const
     return count;
 }
 
+// 音声ファイルをMedia Foundationで読み、48kHz・16ビットのステレオPCMへ変換する。
 SoundData SoundManager::LoadFile(const std::string& filename)
 {
     ComPtr<IMFSourceReader> reader;

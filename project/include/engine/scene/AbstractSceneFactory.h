@@ -1,3 +1,5 @@
+// シーンの種類から実体を作るための共通インターフェース。
+
 #pragma once
 #include <memory>
 #include "engine/scene/SceneType.h"

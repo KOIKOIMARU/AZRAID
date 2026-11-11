@@ -6,6 +6,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #endif
 
 // ウィンドウプロシージャ
+// Windowsから届く入力・リサイズ・終了などのメッセージを処理する。
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
     auto* app = reinterpret_cast<WinApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
@@ -22,6 +23,23 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
     if (msg == WM_GETMINMAXINFO) {
         auto* info = reinterpret_cast<MINMAXINFO*>(lparam);
         info->ptMinTrackSize = { 656, 399 };
+        return 0;
+    }
+    if (app && msg == WM_PAINT && !app->hasPresentedFrame_) {
+        // DirectXとフォントの初期化前にも、白いウィンドウを見せない。
+        PAINTSTRUCT paint{};
+        const HDC dc = BeginPaint(hwnd, &paint);
+        RECT client{};
+        GetClientRect(hwnd, &client);
+        FillRect(dc, &client, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+        SetBkMode(dc, TRANSPARENT);
+        SetTextColor(dc, RGB(226, 232, 240));
+        const auto previousFont = SelectObject(dc, GetStockObject(DEFAULT_GUI_FONT));
+        client.right -= 76;
+        client.bottom -= 42;
+        DrawTextW(dc, L"読み込み中", -1, &client, DT_RIGHT | DT_BOTTOM | DT_SINGLELINE | DT_NOPREFIX);
+        SelectObject(dc, previousFont);
+        EndPaint(hwnd, &paint);
         return 0;
     }
 
@@ -42,6 +60,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 }
 
 
+// COMを初期化し、ウィンドウクラスを登録してゲームのウィンドウを開く。
 void WinApp::Initialize()
 {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -55,6 +74,7 @@ void WinApp::Initialize()
 	wc.hInstance = GetModuleHandle(nullptr);
 	// カーソル
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
 
 	// ウィンドウクラスの登録
 	RegisterClass(&wc);
@@ -84,6 +104,7 @@ void WinApp::Initialize()
 
 	// ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
+	UpdateWindow(hwnd);
 
 }
 
@@ -96,6 +117,7 @@ void WinApp::Finalize()
 	CoUninitialize();
 }
 
+// 待っているウィンドウメッセージを処理する。終了通知を受けた場合はtrueを返す。
 bool WinApp::ProcessMessage()
 {
 	MSG msg{};
@@ -114,6 +136,7 @@ bool WinApp::ProcessMessage()
 	return false;
 }
 
+// 通常表示の位置と状態を控え、ボーダーレス全画面へ切り替える。通常表示へ戻る際は控えを復元する。
 void WinApp::ToggleFullscreen()
 {
     if (!hwnd) { return; }

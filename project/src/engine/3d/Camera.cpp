@@ -3,6 +3,7 @@
 
 using namespace Math;
 
+// 画角・表示比率・手前と奥の距離を初期化し、最初のカメラ行列を作る。
 Camera::Camera()
 {
     transform = {
@@ -20,19 +21,20 @@ Camera::Camera()
 }
 
 
+// カメラの位置と回転からビューと投影を作り、描画時に使う合成行列を更新する。
 void Camera::Update()
 {
-    // ★ 資料通り：まず worldMatrix
+    // カメラ自身の位置と向きから、ワールド上での姿勢を作る。
     worldMatrix = MakeAffineMatrix(
         transform.scale,
         transform.rotate,
         transform.translate
     );
 
-    // ★ view は world の逆行列
+    // カメラの姿勢を逆変換して、ワールド座標をカメラから見た座標へ直す。
     viewMatrix = Inverse(worldMatrix);
 
-    // ★ projection
+    // 画角・画面比率・手前と奥の限界から透視投影を作る。
     projectionMatrix = MakePerspectiveFovMatrix(
         fovY,
         aspectRatio,
@@ -40,7 +42,7 @@ void Camera::Update()
         farClip
     );
 
-    // ★ VP
+    // ビューと投影を合成し、ワールド座標からクリップ座標へ一度で変換できるようにする。
     viewProjectionMatrix =
         Multiply(viewMatrix, projectionMatrix);
 }

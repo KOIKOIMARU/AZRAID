@@ -1,0 +1,9 @@
+WispySmoke03b
+Author: Unity Labs Paris / Unity Technologies (Thomas ICHE)
+Source: https://unity.com/blog/engine-platform/free-vfx-image-sequences-flipbooks
+Download: https://unity3d.com/files/labs/downloads/vfx/assets01/WispySmoke03b/WispySmoke03b-flipbooks.zip
+License: CC0 1.0 Universal
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+wreck_smoke_flipbook.png is WispySmoke03b_8x8.tga converted losslessly to PNG.
+The 1024 x 1024 atlas has 64 frames in an 8 x 8 grid.

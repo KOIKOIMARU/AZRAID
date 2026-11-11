@@ -1,3 +1,5 @@
+// 3D描画で頂点とピクセルのシェーダーが共用するデータ型。
+
 struct VertexShaderOutput
 {
     float4 position : SV_POSITION;

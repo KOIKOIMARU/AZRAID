@@ -1,3 +1,5 @@
+// エディタから試しに遊ぶためのGameRuntimeを所有し、開始・終了・描画をつなぐ。
+
 #pragma once
 
 #include <memory>

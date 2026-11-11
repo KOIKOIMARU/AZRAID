@@ -1,3 +1,5 @@
+// 指定された方向にぼかす。呼び出し側が横と縦を分けて実行する。
+
 #include "BloomCommon.hlsli"
 
 PixelShaderOutput main(VertexShaderOutput input)

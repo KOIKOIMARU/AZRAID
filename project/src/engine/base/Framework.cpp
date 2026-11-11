@@ -11,6 +11,7 @@
 
 Framework::~Framework() = default;
 
+// アプリを準備し、終了要求が来るまで1フレームずつ更新と描画を繰り返す。
 int Framework::Run() {
     Initialize();
 
@@ -29,6 +30,7 @@ int Framework::Run() {
     return exitCode_;
 }
 
+// ウィンドウを開き、DirectXと入力、UIや素材管理を依存する順に初期化する。
 void Framework::Initialize() {
     winApp_ = std::make_unique<WinApp>();
     winApp_->Initialize();
@@ -54,6 +56,7 @@ void Framework::Initialize() {
     ParticleManager::GetInstance()->Initialize(dxCommon_.get(), srvManager_.get());
 }
 
+// ウィンドウの終了要求を先に処理し、継続する場合は画面サイズと入力を更新する。
 void Framework::Update() {
     // Windowsメッセージ処理（終了フラグに変換）
     if (winApp_->ProcessMessage()) {
@@ -65,6 +68,7 @@ void Framework::Update() {
     input_->Update();
 }
 
+// ゲームから使う素材やUIの管理を終了し、共通システムを解放する。
 void Framework::Finalize() {
     ParticleManager::GetInstance()->Finalize();
     TextureManager::GetInstance()->Destroy();

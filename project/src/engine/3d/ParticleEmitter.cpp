@@ -24,6 +24,7 @@ ParticleEmitter::ParticleEmitter(
 // =========================
 // 更新
 // =========================
+// 発生間隔に達するたび粒子を出し、余った時間を次の発生へ繰り越す。
 void ParticleEmitter::Update(float deltaTime)
 {
     elapsedTime_ += deltaTime;

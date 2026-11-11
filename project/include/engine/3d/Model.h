@@ -1,3 +1,5 @@
+// モデルの頂点・材質・骨格を管理する。同じモデルは複数のObject3dで共有できる。
+
 #pragma once
 #include <array>
 #include <cstdint>
@@ -128,6 +130,11 @@ class Model {
 public:
     void Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename);
     void Initialize(ModelCommon* modelCommon, const ModelData& modelData);
+    void Initialize(ModelCommon* modelCommon, ModelData&& modelData);
+    // CPU解析のみ。テクスチャ・GPU・共有マネージャーには触れない。
+    static ModelData LoadCpuData(const std::string& directoryPath, const std::string& filename);
+    void InitializeGeometry(ModelCommon* modelCommon, ModelData&& modelData);
+    const std::vector<MaterialData>& GetMaterials() const { return modelData_.materials; }
     void Draw(
         const D3D12_VERTEX_BUFFER_VIEW* overrideVertexBufferView = nullptr,
         ID3D12Resource* overrideMaterialResource = nullptr,
@@ -165,6 +172,8 @@ public:
     size_t GetVertexCount() const { return modelData_.vertices.size(); }
     size_t GetIndexCount() const { return modelData_.indices.size(); }
     const std::vector<VertexData>& GetVertices() const { return modelData_.vertices; }
+    const std::vector<uint32_t>& GetIndices() const { return modelData_.indices; }
+    const std::vector<ModelDrawRange>& GetDrawRanges() const { return modelData_.drawRanges; }
 
     static MaterialData LoadMaterialTemplate(const std::string& directoryPath, const std::string& filename);
     static ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);

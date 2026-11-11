@@ -1,7 +1,11 @@
+// モデルを名前で保管し、同じモデルの再利用と段階的な読み込みを担当する。
+
 #pragma once
 #include <map>
 #include <memory>
 #include <string>
+#include <future>
+#include "engine/3d/Model.h"
 
 class Model;
 class ModelCommon;
@@ -17,6 +21,9 @@ public:
 
     // モデル読み込み
     void LoadModel(const std::string& filePath);
+    // 一度に解析するモデルは1つ。readyになったデータのGPU生成は呼出し側で行う。
+    bool PreloadModelStep(const std::string& filePath);
+    void CreateMesh(const std::string& name, ModelData&& data);
     void CreateTriangle(
         const std::string& name,
         float width,
@@ -98,4 +105,8 @@ private:
 
     std::map<std::string, std::unique_ptr<Model>> models_;
     ModelCommon* modelCommon_ = nullptr;
+    std::future<ModelData> pendingModel_;
+    std::string pendingModelPath_;
+    std::unique_ptr<Model> pendingGpuModel_;
+    size_t pendingMaterialTexture_ = 0;
 };

@@ -1,3 +1,5 @@
+// テクスチャやバッファをシェーダーから参照するための記述子を割り当てる。
+
 #pragma once
 #include <wrl.h>
 #include <d3d12.h>

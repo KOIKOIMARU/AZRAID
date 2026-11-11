@@ -1,3 +1,5 @@
+// ブルーム画像を元のシーンに重ね、出力用に色と画面の周辺を調整する。
+
 #include "BloomCommon.hlsli"
 
 PixelShaderOutput main(VertexShaderOutput input)

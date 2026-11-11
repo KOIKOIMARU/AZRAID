@@ -1,10 +1,11 @@
 #include "engine/editor/EditorPlayController.h"
 
-#include "app/GameRuntime.h"
+#include "app/runtime/GameRuntime.h"
 
 EditorPlayController::EditorPlayController() = default;
 EditorPlayController::~EditorPlayController() = default;
 
+// 試遊用のゲームが初期化時に使う描画・入力システムへの参照を受け取る。
 void EditorPlayController::SetSystems(
     DirectXCommon* dxCommon,
     SrvManager* srvManager,
@@ -19,6 +20,7 @@ void EditorPlayController::SetSystems(
     input_ = input;
 }
 
+// 編集画面内でのプレイ確認に使うGameRuntimeを作り、共通の描画・入力機能を接続する。
 bool EditorPlayController::Start()
 {
     if (runtime_) {
@@ -36,6 +38,7 @@ bool EditorPlayController::Start()
     return true;
 }
 
+// 試遊中のゲームを終了処理してから、保持していた実行状態を破棄する。
 void EditorPlayController::Stop()
 {
     if (!runtime_) {
@@ -46,6 +49,7 @@ void EditorPlayController::Stop()
     runtime_.reset();
 }
 
+// 試遊中だけ、エディタの空や画面効果の設定を渡してゲームを1フレーム進める。
 void EditorPlayController::Update(
     bool isEditorGuiVisible,
     bool showSkybox,

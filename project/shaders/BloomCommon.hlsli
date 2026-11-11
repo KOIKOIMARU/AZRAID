@@ -1,3 +1,5 @@
+// ブルームの各パスで使う画像、明るさのしきい値、色調整の計算を共有する。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

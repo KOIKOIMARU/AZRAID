@@ -1,3 +1,5 @@
+// ImGuiの初期化・フレーム描画と、開発用の編集画面に必要な処理をまとめる。
+
 #pragma once
 #include <cstdint>
 #include <string>

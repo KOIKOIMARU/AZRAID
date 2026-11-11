@@ -7,6 +7,7 @@
 
 using Microsoft::WRL::ComPtr;
 
+// スプライトが共有する描画システムを受け取り、2D描画用のパイプラインを作る。
 void SpriteCommon::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
     dxCommon_ = dxCommon;
@@ -14,6 +15,7 @@ void SpriteCommon::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
     CreateGraphicsPipelineState();
 }
 
+// スプライト用のシェーダーが色、変換行列、画像を読むためのバインド先を定義する。
 void SpriteCommon::CreateRootSignature()
 {
     ID3D12Device* device = dxCommon_->GetDevice();
@@ -86,6 +88,7 @@ void SpriteCommon::CreateRootSignature()
 }
 
 
+// スプライト用の頂点とピクセルシェーダー、アルファ合成、頂点形式を設定する。
 void SpriteCommon::CreateGraphicsPipelineState()
 {
     ID3D12Device* device = dxCommon_->GetDevice();
@@ -162,6 +165,7 @@ void SpriteCommon::CreateGraphicsPipelineState()
     assert(SUCCEEDED(hr));
 }
 
+// 2D画像を描く前に、共有のルートシグネチャと描画設定をコマンドへ登録する。
 void SpriteCommon::CommonDrawSetting()
 {
     ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();

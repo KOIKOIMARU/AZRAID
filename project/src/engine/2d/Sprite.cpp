@@ -7,12 +7,13 @@
 
 using namespace Math;
 
+// 描画の共通設定と画像名を受け取り、2D画像を描くための頂点・材質・変換を準備する。
 void Sprite::Initialize(SpriteCommon* spriteCommon, const std::string& filePath)
 {
     assert(spriteCommon);
     spriteCommon_ = spriteCommon;
 
-    // ★ これを必ず最初に
+    // 画像の読込や描画設定に使う共通オブジェクトを保持する。
     textureFilePath_ = filePath;
 
     // 1) 必ず読み込む
@@ -26,6 +27,7 @@ void Sprite::Initialize(SpriteCommon* spriteCommon, const std::string& filePath)
 }
 
 
+// 画面上の位置と大きさ、画像の切り出し範囲から、四角形の座標とUVを更新する。
 void Sprite::Update()
 {
     // ===== 頂点バッファを Map =====
@@ -87,6 +89,7 @@ void Sprite::Update()
     transformData_->World = Transpose(world);
     transformData_->WVP = Transpose(wvp);
 }
+// 四角形の頂点、色、テクスチャを描画命令へ登録する。
 void Sprite::Draw()
 {
     DirectXCommon* dxCommon = spriteCommon_->GetDxCommon();
@@ -112,6 +115,7 @@ void Sprite::Draw()
     commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
+// 四角形を2枚の三角形として描くための頂点とインデックスの領域を作る。
 void Sprite::CreateVertexData()
 {
     DirectXCommon* dxCommon = spriteCommon_->GetDxCommon();
@@ -159,6 +163,7 @@ void Sprite::CreateVertexData()
 }
 
 
+// 描画に使う色とUV変換を定数バッファに用意する。
 void Sprite::CreateMaterialData()
 {
     DirectXCommon* dxCommon = spriteCommon_->GetDxCommon();
@@ -172,6 +177,7 @@ void Sprite::CreateMaterialData()
     materialData_->uvTransform = MakeIdentity4x4();
 }
 
+// スプライトの姿勢と画面への正射影に使う定数バッファを作る。
 void Sprite::CreateTransformData()
 {
     DirectXCommon* dxCommon = spriteCommon_->GetDxCommon();
@@ -193,6 +199,7 @@ void Sprite::CreateTransformData()
     transformData_->WVP = Multiply(world, vp);
 }
 
+// 画像のメタデータから元の幅と高さを取り、表示サイズの初期値にする。
 void Sprite::AdjustTextureSize()
 {
     const DirectX::TexMetadata& metadata =

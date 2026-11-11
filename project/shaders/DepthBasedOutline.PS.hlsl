@@ -1,3 +1,5 @@
+// 深度からカメラまでの距離を復元し、その差から物体の輪郭を求める。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

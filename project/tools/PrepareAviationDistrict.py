@@ -6,6 +6,7 @@ existing asphalt texture; the buildings and guidance paint are texture-free.
 Opening coordinates are relative to the transit bridge at world Z=240;
 defense and apron modules use their own fixed district origins.
 """
+import argparse
 import json
 import math
 from pathlib import Path
@@ -21,6 +22,10 @@ MATERIALS = [
     ("flightway_markings", (0.78, 0.77, 0.70, 1), 0.0, 0.82),
     ("safety_reflectors", (0.80, 0.53, 0.17, 1), 0.05, 0.70),
     ("flightway_tarmac", (0.86, 0.90, 0.94, 1), 0.0, 0.90),
+    ("campus_verge", (0.16, 0.22, 0.17, 1), 0.0, 0.95),
+    ("service_asphalt", (0.12, 0.15, 0.17, 1), 0.0, 0.92),
+    ("campus_walkway", (0.43, 0.44, 0.40, 1), 0.0, 0.90),
+    ("service_yard", (0.25, 0.29, 0.30, 1), 0.0, 0.90),
 ]
 
 
@@ -214,6 +219,157 @@ class District:
                 # Service-bay guide marking terminates at the hall, never across the flightway.
                 self.block((side * 37, 0.48, z), (22, 0.03, 0.4), 5)
                 self.block((side * 26.2, 0.48, z), (0.4, 0.03, 10), 5)
+
+        self.build_campus_infill()
+
+    def build_campus_infill(self):
+        # Fill gaps between existing halls, outside the playable corridor.
+        for x, world_z, width, depth, height in (
+                (-62, 18, 30, 36, 10), (66, 52, 30, 38, 13),
+                (-72, 140, 22, 20, 11), (64, 196, 26, 18, 9),
+                (-74, 284, 24, 26, 12), (76, 284, 26, 26, 9)):
+            z = world_z - 240
+            side = 1 if x > 0 else -1
+            self.block((x, 0.4, z), (width + 3, 0.8, depth + 3), 4, 1.2)
+            self.block((x, height / 2 + 0.7, z), (width, height, depth), 0, 1.2)
+            self.block((x, 1.4, z), (width + 0.6, 1.4, depth + 0.6), 1, 1.0)
+            self.block((x, height + 0.9, z), (width + 2, 0.8, depth + 2), 1, 1.2)
+            self.block((x, height + 1.4, z), (width + 1, 0.3, depth + 1), 0, 1.0)
+            inner_x = x - side * (width / 2 + 0.05)
+            self.block((inner_x, height * 0.68, z), (0.12, 2.2, depth * 0.7), 2)
+            self.block((inner_x - side * 0.04, height + 0.4, z), (0.16, 0.4, depth * 0.72), 3)
+            self.block((inner_x - side * 0.05, 3.2, z + depth * 0.2), (0.18, 4.4, 4), 1)
+            self.block((x + side * width * 0.18, height + 2.1, z), (5, 1.3, 8), 4, 0.35)
+        for side in (-1, 1):
+            for world_z in (40, 202, 286, 424):
+                z = world_z - 240
+                self.block((side * 77, 0.45, z), (2.4, 0.9, 14), 4, 0.3)
+                self.block((side * 77, 1.05, z), (2.0, 0.7, 13.5), 8, 0.35)
+
+    def build_campus_ground(self):
+        # One fixed campus. Service roads bend around the western annex;
+        # no geometry crosses the central flightway or follows the camera.
+        rectangles = []
+
+        def rect(x, world_z, width, length, y, material):
+            z = world_z - 162
+            rectangles.append((x - width / 2, x + width / 2,
+                               z - length / 2, z + length / 2, y, material))
+
+        for side in (-1, 1):
+            rect(side * 131.5, 162, 177, 648, 0.30, 8)
+            for world_z in (-116, -28, 60, 148, 236, 324, 412):
+                rect(side * 145, world_z, 104, 72, 0.34, 10)
+                rect(side * 145, world_z, 94, 62, 0.36, 11)
+            # Junctions and markings remain outside the flightway.
+            for world_z in (-72, 16, 104, 192, 280, 368, 456):
+                rect(side * 150, world_z, 132, 12, 0.38, 9)
+                for x in (104, 128, 152, 176, 200):
+                    rect(side * x, world_z, 10, 0.16, 0.40, 5)
+
+            if side < 0:
+                lanes = ((84, -9, 306), (96, 173, 58), (84, 344, 284))
+                rect(-90, 144, 22, 10, 0.38, 9)
+                rect(-90, 202, 22, 10, 0.38, 9)
+            else:
+                lanes = ((84, 162, 648),)
+            for x, z, length in lanes:
+                rect(side * x, z, 13, length, 0.34, 10)
+                rect(side * x, z, 10, length, 0.39, 9)
+                for world_z in range(math.ceil((z - length / 2 + 5) / 18) * 18,
+                                     math.floor(z + length / 2 - 5), 18):
+                    rect(side * x, world_z, 0.16, 6, 0.41, 5)
+
+            for world_z, length in ((18, 56), (98, 60), (145, 28),
+                                    (196, 30), (241, 58), (284, 28), (352, 88)):
+                rect(side * 64, world_z, 40, length, 0.35, 10)
+                rect(side * 63, world_z, 34, length - 4, 0.37, 11)
+                for offset in (-length / 2 + 7, length / 2 - 7):
+                    rect(side * 76, world_z + offset, 9, 0.18, 0.40, 5)
+            for world_z in (42, 196, 284, 422):
+                rect(side * 63, world_z, 42, 10, 0.42, 9)
+
+        # Bake the visible top into non-overlapping faces. Small height offsets
+        # between stacked paint/paving planes flicker when seen from high up.
+        xs = sorted({v for r in rectangles for v in r[:2]})
+        zs = sorted({v for r in rectangles for v in r[2:4]})
+        ordered = sorted(enumerate(rectangles), key=lambda item: (item[1][4], item[0]))
+        for x0, x1 in zip(xs, xs[1:]):
+            x = (x0 + x1) / 2
+            candidates = [r for _, r in ordered if r[0] <= x <= r[1]]
+            current = None
+            start_z = None
+
+            def emit(z1):
+                if current is not None:
+                    self.face([(x0, 0.36, start_z), (x1, 0.36, start_z),
+                               (x1, 0.36, z1), (x0, 0.36, z1)], current, (0, 1, 0))
+
+            for z0, z1 in zip(zs, zs[1:]):
+                z = (z0 + z1) / 2
+                visible = [r[5] for r in candidates if r[2] <= z <= r[3]]
+                material = visible[-1] if visible else None
+                if material != current:
+                    emit(z0)
+                    current, start_z = material, z0
+            emit(zs[-1])
+
+    def build_outer_building(self, kind):
+        # Local frontage stays at Z=0, matching the replaced city buildings.
+        # The body extends away from the service road after the existing yaw.
+        width, depth, height = {
+            "Support": (14, 12, 9),
+            "Operations": (18, 16, 19),
+            "Hangar": (22, 18, 13),
+        }[kind]
+        z = -depth / 2
+        self.block((0, 0.30, z), (width + 2, 0.60, depth + 2), 4, 0.7)
+        self.block((0, height / 2 + 0.6, z), (width, height, depth), 0, 0.8)
+        self.block((0, 1.0, z), (width + 0.3, 0.8, depth + 0.3), 1, 0.65)
+        self.block((0, height + 0.75, z), (width + 1.3, 0.7, depth + 1.3), 1, 1.0)
+        self.block((0, height + 1.25, z), (width + 1.7, 0.45, depth + 1.7), 0, 1.1)
+
+        if kind == "Hangar":
+            # Broad segmented doors and structural piers, rather than a grid
+            # of residential windows. Identification red stays above the bays.
+            for x in (-5.1, 5.1):
+                self.block((x, 5.4, 0.08), (8.8, 9.4, 0.18), 1)
+                self.block((x, 5.4, 0.20), (8.0, 8.6, 0.10), 4)
+                for y in (2.2, 4.2, 6.2, 8.2):
+                    self.block((x, y, 0.27), (8.0, 0.12, 0.06), 1)
+                self.block((x, 11.0, 0.10), (8.6, 0.48, 0.20), 3)
+            for x in (-10.2, 0, 10.2):
+                self.block((x, 6.4, 0.18), (0.7, 11.8, 0.48), 0, 0.1)
+            for side in (-1, 1):
+                self.block((side * (width / 2 + 0.04), 9.0, z),
+                           (0.16, 1.6, depth * 0.68), 2)
+        else:
+            levels = (6.2, 14.0) if kind == "Operations" else (6.0,)
+            for y in levels:
+                self.block((0, y, 0.07), (width - 2.6, 2.0, 0.16), 2)
+                self.block((0, y, -depth - 0.07), (width - 2.6, 2.0, 0.16), 2)
+                for side in (-1, 1):
+                    self.block((side * (width / 2 + 0.06), y, z),
+                               (0.16, 2.0, depth - 2.4), 2)
+                for x in (-width * 0.25, 0, width * 0.25):
+                    self.block((x, y, 0.18), (0.20, 2.1, 0.14), 1)
+            self.block((width * 0.22, 2.4, 0.12), (2.1, 3.6, 0.24), 1)
+            self.block((width * 0.22, 4.5, 0.8), (4.2, 0.35, 1.8), 0, 0.2)
+            self.block((-width * 0.19, height - 0.9, 0.12),
+                       (width * 0.40, 0.42, 0.24), 3)
+
+        # A setback plant enclosure and restrained roof equipment share the
+        # central facilities' construction details and keep the tower dominant.
+        if kind == "Operations":
+            self.block((0, 21.2, z - 2), (11, 3.2, 9), 0, 0.7)
+            self.block((0, 22.9, z - 2), (12, 0.4, 10), 1, 0.8)
+            self.block((0, 21.5, z + 2.6), (8.5, 1.3, 0.16), 2)
+            roof_y = 23.5
+        else:
+            roof_y = height + 1.9
+        for x in (-2.8, 2.8):
+            self.block((x, roof_y, z - 1.6), (3.2, 1.0, 4.2), 4, 0.25)
+            self.block((x, roof_y + 0.58, z - 1.6), (2.8, 0.16, 3.8), 1, 0.2)
 
     def build_flightway(self):
         # A flush surface covers the inherited car-lane markings. Guidance
@@ -498,7 +654,7 @@ class District:
             self.block((0, 0.335, z), (0.25, 0.02, 12), 5)
 
     def save(self, output, asset_name, selected, surface=False, overhead=False, surface_ceiling=0.12,
-             surface_period=0):
+             surface_period=0, max_half_depth=250, local_building=False):
         output.mkdir(parents=True, exist_ok=True)
         selected = {index for index in selected if self.groups[index]["p"]}
         doc = {"asset": {"version": "2.0", "generator": "AZRAID PrepareAviationDistrict.py"},
@@ -552,26 +708,53 @@ class District:
                 triangle = [g["p"][i[0]] for i in g["i"][start:start + 3]]
                 if surface:
                     assert all(0.0 <= v[1] <= surface_ceiling for v in triangle)
-                else:
+                elif not local_building:
                     outside = min(v[0] for v in triangle) > 17 or max(v[0] for v in triangle) < -17
                     assert outside or (overhead and min(v[1] for v in triangle) >= 26.5)
         vertices = [v for index, g in enumerate(self.groups) if index in selected for v in g["p"]]
         bounds = [[min(v[i] for v in vertices) for i in range(3)],
                   [max(v[i] for v in vertices) for i in range(3)]]
-        assert -250 < bounds[0][2] and bounds[1][2] < 250
+        assert -max_half_depth <= bounds[0][2] and bounds[1][2] <= max_half_depth
+        if local_building:
+            # Runtime places the frontage beyond X=94m in the opening campus.
+            # Keep these local modules within the inherited building footprint.
+            assert bounds[0][0] >= -13 and bounds[1][0] <= 13
+            assert bounds[0][1] >= 0 and bounds[1][1] <= 25
+            assert bounds[0][2] >= -20 and bounds[1][2] <= 2
         doc["buffers"] = [{"uri": asset_name + ".bin", "byteLength": len(binary)}]
         (output / (asset_name + ".bin")).write_bytes(binary)
         (output / (asset_name + ".gltf")).write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
         print(f"{asset_name}: {len(vertices)} vertices, {len(selected)} batches, {len(binary)} bytes")
-        print("Bounds:", bounds, "flush flightway" if surface else "flight corridor clear")
+        label = "local building footprint" if local_building else (
+            "flush flightway" if surface else "flight corridor clear")
+        print("Bounds:", bounds, label)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--campus-only", action="store_true")
+    parser.add_argument("--outer-only", action="store_true")
+    options = parser.parse_args()
+    output = Path(__file__).resolve().parents[1] / "resources/scenery/aviation_district"
+    for kind in ("Support", "Operations", "Hangar"):
+        building = District()
+        building.build_outer_building(kind)
+        building.save(output, "AviationBuilding" + kind, {0, 1, 2, 3, 4}, local_building=True)
+    if options.outer_only:
+        raise SystemExit(0)
     district = District()
     district.build()
-    output = Path(__file__).resolve().parents[1] / "resources/scenery/aviation_district"
-    district.save(output, "AviationDistrict", {0, 1, 3, 4, 5, 6})
+    district.save(output, "AviationDistrict", {0, 1, 3, 4, 5, 6, 8})
     district.save(output, "AviationGlazing", {2})
+    campus_ground = District()
+    campus_ground.build_campus_ground()
+    campus_ground.save(output, "AviationCampusGround", {5, 8, 9, 10, 11},
+                       surface=True, surface_ceiling=0.45, max_half_depth=330)
+    terrain = District()
+    terrain.paving(1600, 256, 0, material=8)
+    terrain.save(output, "AviationTerrain", {8}, surface=True, surface_ceiling=0)
+    if options.campus_only:
+        raise SystemExit(0)
     flightway = District()
     flightway.build_flightway()
     flightway.save(output, "AviationFlightway", {5, 7}, surface=True)
@@ -599,6 +782,3 @@ if __name__ == "__main__":
     apron_surface.build_boss_apron_surface()
     apron_surface.save(output, "AviationBossApronSurface", {4, 5, 7}, surface=True, surface_ceiling=0.36,
                        surface_period=256)
-    terrain = District()
-    terrain.paving(1600, 256, 0, material=4)
-    terrain.save(output, "AviationTerrain", {4}, surface=True, surface_ceiling=0)

@@ -1,3 +1,5 @@
+// 画面の色を輝度から求めたグレーへ変換する。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

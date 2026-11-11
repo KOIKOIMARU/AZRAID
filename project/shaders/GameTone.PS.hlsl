@@ -1,3 +1,5 @@
+// 通常プレイ画面の合成。シーンの色と深度を使い、輪郭の補正、飛行ブラー、霧や色調整を適用する。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);
@@ -25,6 +27,12 @@ cbuffer GameToneParameter : register(b0)
     float32_t flightBlurAspect;
     float32_t2 flightBlurPlayer;
     float32_t2 flightBlurReticle;
+    float32_t4x4 cameraClipToPreviousClip;
+    float32_t cameraBlurExposureScale;
+    int32_t flightBlurMode;
+    float32_t2 cameraBlurPadding;
+    float32_t4 riftCenterRadius[8];
+    float32_t4 riftPhaseDepth[8];
 };
 
 struct PixelShaderOutput {
@@ -170,6 +178,7 @@ float32_t3 ApplyCinematicGrade(
     return ApplyColorTemperature(color, colorTemperature);
 }
 
+// 画面上のUVと深度を投影の逆変換へ通し、カメラを基準とした3D位置を求める。
 float32_t3 ReconstructViewPosition(float32_t2 texcoord, float32_t ndcDepth) {
     float32_t4 ndcPosition = float32_t4(
         texcoord.x * 2.0f - 1.0f,
@@ -192,9 +201,10 @@ float32_t FetchViewDepth(float32_t2 texcoord) {
     return abs(FetchViewPosition(texcoord).z);
 }
 
+// 飛行時のブラーをかける。カメラの移動と深度を使い、照準周辺が読めるように抑える。
 float32_t3 ApplyFlightBlur(float32_t2 uv, float32_t3 sourceColor, float32_t viewDepth)
 {
-    if (flightBlurStrength <= 0.002f) { return sourceColor; }
+    if (flightBlurMode == 0 || flightBlurStrength <= 0.002f) { return sourceColor; }
     float32_t2 ray = uv - flightBlurCenter;
     float32_t2 screenMetric = float32_t2(flightBlurAspect, 1.0f);
     // 中央の戦闘領域・自機・照準の周囲は鮮明なまま残す。
@@ -204,16 +214,44 @@ float32_t3 ApplyFlightBlur(float32_t2 uv, float32_t3 sourceColor, float32_t view
     float32_t aimMask = smoothstep(0.13f, 0.24f, length((uv - flightBlurReticle) * screenMetric));
     float32_t amount = flightBlurStrength * edge * playerMask * aimMask * smoothstep(2.0f, 8.0f, viewDepth);
     if (amount <= 0.002f) { return sourceColor; }
+    // 手前の路面・側方だけ長く流す。遠景を同じ長さでにじませない。
+    float32_t nearFlow = 1.0f - smoothstep(18.0f, 95.0f, viewDepth);
+    float32_t2 blurOffset = ray * (amount * (0.090f + nearFlow * 0.110f));
+    if (flightBlurMode >= 2) {
+        if (cameraBlurExposureScale <= 0.0f) { return sourceColor; }
+        float32_t depth = gDepthTexture.SampleLevel(gSamplerPoint, uv, 0);
+        // 背景が空で深度を持たない画素は除外。半透明の物体固有の速度は扱わない。
+        if (depth >= 0.9999f) { return sourceColor; }
+        float32_t4 currentClip = float32_t4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, depth, 1.0f);
+        float32_t4 previousClip = mul(currentClip, cameraClipToPreviousClip);
+        if (previousClip.w <= 0.00001f) { return sourceColor; }
+        float32_t2 previousUv = previousClip.xy / previousClip.w * float32_t2(0.5f, -0.5f) + 0.5f;
+        blurOffset = (uv - previousUv) * cameraBlurExposureScale * (0.40f + amount);
+        float32_t distance = length(blurOffset * screenMetric);
+        // カメラの急変と近距離面でも、サンプル列が画面を横断しない上限。
+        blurOffset *= min(1.0f, 0.025f / max(distance, 0.000001f));
+        if (flightBlurMode == 3) {
+            float32_t2 direction = blurOffset * screenMetric / max(min(distance, 0.025f), 0.000001f);
+            float32_t magnitude = saturate(distance / 0.025f);
+            return lerp(sourceColor, float32_t3(direction * 0.5f + 0.5f, magnitude), 0.85f);
+        }
+        if (distance < 0.00005f) { return sourceColor; }
+    }
     float32_t3 accumulated = sourceColor;
     float32_t totalWeight = 1.0f;
     [unroll]
     for (int32_t index = 1; index <= 6; ++index) {
         float32_t t = float32_t(index) / 6.0f;
-        float32_t2 sampleUv = saturate(uv - ray * (amount * 0.090f * t));
+        float32_t2 rawSampleUv = uv - blurOffset * t;
+        float32_t2 sampleUv = saturate(rawSampleUv);
         // 建物と敵など深度が離れた面同士を混ぜず、輪郭のにじみを抑える。
         float32_t depthDelta = abs(FetchViewDepth(sampleUv) - viewDepth);
         float32_t weight = (1.0f - t * 0.45f) *
             (1.0f - smoothstep(max(2.0f, viewDepth * 0.06f), max(4.0f, viewDepth * 0.14f), depthDelta));
+        // 端の画素を繰り返して帯状に引き延ばさない。
+        if (flightBlurMode >= 2) {
+            weight *= all(rawSampleUv >= 0.0f) && all(rawSampleUv <= 1.0f) ? 1.0f : 0.0f;
+        }
         accumulated += gTexture.SampleLevel(gSamplerLinear, sampleUv, 0).rgb * weight;
         totalWeight += weight;
     }
@@ -221,6 +259,7 @@ float32_t3 ApplyFlightBlur(float32_t2 uv, float32_t3 sourceColor, float32_t view
     return lerp(sourceColor, accumulated / totalWeight, min(amount * 1.2f, 0.55f));
 }
 
+// 周囲の深度を比べて、近くの面に遮られているところを少し暗くする。
 float32_t CalculateScreenSpaceAO(
     float32_t2 texcoord,
     float32_t2 texelSize,
@@ -268,6 +307,36 @@ float32_t CalculateScreenSpaceAO(
     return 1.0f - saturate(occlusion / 8.0f) * 0.48f * nearFade;
 }
 
+// リング周辺の画素をずらして屈折を見せる。手前にある物体は深度を使って保護する。
+float32_t3 ApplyRiftLenses(float32_t2 uv, float32_t2 texel, float32_t3 color, float32_t viewDepth)
+{
+    [unroll]
+    for (int index = 0; index < 8; ++index) {
+        float32_t4 lens = riftCenterRadius[index];
+        float32_t4 state = riftPhaseDepth[index];
+        if (state.z <= 0.0f || viewDepth < state.y - 0.4f) { continue; }
+        float32_t2 q = (uv - lens.xy) / max(lens.zw, float32_t2(0.0001f, 0.0001f));
+        float32_t radius = length(q);
+        if (radius < 0.001f || radius >= 1.0f) { continue; }
+        float32_t angle = atan2(q.y, q.x);
+        float32_t edge = smoothstep(0.35f, 0.78f, radius) * (1.0f - smoothstep(0.92f, 1.0f, radius));
+        float32_t ripple = sin(radius * 21.0f - state.x * 2.7f + angle * 3.0f);
+        float32_t2 tangent = float32_t2(-q.y, q.x);
+        float32_t2 offset = (q * ripple * 5.0f + tangent * 2.0f) * texel * edge * state.z;
+        offset += q * lens.zw * (1.0f - radius * radius) * 0.025f * state.z;
+        float32_t2 sampleUv = saturate(uv + offset);
+        // 手前の機体・建物の輪郭を屈折で引き込まない。
+        if (FetchViewDepth(sampleUv) < state.y - 0.4f) { continue; }
+        float32_t2 split = q * texel * edge * 1.5f * state.z;
+        float32_t3 refracted = gTexture.SampleLevel(gSamplerLinear, sampleUv, 0).rgb;
+        refracted.r = gTexture.SampleLevel(gSamplerLinear, saturate(sampleUv + split), 0).r;
+        refracted.b = gTexture.SampleLevel(gSamplerLinear, saturate(sampleUv - split), 0).b;
+        refracted *= lerp(float32_t3(1, 1, 1), float32_t3(0.94f, 0.89f, 1.04f), edge * 0.30f);
+        color = lerp(color, refracted, saturate(state.z) * (0.45f + edge * 0.40f));
+    }
+    return color;
+}
+
 PixelShaderOutput main(VertexShaderOutput input) {
     uint32_t width;
     uint32_t height;
@@ -289,6 +358,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
     float32_t ndcDepth =
         gDepthTexture.Sample(gSamplerPoint, input.texcoord);
     float32_t skyMask = step(0.9999f, ndcDepth);
+    // 輪郭のジャギーと遠景の細かなちらつきを先に抑え、その色に飛行・リングの効果を重ねる。
     baseColor = ApplyEdgeAntialias(input.texcoord, uvStepSize, baseColor);
     baseColor = ApplyDistantShimmerReduction(
         input.texcoord,
@@ -297,6 +367,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
         viewDepth,
         skyMask);
     baseColor = ApplyFlightBlur(input.texcoord, baseColor, viewDepth);
+    baseColor = ApplyRiftLenses(input.texcoord, uvStepSize, baseColor, viewDepth);
     float32_t3 color = lerp(baseColor, softColor, 0.050f);
     color += (baseColor - softColor) * 0.12f;
 

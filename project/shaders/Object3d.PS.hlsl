@@ -1,3 +1,5 @@
+// 3D物体の画素色を求める。テクスチャ・材質・ライト・影・環境反射を組み合わせる。
+
 #include "Object3d.hlsli" 
 
 cbuffer MaterialCB : register(b0)
@@ -43,6 +45,7 @@ struct PixelShaderOutput
     float4 color : SV_TARGET0;
 };
 
+// 光源から見た位置を影用の深度と比較し、直射光が届く割合を求める。
 float CalculateDirectionalShadow(float3 worldPosition, float3 normal, float3 lightToSurface)
 {
     if (gDirectionalLight.shadowMapEnabled < 0.5f ||
@@ -127,6 +130,7 @@ float3 CalculateDiffuseEnvironment(float3 normal, float roughness, float metalli
     return hemisphereColor * surfaceWrap * diffuseStrength;
 }
 
+// テクスチャの法線をワールド座標の方向へ変換し、面の細かい凹凸をライティングに反映する。
 float3 ApplyNormalMap(
     float3 geometryNormal,
     float3 worldPosition,
@@ -165,9 +169,101 @@ float3 ApplyNormalMap(
         geometryNormal * tangentNormal.z);
 }
 
+float3 SampleFlameFrame(float2 uv, float frame)
+{
+    // 公開された元画像の実配置は16列×5行。各コマは同じ位置に火元がある。
+    float2 cell = float2(fmod(frame, 16.0f), floor(frame / 16.0f));
+    float2 pixel = 0.5f / float2(128.0f, 1024.0f / 5.0f);
+    uv.y *= 0.965f; // 下端の余白を除き、発光している部分を部品の表面につなぐ。
+    float2 local = lerp(pixel, 1.0f - pixel, saturate(uv));
+    return gTexture.SampleLevel(gSampler, (cell + local) / float2(16.0f, 5.0f), 0.0f).rgb;
+}
+
+float4 DrawFlame(float2 uv)
+{
+    float time = gMaterial.uvTransform[0][3];
+    float seed = gMaterial.uvTransform[1][3];
+    if (frac(seed * 0.37f) > 0.5f) { uv.x = 1.0f - uv.x; }
+    // 火元を動かさず、上部だけが流れる。画像全体を拡大縮小して脈打たせない。
+    uv.x += (1.0f - uv.y) * (1.0f - uv.y) * sin(time * 0.65f + seed) * 0.045f;
+    float frame = fmod(time * (28.0f + frac(seed) * 3.0f) + seed * 13.7f, 80.0f);
+    float current = floor(frame);
+    float3 emission = lerp(SampleFlameFrame(uv, current),
+        SampleFlameFrame(uv, fmod(current + 1.0f, 80.0f)), frac(frame));
+    float intensity = max(emission.r, max(emission.g, emission.b));
+    // 炎の発光は加算で描き、煙の吸収は別の透過面に任せる。
+    // LDR描画先なので、透過率でRGBを割って色を白く飽和させない。
+    float opacity = pow(saturate(intensity), 0.45f) * 0.85f;
+    opacity *= smoothstep(0.0002f, 0.002f, intensity);
+    float3 colour = emission * gMaterial.color.rgb * float3(0.95f, 0.85f, 0.80f);
+    return float4(colour, opacity * gMaterial.color.a);
+}
+
+float4 SampleWreckSmoke(float2 uv, float frame)
+{
+    float2 cell = float2(fmod(frame, 8.0f), floor(frame / 8.0f));
+    float2 local = lerp(0.5f / 128.0f, 1.0f - 0.5f / 128.0f, saturate(uv));
+    return gTexture.SampleLevel(gSampler, (cell + local) / 8.0f, 0.0f);
+}
+
+float4 DrawWreckSmoke(float2 uv)
+{
+    float age = gMaterial.uvTransform[0][3];
+    float seed = gMaterial.uvTransform[1][3];
+    if (frac(seed * 0.17f) > 0.5f) { uv.x = 1.0f - uv.x; }
+    float frame = fmod(age * 18.0f + seed * 7.3f, 64.0f);
+    float current = floor(frame);
+    float4 soot = lerp(SampleWreckSmoke(uv, current),
+        SampleWreckSmoke(uv, fmod(current + 1.0f, 64.0f)), frac(frame));
+    float shade = 0.55f + sqrt(soot.r) * 0.65f;
+    return float4(gMaterial.color.rgb * shade, saturate(soot.a * 1.7f) * gMaterial.color.a);
+}
+
+float FuelNoise(float2 p)
+{
+    float2 cell = floor(p);
+    float2 f = frac(p);
+    f = f * f * (3.0f - 2.0f * f);
+    float4 n = frac(sin(float4(dot(cell, float2(127.1f, 311.7f)),
+        dot(cell + float2(1, 0), float2(127.1f, 311.7f)),
+        dot(cell + float2(0, 1), float2(127.1f, 311.7f)),
+        dot(cell + 1.0f, float2(127.1f, 311.7f)))) * 43758.5453f);
+    return lerp(lerp(n.x, n.y, f.x), lerp(n.z, n.w, f.x), f.y);
+}
+
+float4 DrawBurntFuel(float2 uv)
+{
+    float seed = gMaterial.uvTransform[1][3];
+    float2 p = (uv - 0.5f) * 2.0f;
+    float rough = FuelNoise(p * 4.2f + seed) * 0.10f + FuelNoise(p * 11.0f - seed) * 0.04f;
+    float edge = min(length(p / float2(0.83f, 0.94f)),
+        length((p - float2(0.25f, -0.28f)) / float2(0.65f, 0.59f))) + rough;
+    float mask = 1.0f - smoothstep(0.88f, 1.02f, edge);
+    float3 colour = lerp(float3(0.012f, 0.009f, 0.007f), float3(0.040f, 0.031f, 0.022f),
+        FuelNoise(p * 6.0f + seed));
+    return float4(colour, mask * gMaterial.color.a);
+}
+
 PixelShaderOutput main(VertexShaderOutput input)
 {
     PixelShaderOutput output;
+
+    // 墜落時の炎・煙・燃料は、それぞれ専用の計算で色と透明度を求める。
+    if (gMaterial.lightingMode == 3) {
+        output.color = DrawFlame(input.texcoord);
+        if (output.color.a < 0.0005f) { discard; }
+        return output;
+    }
+    if (gMaterial.lightingMode == 4) {
+        output.color = DrawWreckSmoke(input.texcoord);
+        if (output.color.a < 0.003f) { discard; }
+        return output;
+    }
+    if (gMaterial.lightingMode == 5) {
+        output.color = DrawBurntFuel(input.texcoord);
+        if (output.color.a < 0.003f) { discard; }
+        return output;
+    }
 
     float2 uv = mul(float4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform).xy;
     float4 tex = gTexture.Sample(gSampler, uv);
@@ -197,6 +293,7 @@ PixelShaderOutput main(VertexShaderOutput input)
     {
         float3 toEye = normalize(gCamera.worldPosition - input.worldPosition);
 
+        // 方向光は画面全体で向きが一定。面の法線との角度と影から受ける光を計算する。
         float3 Ld = normalize(-gDirectionalLight.direction);
         float NdotLd = dot(normal, Ld);
         float diffuseFactorDir = saturate(NdotLd);
@@ -257,6 +354,7 @@ PixelShaderOutput main(VertexShaderOutput input)
             specularTint *
             specularEnergy;
 
+        // スポットライトは距離に加え、光が届く円すいの角度でも減衰させる。
         float3 LsFromLight = input.worldPosition - gSpotLight.position;
         float distS = length(LsFromLight);
         float3 Ls =
@@ -299,6 +397,7 @@ PixelShaderOutput main(VertexShaderOutput input)
 
         float3 cameraToPosition =
             normalize(input.worldPosition - gCamera.worldPosition);
+        // 反射方向から環境画像を読み、粗さや金属度に合わせて反射の強さを変える。
         float3 reflectedVector = reflect(cameraToPosition, normal);
         float viewFresnel =
             pow(1.0f - saturate(dot(normal, toEye)), 4.0f);

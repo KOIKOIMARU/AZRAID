@@ -1,3 +1,5 @@
+// 中心に近い画素ほど大きな重みで足すガウスぼかし。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

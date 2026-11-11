@@ -1,3 +1,5 @@
+// 周囲の画素をならしてから、ブルームに使う明るい部分を抜き出す。
+
 #include "BloomCommon.hlsli"
 
 PixelShaderOutput main(VertexShaderOutput input)

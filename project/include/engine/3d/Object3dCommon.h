@@ -1,7 +1,10 @@
+// 3D物体が共有する描画設定と、影を作るための深度画像を管理する。
+
 #pragma once
 #include <array>
 #include <cstdint>
 #include <string>
+#include <future>
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -36,6 +39,8 @@ public:
         DirectXCommon* dxCommon,
         SrvManager* srvManager
     );
+    void BeginInitialize(DirectXCommon* dxCommon, SrvManager* srvManager);
+    bool InitializeStep();
 
     ID3D12RootSignature* GetRootSignature() const { return rootSignature_.Get(); }
     ID3D12PipelineState* GetPipelineState() const {
@@ -83,7 +88,7 @@ public:
 
 private:
     void CreateRootSignature();
-    void CreateGraphicsPipelineState();
+    bool CreateGraphicsPipelineStateStep();
     void CreateShadowMap();
     void TransitionShadowMap(D3D12_RESOURCE_STATES nextState);
     void RestoreMainRenderTarget();
@@ -101,6 +106,10 @@ private:
             static_cast<size_t>(BlendMode::Count)>,
         static_cast<size_t>(DepthDrawMode::Count)> pipelineStates_;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> shadowPipelineState_;
+    std::future<Microsoft::WRL::ComPtr<ID3D12PipelineState>> pendingPipeline_;
+    uint32_t pendingDepthMode_ = 0;
+    uint32_t pendingBlendMode_ = 0;
+    bool pendingShadowPipeline_ = false;
     BlendMode blendMode_ = BlendMode::Normal;
     DepthDrawMode depthDrawMode_ = DepthDrawMode::Normal;
 

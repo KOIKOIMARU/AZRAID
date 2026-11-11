@@ -1,3 +1,5 @@
+// GPU上のパーティクルの発生・更新・描画を、グループ単位で管理する。
+
 #pragma once
 
 #include <unordered_map>

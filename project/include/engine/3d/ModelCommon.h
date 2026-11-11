@@ -1,3 +1,5 @@
+// モデルの初期化と描画が参照するDirectXの共通機能を保持する。
+
 #pragma once
 #include "engine/base/DirectXCommon.h"
 #include <string>

@@ -1,3 +1,5 @@
+// 周囲の画素をガウスぼかしでなじませてから、画面の縁を暗くする。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

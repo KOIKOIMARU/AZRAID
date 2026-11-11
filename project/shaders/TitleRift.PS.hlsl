@@ -1,3 +1,5 @@
+// タイトル・ステージ選択の切断演出。開口部、切断面の光、機体の航跡を画面座標で計算する。
+
 #include "Fullscreen.hlsli"
 
 cbuffer TitleComposition : register(b0)
@@ -6,7 +8,8 @@ cbuffer TitleComposition : register(b0)
     float elapsed;
     float departure;
     float4 flyby; // 光位置、航跡の余韻、3パターンの時計（+24:横断面）、航跡モード（1:左右、2:遠方）。
-    float4 engines[2]; // 実モデルの左右ノズルの画面位置と、噴射方向。
+    // 航跡モード: 実モデルの左右ノズル。出撃の背景モード: CPUが評価した共通の切断姿勢。
+    float4 engines[2];
     float4 wakePoints[12]; // 近距離は左右6点、遠方は1本12点の実飛行位置、幅、強度。
 };
 
@@ -48,6 +51,64 @@ float2 WakeCurve(float2 previous, float2 start, float2 end, float2 next, float t
 
 float4 main(VertexShaderOutput input) : SV_TARGET0
 {
+    if (flyby.w > 5.5f)
+    {
+        float fit = min(resolution.x / 1280.0f, resolution.y / 720.0f);
+        float2 canvas = (input.texcoord * resolution - (resolution - float2(1280,720) * fit) * 0.5f) / fit;
+        float2 lens = (canvas-engines[0].xy)/float2(760,420);
+        float core = exp(-dot(lens,lens)*5.0f);
+        float passEnergy = Ease((elapsed-0.55f)/0.022f)*(1.0f-Ease((elapsed-0.65f)/0.13f));
+        float sweepX = 1600.0f-2200.0f*Ease((elapsed-0.53f)/0.25f);
+        float diagonal = (canvas.y-390.0f)-(canvas.x-sweepX)*0.12f;
+        float wake = exp(-diagonal*diagonal/4200.0f)*exp(-pow((canvas.x-sweepX)/420.0f,2.0f))*passEnergy;
+        float ring = exp(-pow((length(lens)-max(elapsed-0.58f,0.0f)*5.0f)/0.065f,2.0f))*passEnergy*0.20f;
+        float alpha = saturate(wake*0.68f+ring);
+        return float4(lerp(float3(0.83f,0.93f,1.0f),float3(1,1,1),core),alpha);
+    }
+    if (flyby.w > 4.5f)
+    {
+        float fit = min(resolution.x / 1280.0f, resolution.y / 720.0f);
+        float2 canvas = (input.texcoord * resolution - (resolution - float2(1280,720) * fit) * 0.5f) / fit;
+        float zoom = max(engines[1].z,1.0f);
+        float2 metalCanvas = engines[1].xy+(canvas-engines[1].xy)/zoom;
+        float signedDistance = (metalCanvas.y - (engines[0].x + metalCanvas.x * engines[0].y))*zoom;
+        // 通過の衝撃で上下を逆方向へ回転させ、開口を画面外まで押し広げる。
+        float kick = wakePoints[0].x;
+        signedDistance += sign(signedDistance)*(canvas.x-640.0f)*kick*0.10f;
+        float edge = abs(signedDistance) - engines[0].z*zoom - kick*620.0f;
+        if (wakePoints[1].x > 0.5f)
+        {
+            float upper = wakePoints[1].y+canvas.x*wakePoints[1].z;
+            float lower = wakePoints[1].w+canvas.x*wakePoints[2].x;
+            edge = max(upper-canvas.y,canvas.y-lower);
+            signedDistance = edge;
+        }
+        float aa = max(fwidth(signedDistance),0.8f);
+        float alpha = smoothstep(-aa,aa,edge);
+        float2 centered = (canvas - float2(640,340)) / float2(760,440);
+        float vignette = saturate(1.0f-dot(centered,centered)*0.38f);
+        float3 color = lerp(float3(0.0014f,0.0030f,0.0080f),float3(0.0050f,0.0150f,0.0400f),vignette);
+        // 斬った面だけに反射と冷めていく熱を置く。都市の上へ装飾線を引かない。
+        float rim = exp(-max(edge,0.0f)/(1.8f*sqrt(zoom))) * alpha;
+        float heat = engines[0].w;
+        color += float3(0.025f,0.040f,0.062f)*rim*(1.0f+engines[1].w*12.0f);
+        color += float3(1.0f,0.19f,0.025f)*exp(-max(edge,0.0f)/7.0f)*heat*alpha;
+        return float4(color,alpha);
+    }
+    if (flyby.w > 3.5f)
+    {
+        float2 uv = input.texcoord;
+        float2 p = (uv - float2(0.66f,0.57f)) * float2(1.35f,1.0f);
+        float light = exp(-dot(p,p)*5.0f);
+        float3 stageColor = lerp(float3(0.0018f,0.0035f,0.009f),float3(0.010f,0.019f,0.035f),light);
+        float cloud = exp(-pow((uv.y - 0.29f + sin(uv.x*3.0f + elapsed*0.09f)*0.08f)/0.10f,2.0f));
+        stageColor += float3(0.004f,0.006f,0.010f)*cloud;
+        return float4(stageColor,1.0f);
+    }
+    if (flyby.w > 2.5f)
+    {
+        return float4(1.0f, 1.0f, 1.0f, engines[1].w);
+    }
     float fit = min(resolution.x / 1280.0f, resolution.y / 720.0f);
     float2 canvas = (input.texcoord * resolution - (resolution - float2(1280,720) * fit) * 0.5f) / fit;
     float2 screenCanvas = canvas;
@@ -78,6 +139,19 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
     float shock = sin(responseTime * 42.0f) * exp(-responseTime / 0.16f) * 7.0f;
     float2 drift = float2(sin(elapsed * 0.43f) * 12.0f * ready + shock,
         sin(elapsed * 0.67f) * 6.0f * ready - impulse * 10.0f + shock * 0.22f);
+    // TitleScene.cppのGetLogoMotionと共通。待機は動かさず、出撃だけを圧縮・打撃する。
+    float departureImpactTime = engines[0].z;
+    float departureImpact = engines[0].w;
+    if (departure > 0.0f && flyby.w < 0.5f)
+    {
+        float departureCharge = engines[0].y;
+        float kick = sin(departureImpactTime * 65.0f) * exp(-departureImpactTime / 0.10f) * 16.0f;
+        float strain = sin(departure * 130.0f) * flyby.y;
+        zoom *= 1.0f - departureCharge * 0.035f + departureImpact * 0.085f;
+        angle += departureImpact * 0.025f;
+        drift += float2(kick + flyby.y * 3.5f + strain,
+            -departureImpact * 9.0f - kick * 0.18f - strain * 0.18f);
+    }
     float2 moving = canvas - float2(641.25f,334.5f) - drift;
     canvas = float2(641.25f,334.5f) + float2(moving.x * cos(angle) + moving.y * sin(angle),
         -moving.x * sin(angle) + moving.y * cos(angle)) / zoom;
@@ -103,6 +177,7 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
         float white = 0.0f;
         float proximity = dash;
         bool orbitalWake = flyby.w > 1.5f;
+        bool stageWake = flyby.w > 1.1f && flyby.w < 1.5f;
         int pointCount = orbitalWake ? 12 : 6;
         [loop]
         for (int nozzle = 0; nozzle < (orbitalWake ? 1 : 2); ++nozzle)
@@ -116,9 +191,12 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
             float halo = exp(-pow(distance / ((5.0f + proximity * 3.0f) * taper),2.0f));
             float wake = smoothstep(3.0f,18.0f,behind) *
                 (1.0f - smoothstep(60.0f,115.0f,behind)) * exp(-max(behind,0.0f) / 70.0f);
-            alpha = max(alpha,saturate((core * 0.88f + halo * 0.18f) * wake * flyby.y *
-                (0.65f + proximity * 0.35f)));
-            white = max(white,core);
+            // ステージの噴流はノズルへ固定した3Dの板で描く。固定長の画面内の線を重ねない。
+            if (!stageWake) {
+                alpha = max(alpha,saturate((core * 0.88f + halo * 0.18f) * wake * flyby.y *
+                    (0.65f + proximity * 0.35f)));
+                white = max(white,core);
+            }
             float nearestSquared = 100000000.0f;
             float nearestWidth = 1.0f;
             float nearestStrength = 0.0f;
@@ -246,13 +324,9 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
     if (departure > 0.0f)
     {
         // TitleScene.cppのDepartureOffsetと同じ移動。半透明の隙間には本編を描く。
-        float cutTime = departure - 0.24f;
-        float chargeUp = Ease(departure / 0.24f) * (1.0f - Ease(cutTime / 0.035f));
-        float hit = cutTime >= 0.0f ? Ease(cutTime / 0.014f) * exp(-cutTime / 0.14f) : 0.0f;
-        float openTime = max(0.0f,departure - 0.35f);
-        float travel = 740.0f * pow(saturate(openTime / 0.65f),1.40f);
-        float recoil = Ease(openTime / 0.025f) * exp(-openTime / 0.12f) * 26.0f;
-        float2 offset = float2((travel + recoil) * 0.30f,-travel - recoil);
+        float chargeUp = engines[0].y;
+        float hit = departureImpact;
+        float2 offset = engines[1].xy;
         float cutDistance = DepartureCutDistance(screenCanvas,float2(0,0),drift,angle,zoom);
         float upperDistance = DepartureCutDistance(screenCanvas,offset,drift,angle,zoom);
         float lowerDistance = DepartureCutDistance(screenCanvas,-offset,drift,angle,zoom);
@@ -260,17 +334,42 @@ float4 main(VertexShaderOutput input) : SV_TARGET0
         float cutAa = max(fwidth(cutDistance),0.8f);
         float upperPanel = 1.0f - smoothstep(-gap - cutAa,-gap + cutAa,upperDistance);
         float lowerPanel = smoothstep(gap - cutAa,gap + cutAa,lowerDistance);
-        float alpha = departure > 0.35f ? saturate(upperPanel + lowerPanel) : 1.0f;
+        float alpha = flyby.w < -0.5f ? saturate(upperPanel + lowerPanel) : 1.0f;
         float movingEdge = min(abs(upperDistance + gap),abs(lowerDistance - gap));
-        float cutHead = -120.0f + 1520.0f * Ease(cutTime / 0.11f);
-        float completed = Ease((cutHead - screenCanvas.x) / 65.0f);
-        float cutActive = cutTime >= 0.0f ? 1.0f - Ease((cutTime - 0.11f) / 0.12f) : 0.0f;
-        color *= 1.0f - chargeUp * 0.22f;
-        color += float3(0.26f,0.37f,0.56f) * exp(-abs(cutDistance) / 3.0f) * chargeUp * chargeUp;
-        color += float3(0.94f,0.98f,1.0f) * exp(-pow(cutDistance / 2.6f,2.0f)) * completed * cutActive;
-        color += float3(0.12f,0.21f,0.40f) * exp(-abs(cutDistance) / 34.0f) * hit;
+        float cutHead = engines[0].x;
+        float completed = Ease((cutHead - neutralX) / 65.0f);
+        float cutActive = engines[1].z;
+        color *= 1.0f - chargeUp * 0.55f;
+        float alongBlade = exp(-pow((neutralX - 700.0f) / 800.0f,2.0f));
+        float compression = exp(-pow(cutDistance / (19.0f - chargeUp * 15.0f),2.0f));
+        color += float3(0.36f,0.46f,0.64f) * compression * chargeUp * chargeUp * alongBlade;
+        color += float3(0.94f,0.98f,1.0f) * exp(-pow(cutDistance / 4.0f,2.0f)) * completed * cutActive;
+        color += float3(0.12f,0.21f,0.40f) * exp(-abs(cutDistance) / 55.0f) * hit;
+        // 一度だけ立つ幅広い衝撃面。黒いロゴと白い刃を同じ瞬間に読ませる。
+        float impactFace = exp(-pow(cutDistance / 92.0f,2.0f)) * alongBlade;
+        color += float3(0.93f,0.97f,1.0f) * impactFace * departureImpact * 2.80f;
+        float pressureTime = departureImpactTime;
+        float pressurePresence = Ease(pressureTime / 0.015f) * (1.0f - Ease((pressureTime - 0.08f) / 0.18f));
+        float pressureDistance = abs(cutDistance) - 38.0f - departureImpactTime * 1750.0f;
+        float pressureWidth = 8.0f + departureImpactTime * 24.0f;
+        float pressureFront = exp(-pow(pressureDistance / pressureWidth,2.0f));
+        color += float3(0.34f,0.43f,0.60f) * pressureFront * pressurePresence * alongBlade;
         color += float3(0.70f,0.82f,1.0f) * exp(-movingEdge / 2.0f) * hit;
-        color += float3(0.045f,0.078f,0.15f) * exp(-movingEdge / 30.0f) * hit;
+        color += float3(0.09f,0.13f,0.23f) * exp(-movingEdge / 45.0f) *
+            max(hit,departureImpact);
+        if (flyby.w < -0.5f && wakePoints[1].x > 0.5f)
+        {
+            // 選択画面に渡す面はここから固定。別の面を重ねたり再配置しない。
+            float distance = screenCanvas.y-(wakePoints[0].x+screenCanvas.x*wakePoints[0].y);
+            float width = lerp(1.0f,wakePoints[0].z,Ease((departure-0.60f)/0.55f));
+            float edge = abs(distance)-width;
+            float edgeAa = max(fwidth(distance),0.8f);
+            alpha = smoothstep(-edgeAa,edgeAa,edge);
+            float3 plate = lerp(float3(0.0014f,0.0030f,0.0080f),
+                float3(0.0050f,0.0150f,0.0400f),vignette);
+            plate += float3(0.025f,0.040f,0.062f)*exp(-max(edge,0.0f)/1.8f)*alpha;
+            color = lerp(color,plate,Ease((departure-0.60f)/0.35f));
+        }
         return float4(color,alpha);
     }
     return float4(color,1.0f);

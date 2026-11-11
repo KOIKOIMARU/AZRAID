@@ -17,6 +17,8 @@
 
 # Build results
 generated/
+# Temporary slide authoring data.
+/.chart-data-*/
 # Local authoring assets are kept outside the runtime project and submissions.
 assets_source/
 project/imgui.ini

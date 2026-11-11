@@ -1,3 +1,5 @@
+// UVと時刻から作った疑似乱数を明るさに掛け、ノイズを加える。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float32_t4> gTexture : register(t0);

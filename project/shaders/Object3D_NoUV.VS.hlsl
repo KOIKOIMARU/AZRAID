@@ -1,3 +1,5 @@
+// UVを持たないモデルの頂点処理。頂点を画面に写し、法線をピクセル側へ渡す。
+
 struct VSInput
 {
     float4 position : POSITION;

@@ -27,6 +27,7 @@ int EditorManager::GetPrefabFileIndex() const
     return prefabFileIndex_;
 }
 
+// 一覧の範囲内にある番号だけをシーンの選択に反映する。
 void EditorManager::SetSceneFileIndex(int index)
 {
     if (0 <= index && index < static_cast<int>(sceneFilePaths_.size())) {
@@ -34,6 +35,7 @@ void EditorManager::SetSceneFileIndex(int index)
     }
 }
 
+// 一覧の範囲内にある番号だけをプレハブの選択に反映する。
 void EditorManager::SetPrefabFileIndex(int index)
 {
     if (0 <= index && index < static_cast<int>(prefabFilePaths_.size())) {
@@ -41,6 +43,7 @@ void EditorManager::SetPrefabFileIndex(int index)
     }
 }
 
+// 選択中のファイル・モデル・編集モードを、インスペクタが使う設定にまとめる。
 ImGuiManager::ObjectInspectorSettings EditorManager::CreateInspectorSettings(
     ImGuiManager::InspectableObject* objects,
     int objectCount)
@@ -73,6 +76,7 @@ ImGuiManager::ObjectInspectorSettings EditorManager::CreateInspectorSettings(
     };
 }
 
+// 削除や読込で物体の数が変わった後に、範囲外を指していた選択を解除する。
 void EditorManager::ValidateSelectedObjectIndex(int objectCount)
 {
     if (selectedObjectIndex_ < 0 || selectedObjectIndex_ >= objectCount) {
@@ -130,6 +134,7 @@ void EditorManager::RequestPlayOnNextEditorOpen()
     playOnNextEditorOpen_ = true;
 }
 
+// エディタを開き直したときの自動再生要求を取り出し、同じ要求を繰り返さないように解除する。
 bool EditorManager::ConsumePlayOnNextEditorOpenRequest()
 {
     const bool requested = playOnNextEditorOpen_;
@@ -137,6 +142,7 @@ bool EditorManager::ConsumePlayOnNextEditorOpenRequest()
     return requested;
 }
 
+// 編集画面からのプレイ開始要求を一度だけ取り出す。次のフレームでは消費済みになる。
 bool EditorManager::ConsumeStartPlayModeRequest()
 {
     const bool requested = requestStartPlayMode_;
@@ -144,6 +150,7 @@ bool EditorManager::ConsumeStartPlayModeRequest()
     return requested;
 }
 
+// 再生停止の要求を一度だけ取り出す。
 bool EditorManager::ConsumeStopPlayModeRequest()
 {
     const bool requested = requestStopPlayMode_;
@@ -161,6 +168,7 @@ int EditorManager::GetGizmoMode() const
     return gizmoMode_;
 }
 
+// 移動・回転・拡縮に対応する番号だけをギズモに設定する。
 void EditorManager::SetGizmoMode(int mode)
 {
     constexpr int kGizmoModeCount = 3;
@@ -169,6 +177,7 @@ void EditorManager::SetGizmoMode(int mode)
     }
 }
 
+// 追加ボタンから届いた要求を取り出して解除する。
 bool EditorManager::ConsumeAddObjectRequest()
 {
     const bool requested = requestAddObject_;
@@ -176,6 +185,7 @@ bool EditorManager::ConsumeAddObjectRequest()
     return requested;
 }
 
+// 削除ボタンから届いた要求を取り出して解除する。
 bool EditorManager::ConsumeRemoveObjectRequest()
 {
     const bool requested = requestRemoveObject_;
@@ -183,6 +193,7 @@ bool EditorManager::ConsumeRemoveObjectRequest()
     return requested;
 }
 
+// 複製ボタンから届いた要求を取り出して解除する。
 bool EditorManager::ConsumeDuplicateObjectRequest()
 {
     const bool requested = requestDuplicateObject_;
@@ -190,6 +201,7 @@ bool EditorManager::ConsumeDuplicateObjectRequest()
     return requested;
 }
 
+// 選択物をプレハブとして保存する要求を取り出して解除する。
 bool EditorManager::ConsumeSavePrefabRequest()
 {
     const bool requested = requestSavePrefab_;
@@ -197,6 +209,7 @@ bool EditorManager::ConsumeSavePrefabRequest()
     return requested;
 }
 
+// プレハブをシーンに配置する要求を取り出して解除する。
 bool EditorManager::ConsumeInstantiatePrefabRequest()
 {
     const bool requested = requestInstantiatePrefab_;
@@ -204,6 +217,7 @@ bool EditorManager::ConsumeInstantiatePrefabRequest()
     return requested;
 }
 
+// 現在のシーンを保存する要求を取り出して解除する。
 bool EditorManager::ConsumeSaveObjectsRequest()
 {
     const bool requested = requestSaveObjects_;
@@ -211,6 +225,7 @@ bool EditorManager::ConsumeSaveObjectsRequest()
     return requested;
 }
 
+// 選択中のシーンを読み直す要求を取り出して解除する。
 bool EditorManager::ConsumeLoadObjectsRequest()
 {
     const bool requested = requestLoadObjects_;
@@ -218,6 +233,7 @@ bool EditorManager::ConsumeLoadObjectsRequest()
     return requested;
 }
 
+// 元に戻す操作を一度だけ取り出す。
 bool EditorManager::ConsumeUndoRequest()
 {
     const bool requested = requestUndo_;
@@ -225,6 +241,7 @@ bool EditorManager::ConsumeUndoRequest()
     return requested;
 }
 
+// やり直す操作を一度だけ取り出す。
 bool EditorManager::ConsumeRedoRequest()
 {
     const bool requested = requestRedo_;

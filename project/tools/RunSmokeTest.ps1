@@ -13,6 +13,7 @@ param(
 
     [switch]$Tutorial,
     [switch]$TutorialPreview,
+    [switch]$TutorialDeparture,
     [switch]$Playthrough,
     [switch]$Phantom,
     [switch]$PhantomPreview,
@@ -22,6 +23,8 @@ param(
     [switch]$RiftPreview,
     [switch]$Boss,
     [switch]$BossPreview,
+    [switch]$Defeat,
+    [switch]$DefeatPreview,
 
     [switch]$CaptureFrames,
 
@@ -153,6 +156,14 @@ if ($TutorialPreview) {
     $Playthrough = $true
     $arguments += ' --smoke-tutorial-preview'
 }
+if ($TutorialDeparture) {
+    if ($Configuration -ne 'Debug' -or $StartPhase -ne 'Opening') {
+        throw 'TutorialDeparture requires Debug and Opening.'
+    }
+    $Tutorial = $true
+    $Playthrough = $true
+    $arguments += ' --smoke-tutorial-departure'
+}
 if ($Tutorial) {
     if ($StartPhase -ne 'Opening') {
         throw 'Tutorial cannot be combined with a main-game StartPhase.'
@@ -195,6 +206,12 @@ if ($Rift -or $RiftPreview) {
 }
 
 $startPhaseEnvironmentName = 'CG2_DEBUG_START_PHASE'
+if ($Defeat -or $DefeatPreview) {
+    if ($Configuration -ne 'Debug' -or $Tutorial -or $StartPhase -ne 'Opening' -or $Playthrough -or $Phantom -or $PhantomPreview -or $ChargeShot -or $ChargePreview -or $Boss -or $BossPreview -or $Rift -or $RiftPreview) {
+        throw 'Defeat requires Debug, main game, Opening, and cannot combine with other probes.'
+    }
+    $arguments += $(if ($DefeatPreview) { ' --smoke-defeat-preview' } else { ' --smoke-defeat' })
+}
 $previousDiagnosticLog = [Environment]::GetEnvironmentVariable(
     $diagnosticEnvironmentName,
     [EnvironmentVariableTarget]::Process)

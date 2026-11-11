@@ -1,3 +1,5 @@
+// タイトルの空に機体の航跡を重ね、周回や出撃に合わせて光を描く。
+
 #include "Fullscreen.hlsli"
 
 Texture2D<float4> cloudTexture : register(t0);

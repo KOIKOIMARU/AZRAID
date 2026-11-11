@@ -1,3 +1,5 @@
+// 配置編集画面の入口。モデルを表示し、編集中の配置の保存やプレイ確認を扱う。
+
 #pragma once
 #include "engine/scene/BaseScene.h"
 #include <array>

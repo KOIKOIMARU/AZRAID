@@ -45,6 +45,7 @@ namespace Math {
         return result;
     }
 
+    // 2つの回転を球面線形補間する。tが0で開始の回転、1で終了の回転になる。
     Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t)
     {
         XMVECTOR xmQ0 = XMVectorSet(q0.x, q0.y, q0.z, q0.w);

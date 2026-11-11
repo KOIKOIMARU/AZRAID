@@ -1,7 +1,10 @@
+// テクスチャの読み込み・GPUへの転送・名前による再利用を担当する。
+
 #pragma once
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <future>
 #include <wrl.h>
 #include <d3d12.h>
 #include "DirectXTex.h"
@@ -13,10 +16,12 @@ class TextureManager {
 public:
     static TextureManager* GetInstance();
 
-    // ★ SRVマネージャを受け取る
+    // 画像をシェーダーから参照するための記述子を割り当てる管理クラスを受け取る。
     void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
 
     void LoadTexture(const std::string& filePath, bool forceSrgb = true);
+    bool PreloadTextureStep(const std::string& filePath, bool forceSrgb = true);
+    bool IsTextureLoaded(const std::string& filePath) const { return textureDatas_.contains(filePath); }
     void CreateSolidTexture2D(
         const std::string& name,
         uint8_t red,
@@ -55,6 +60,9 @@ private:
 
     DirectXCommon* dxCommon_ = nullptr;
     SrvManager* srvManager_ = nullptr;
+    void InstallTexture(const std::string& filePath, const DirectX::ScratchImage& mipImages);
+    std::future<DirectX::ScratchImage> pendingImage_;
+    std::string pendingImagePath_;
 
     static TextureManager* instance_;
 };

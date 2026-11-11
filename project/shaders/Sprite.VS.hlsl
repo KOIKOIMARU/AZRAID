@@ -1,4 +1,4 @@
-// Sprite.VS.hlsl
+// スプライトの頂点を画面上の位置へ変換し、画像を読むUVを渡す。
 
 cbuffer TransformCB : register(b1)
 {
