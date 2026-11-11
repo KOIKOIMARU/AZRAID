@@ -1,3 +1,5 @@
+// 受け取ったDirectXリソースの参照を保持し、このオブジェクトの破棄時に解放する。
+
 #ifndef RESOURCEOBJECT_H
 #define RESOURCEOBJECT_H
 

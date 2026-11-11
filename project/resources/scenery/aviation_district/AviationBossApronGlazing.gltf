@@ -1,0 +1,118 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "AZRAID PrepareAviationDistrict.py"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "AviationBossApronGlazing",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "control_glazing",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.08,
+          0.13,
+          0.17,
+          1
+        ],
+        "metallicFactor": 0.35,
+        "roughnessFactor": 0.22
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 168,
+      "type": "VEC3",
+      "min": [
+        -85.5,
+        9.0,
+        -80.23
+      ],
+      "max": [
+        86.5,
+        18.6,
+        80.73
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 168,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5125,
+      "count": 264,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        167
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 2016
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2016,
+      "byteLength": 2016
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 4032,
+      "byteLength": 1056
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "AviationBossApronGlazing.bin",
+      "byteLength": 5088
+    }
+  ]
+}

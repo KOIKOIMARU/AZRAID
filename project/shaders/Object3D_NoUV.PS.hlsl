@@ -1,3 +1,5 @@
+// UVを持たないモデルの画素色を材質色と方向光から求める。
+
 #include "Object3d.hlsli"
 
 cbuffer MaterialCB : register(b0)

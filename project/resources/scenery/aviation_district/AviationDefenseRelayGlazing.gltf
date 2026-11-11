@@ -1,0 +1,118 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "AZRAID PrepareAviationDistrict.py"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "AviationDefenseRelayGlazing",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "control_glazing",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.08,
+          0.13,
+          0.17,
+          1
+        ],
+        "metallicFactor": 0.35,
+        "roughnessFactor": 0.22
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 360,
+      "type": "VEC3",
+      "min": [
+        -58.5,
+        8.25,
+        -52.23
+      ],
+      "max": [
+        57.0,
+        46.0,
+        49.23
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 360,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5125,
+      "count": 552,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        359
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 4320
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 4320,
+      "byteLength": 4320
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8640,
+      "byteLength": 2208
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "AviationDefenseRelayGlazing.bin",
+      "byteLength": 10848
+    }
+  ]
+}

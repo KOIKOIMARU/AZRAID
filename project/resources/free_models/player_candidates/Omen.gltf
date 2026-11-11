@@ -1,0 +1,129 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v1.5.17",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "Omen"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Texture",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Cube.021",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    }
+  ],
+  "images": [
+    {
+      "uri": "Omen_Blue.dds"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1781,
+      "max": [
+        1.4285714285714286,
+        0.35071807330639315,
+        1.405891486455879
+      ],
+      "min": [
+        -1.4285714285714286,
+        -0.35071807330639315,
+        -1.405891486455879
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1781,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1781,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 4278,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 21372,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21372,
+      "byteOffset": 21372
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14248,
+      "byteOffset": 42744
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8556,
+      "byteOffset": 56992
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 65548,
+      "uri": "Omen.bin"
+    }
+  ]
+}

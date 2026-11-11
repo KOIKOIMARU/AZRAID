@@ -1,0 +1,132 @@
+{
+  "sources_sha256": {
+    "audio_combat_20261001/lentikula/Laser Pistol 1.wav": "396ade9cb06c6718d2eb75488e3817b2151de5ea6f44ad154318a092e997f316",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_000.ogg": "e07045693e4a2b3d165c424e3dab4c781d9ff8880a386880ac89a51315d7f831",
+    "audio_combat_20261001/clash/sword_clash.2.ogg": "e09f222b70d53f2967514d076e2ae50c21526ac640fe4919965f964af043da1a",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_001.ogg": "e8a9eaba7c4d27422e4eeb3e6c7100d5d7dc0f83e005efc98c960adcc5265337",
+    "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_000.ogg": "4b597d658d0ae101f0a030fbeea5fc3a4292ab85f017470a8254a8e7959cbd69",
+    "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg": "cdda50600a4928f2f1b8371224d53c171ac799c1cf2c30b11999508985250b3b",
+    "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_000.ogg": "9252d50bfb85edb17d6073c4a7806e10cdb9de56d3dbfc93a4b9727146d2df6d",
+    "audio_combat_20261001/sword/sword - StarNinjas/sword.6.ogg": "5b6eaaac9c552ce364cfdea3c12cef846c89796fc9bb880181615f43ee4e4779",
+    "audio_combat_20261001/lentikula/Laser Pistol 4.wav": "0f067e599a9da6fe546952028e138f77907408a48083058dc099015eb2e6d151",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_002.ogg": "b914c8f1eb7c0f34bb165d7c77f4be0351f6be0660c13c53e65424e262e2c093",
+    "audio_combat_20261001/clash/sword_clash.4.ogg": "4c2c962f8703882b8a6f863c1f5a35c6ae518d0281755fac9a13e63a73b86fa5",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_002.ogg": "7e89ce2ca0dbda95ea2b78d4b50791cab35c10d20e9f5ccd45dd0b00e99ff548",
+    "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_002.ogg": "be2b8ddc62e4a24c91e2e77793de98549ce216faf2f323a917e7d6f34321ff97",
+    "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_001.ogg": "d3d806cb3012c9ddd87010b30295ccb74d6d8b690077d19e67afd09a9d8feb03",
+    "audio_combat_20261001/sword/sword - StarNinjas/sword.4.ogg": "320aa8a77d35f9354c3d7e03a53e987ae67b0c5721f0dd2680100c5e6b5e4cc4",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_004.ogg": "6d65b463c0555dd5be16b8db6d2cbe23a94e07a4637779b8ad17d0db3e500a87",
+    "audio_combat_20261001/clash/sword_clash.7.ogg": "6763e519e7b31250a78f514d2b8b4f4e73a3bb105c980844ea687d698364b80c",
+    "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_004.ogg": "03e10f800199c7166208e41c11cf4acfac6cc265467f02357da71972bc967295",
+    "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_003.ogg": "8c7197bb3a1c504690319c3abe0e62a5423ee246dd70caab57963d0b7aa8144f",
+    "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_002.ogg": "48616f22c95589ed9fe55babf0fd012721d7b2ef1b9e85c2ad6408a2cd7c164f",
+    "audio_combat_20261001/sword/sword - StarNinjas/sword.3.ogg": "ce09eb2987531d1323415065d7811a9cf0ea8639766d9fa77655d602e7e14989",
+    "audio_combat_20261001/lentikula/Laser Rifle 2.wav": "087344a4e91b81f6f7b766ada785004a16d0e55ac4e26d9ffc5260e184cc1240",
+    "audio_combat_20261001/clash/sword_clash.6.ogg": "4c7643dbcd813eb614a56451652987d37ba587fac3309303aa0ab9a27d3a7e71",
+    "audio_combat_20260927/kenney_scifi/Audio/impactMetal_003.ogg": "ef29c3943ee701616f65e3d596c13eb3ff6b11ca5b3ac01e7bc923366a5c6f76",
+    "audio_combat_20260927/kenney_impact/Audio/impactPlate_heavy_001.ogg": "142fd6c77f13d25f318265901163f70f8dfe12f87829169a570025be43de7011",
+    "audio_combat_20260927/kenney_rpg/Audio/knifeSlice.ogg": "4cd96dc630bed9840c15f1dd2306da2cc56a4da26a5d3f1a03c5a7265ac5e54f",
+    "audio_combat_20260927/kenney_scifi/Audio/thrusterFire_002.ogg": "5f7731c30196d73777d62eec7cb36a28bf63852e70244057b7625b888e71a3a8",
+    "audio_combat_20261001/sword/sword - StarNinjas/sword.7.ogg": "66f2a2e63182fa14470a63fc4a862ff77fa861f69a6a41d8e9874c9853c2d9dd",
+    "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_000.ogg": "3cb48d86dab63140cfb9aaeea4d4a6846abaca5831d157d8adbec0490da26343",
+    "audio_combat_20261001/lentikula/Laser Beam 1.wav": "5d09018ec65f8ed2fe5451a5ade6bb1083adf8cfbd063fbe72e09c6f2c237bb3",
+    "audio_combat_20260927/kenney_scifi/Audio/forceField_004.ogg": "05609bb296cbc287ae95ac8924c89809d69c89d7bb357cc6a117ec1b1ef65e09",
+    "audio_combat_20260927/kenney_interface/Audio/confirmation_004.ogg": "568967a3d9f8a8f6af54ea01729c4882284308f2a27d78c07ffd7ee0d6951661",
+    "audio_combat_20260927/kenney_interface/Audio/glass_004.ogg": "2379b58f953e3d86982aa8cddcae763022c6258e9820171bf905ce58b4e97766",
+    "audio_combat_20260927/kenney_interface/Audio/error_004.ogg": "0b574cea597d96507e782ae9764f88482ce49f46e931e57054bf7150047f2d69",
+    "audio_combat_20260927/kenney_scifi/Audio/forceField_000.ogg": "c2916f2a062c8ddd1aca2826d134fe90847037db31342726ffb0f9097afe339c"
+  },
+  "output_sources": {
+    "shot": [
+      "audio_combat_20261001/lentikula/Laser Pistol 1.wav",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_000.ogg"
+    ],
+    "hit": [
+      "audio_combat_20261001/clash/sword_clash.2.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_001.ogg"
+    ],
+    "destroy": [
+      "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_000.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_000.ogg"
+    ],
+    "slash": [
+      "audio_combat_20261001/sword/sword - StarNinjas/sword.6.ogg",
+      "audio_combat_20261001/lentikula/Laser Pistol 4.wav"
+    ],
+    "shot_02": [
+      "audio_combat_20261001/lentikula/Laser Pistol 1.wav",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_002.ogg"
+    ],
+    "hit_02": [
+      "audio_combat_20261001/clash/sword_clash.4.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_002.ogg"
+    ],
+    "destroy_02": [
+      "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_002.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_001.ogg"
+    ],
+    "slash_02": [
+      "audio_combat_20261001/sword/sword - StarNinjas/sword.4.ogg",
+      "audio_combat_20261001/lentikula/Laser Pistol 4.wav"
+    ],
+    "shot_03": [
+      "audio_combat_20261001/lentikula/Laser Pistol 1.wav",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_heavy_004.ogg"
+    ],
+    "hit_03": [
+      "audio_combat_20261001/clash/sword_clash.7.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactMetal_medium_004.ogg"
+    ],
+    "destroy_03": [
+      "audio_combat_20260927/kenney_scifi/Audio/explosionCrunch_003.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_002.ogg"
+    ],
+    "slash_03": [
+      "audio_combat_20261001/sword/sword - StarNinjas/sword.3.ogg",
+      "audio_combat_20261001/lentikula/Laser Pistol 4.wav"
+    ],
+    "charge": [
+      "audio_combat_20261001/lentikula/Laser Rifle 2.wav",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg"
+    ],
+    "skill_start": [
+      "audio_combat_20261001/sword/sword - StarNinjas/sword.6.ogg",
+      "audio_combat_20261001/clash/sword_clash.6.ogg"
+    ],
+    "damage": [
+      "audio_combat_20260927/kenney_scifi/Audio/impactMetal_003.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactPlate_heavy_001.ogg"
+    ],
+    "dodge": [
+      "audio_combat_20260927/kenney_rpg/Audio/knifeSlice.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/thrusterFire_002.ogg"
+    ],
+    "slash_finish": [
+      "audio_combat_20261001/sword/sword - StarNinjas/sword.7.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_000.ogg",
+      "audio_combat_20260927/kenney_impact/Audio/impactGlass_medium_002.ogg"
+    ],
+    "fever": [
+      "audio_combat_20261001/lentikula/Laser Beam 1.wav",
+      "audio_combat_20260927/kenney_scifi/Audio/forceField_004.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/lowFrequency_explosion_001.ogg",
+      "audio_combat_20261001/clash/sword_clash.6.ogg"
+    ],
+    "skill_ready": [
+      "audio_combat_20261001/clash/sword_clash.6.ogg"
+    ],
+    "clear": [
+      "audio_combat_20260927/kenney_interface/Audio/confirmation_004.ogg",
+      "audio_combat_20260927/kenney_interface/Audio/glass_004.ogg"
+    ],
+    "fail": [
+      "audio_combat_20260927/kenney_interface/Audio/error_004.ogg",
+      "audio_combat_20260927/kenney_scifi/Audio/forceField_000.ogg"
+    ]
+  },
+  "format": "48000 Hz, stereo, PCM16",
+  "revision": "2026-10-01 SF / blade"
+}

@@ -17,6 +17,23 @@
 
 # Build results
 generated/
+# Temporary slide authoring data.
+/.chart-data-*/
+# Local authoring assets are kept outside the runtime project and submissions.
+assets_source/
+project/imgui.ini
+project/externals/generated/
+project/externals/DirectXTex/x64/
+**/DirectXTex/Bin/
+project/CG2/
+project/*.exe
+project/*.pdb
+project/*.dll
+project/*.ilk
+project/*.lib
+project/*.exp
+tmp_*/
+project/.tmp_*/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

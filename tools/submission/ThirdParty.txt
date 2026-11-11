@@ -1,0 +1,44 @@
+SKYBREAK 使用ライブラリ・素材
+
+■ ライブラリ
+Assimp: licenses/assimp.txt
+DirectXTex: licenses/DirectXTex.txt
+DirectX Shader Compiler (dxcompiler.dll / dxil.dll): licenses/DirectXShaderCompiler.txt
+Dear ImGui: externals/imgui/LICENSE.txt
+ImGuizmo: externals/ImGuizmo/LICENSE
+ImGuiFileDialog: externals/ImGuiFileDialog/LICENSE
+ImPlot: externals/implot/LICENSE
+imgui-node-editor: externals/imgui-node-editor/LICENSE
+ImGuiColorTextEdit: externals/ImGuiColorTextEdit/LICENSE
+IconFontCppHeaders: externals/IconFontCppHeaders/licence.txt
+
+■ モデル
+Quaternius (CC0)
+  https://quaternius.com/
+  自機 Omen: Ultimate Spaceships
+  街並み: Downtown City MegaKit
+  その他: Sci-Fi Essentialsほか
+  同梱表記: resources/free_models 内の License.txt / License_Standard.txt
+  自機の加工内容: resources/free_models/player_candidates/README.md
+
+■ 空
+Kloofendal 48d Partly Cloudy (Pure Sky) / Poly Haven (CC0)
+Greg Zaal (Original), Jarod Guest (Sky Edits)
+https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+実行用のDDSキューブマップに変換して使用。
+
+■ 音楽
+Juhani Junkala / SubspaceAudio: JRPG Pack 5 Action (2017), CC0
+https://opengameart.org/content/jrpg-pack-5-action
+使用曲・加工内容: resources/audio/music/CREDITS.md
+
+■ 効果音
+Kenney: Sci-fi Sounds / Impact Sounds / RPG Audio / Interface Sounds (CC0)
+rubberduck: 50 CC0 Sci-Fi SFX (CC0)
+配布元・使用ファイル・加工内容: resources/audio/combat/CREDITS.md
+再編集方法: resources/audio/combat/README.md
+
+■ フォント
+M PLUS 1p / Rajdhani / Barlow Condensed / Zen Kaku Gothic New
+SIL Open Font License 1.1: resources/fonts 内の *_OFL.txt
+Font Awesome: resources/fonts/FONT_AWESOME_LICENSE.txt

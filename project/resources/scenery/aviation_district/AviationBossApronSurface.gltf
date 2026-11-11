@@ -1,0 +1,318 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "AZRAID PrepareAviationDistrict.py"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "AviationBossApronSurface",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "material": 0,
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        },
+        {
+          "material": 1,
+          "attributes": {
+            "POSITION": 3,
+            "NORMAL": 4
+          },
+          "indices": 5
+        },
+        {
+          "material": 2,
+          "attributes": {
+            "POSITION": 6,
+            "NORMAL": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "apron_concrete",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.3,
+          0.33,
+          0.34,
+          1
+        ],
+        "metallicFactor": 0.02,
+        "roughnessFactor": 0.85
+      }
+    },
+    {
+      "name": "flightway_markings",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.78,
+          0.77,
+          0.7,
+          1
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.82
+      }
+    },
+    {
+      "name": "flightway_tarmac",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.86,
+          0.9,
+          0.94,
+          1
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9,
+        "baseColorTexture": {
+          "index": 0
+        }
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 48,
+      "type": "VEC3",
+      "min": [
+        -86.5,
+        0.285,
+        -128.0
+      ],
+      "max": [
+        86.5,
+        0.305,
+        128.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 48,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5125,
+      "count": 72,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        47
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 480,
+      "type": "VEC3",
+      "min": [
+        -62.5,
+        0.325,
+        -128.0
+      ],
+      "max": [
+        62.5,
+        0.34500000000000003,
+        128.0
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 480,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5125,
+      "count": 720,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        479
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3",
+      "min": [
+        -87.0,
+        0.265,
+        -128.0
+      ],
+      "max": [
+        87.0,
+        0.265,
+        128.0
+      ]
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3",
+      "min": [
+        -0.0,
+        1.0,
+        -0.0
+      ],
+      "max": [
+        -0.0,
+        1.0,
+        -0.0
+      ]
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2",
+      "min": [
+        -14.5,
+        -21.5
+      ],
+      "max": [
+        14.5,
+        21.5
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5125,
+      "count": 6,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        3
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 576
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 576,
+      "byteLength": 576
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1152,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1440,
+      "byteLength": 5760
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 7200,
+      "byteLength": 5760
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 12960,
+      "byteLength": 2880
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 15840,
+      "byteLength": 48
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 15888,
+      "byteLength": 48
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 15936,
+      "byteLength": 32
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 15968,
+      "byteLength": 24
+    }
+  ],
+  "images": [
+    {
+      "uri": "../../free_models/Downtown City MegaKit[Standard]/Exports/glTF (Godot)/T_Concrete_Asphalt_BaseColor.png"
+    }
+  ],
+  "samplers": [
+    {
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "AviationBossApronSurface.bin",
+      "byteLength": 15992
+    }
+  ]
+}

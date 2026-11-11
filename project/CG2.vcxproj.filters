@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="externals">
@@ -7,14 +7,56 @@
     <Filter Include="externals\imgui">
       <UniqueIdentifier>{549d6903-40f3-409c-8cb1-dff71af74df4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="externals\ImGuizmo">
+      <UniqueIdentifier>{b2f9a740-44d9-441e-bf72-4e47b428e872}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="externals\ImGuiFileDialog">
+      <UniqueIdentifier>{ca64e67d-8bb4-4d88-bd20-d39c76591745}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="externals\implot">
+      <UniqueIdentifier>{c6d66bb8-93c9-4aae-9b7d-7421df87d9d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="externals\imgui-node-editor">
+      <UniqueIdentifier>{7161497c-2fb1-42de-88d5-e64abdbf0203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="externals\ImGuiColorTextEdit">
+      <UniqueIdentifier>{5fa2a078-89e1-4861-ac28-158d9325a0d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="externals\IconFontCppHeaders">
+      <UniqueIdentifier>{52ac0a30-2c98-4f0e-932f-ccdf5d3cdb0e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{878d94c2-b98a-4e20-b168-a8efb07eee2c}</UniqueIdentifier>
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{650138e7-3456-48dc-ac9c-593f411720cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\app">
+    <Filter Include="app">
       <UniqueIdentifier>{fc9b23ad-ef5e-43a7-8d23-861cc28ff451}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\起動・ゲーム進行">
+      <UniqueIdentifier>{1b72c14f-e532-5c91-a8d9-6e1f94bcdfba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\プレイヤー">
+      <UniqueIdentifier>{7627601e-2fe1-5e32-8f7c-b7c3ac0b2d53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\敵・ボス">
+      <UniqueIdentifier>{cbfd31f7-b9d3-51a4-b908-13c850f435c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\ステージ">
+      <UniqueIdentifier>{a8facc44-d012-5332-9737-5292c2a5ecff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\戦闘・エフェクト">
+      <UniqueIdentifier>{e336793c-3bb7-55f1-939f-508c51ce239f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\カメラ・音声・演出">
+      <UniqueIdentifier>{7aa67a52-35e2-5a13-9bd0-df4e7da095d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\HUD・メニュー・リザルト">
+      <UniqueIdentifier>{0fa8bd67-ed49-5b40-8163-6744a5987ccf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app\デバッグ">
+      <UniqueIdentifier>{ee4d3acd-61a5-530d-9a04-1dc5f50465e7}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\engine">
       <UniqueIdentifier>{2d3be6c6-d76e-47da-ad6d-05e289153934}</UniqueIdentifier>
@@ -64,6 +106,21 @@
     <Filter Include="resources">
       <UniqueIdentifier>{724b9669-b3ff-492b-b583-c902814b1e55}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources\skybox">
+      <UniqueIdentifier>{28d6eb0f-1178-4c7e-9e58-6b2c9f40b482}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources\fonts">
+      <UniqueIdentifier>{1f00f675-8692-4e77-ab44-b77660e84354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\audio">
+      <UniqueIdentifier>{db1bd0e5-aeaf-42eb-b084-3afc55d93ee8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\editor">
+      <UniqueIdentifier>{efeb9ce3-9cf2-4730-8b6b-8fdcf75908dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\engine\editor">
+      <UniqueIdentifier>{cf6cfd83-4227-4b29-bb70-e69e2dcfd395}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="externals\imgui\imgui.cpp">
@@ -87,14 +144,332 @@
     <ClCompile Include="externals\imgui\imgui_widgets.cpp">
       <Filter>externals\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\main.cpp">
-      <Filter>src\app</Filter>
+    <ClCompile Include="externals\ImGuizmo\ImGuizmo.cpp">
+      <Filter>externals\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\ImGuiFileDialog\ImGuiFileDialog.cpp">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\implot\implot.cpp">
+      <Filter>externals\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\implot\implot_items.cpp">
+      <Filter>externals\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui-node-editor\crude_json.cpp">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui-node-editor\imgui_canvas.cpp">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui-node-editor\imgui_node_editor.cpp">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\imgui-node-editor\imgui_node_editor_api.cpp">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="externals\ImGuiColorTextEdit\TextEditor.cpp">
+      <Filter>externals\ImGuiColorTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\main.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\3d\ResourceObject.cpp">
       <Filter>src\engine\3d</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\io\Input.cpp">
+      <Filter>src\engine\io</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\WinApp.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\DirectXCommon.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\Logger.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\StringUtility.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\D3DResourceLeakChecker.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\2d\SpriteCommon.cpp">
+      <Filter>src\engine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\2d\Sprite.cpp">
+      <Filter>src\engine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\Math.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\TextureManager.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Object3dCommon.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Object3d.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Skybox.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\ModelCommon.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Model.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\ModelManager.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Camera.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\SrvManager.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\Particle.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\ParticleManager.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\3d\ParticleEmitter.cpp">
+      <Filter>src\engine\3d</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\ImGuiManager.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\audio\SoundManager.cpp">
+      <Filter>src\engine\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\Framework.cpp">
+      <Filter>src\engine\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\MyGame.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\debug\GameplaySmokeTest.cpp">
+      <Filter>app\デバッグ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\GameplayAudio.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\GameplayAim.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\Bullet.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\Enemy.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\EnemyFlight.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\FeverState.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatRewards.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerShooting.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerControl.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerSkill.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerSkillPresentation.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerFlightEffects.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerCombatFeedback.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\GameplayHud.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\GameplayMenu.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageResultMenu.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageResults.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\ClearResultPresentation.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\FlightSpeedEffects.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\FlightMotionBlur.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\GameplayShadows.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\presentation\GameplayCamera.cpp">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\MainStage.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageDirector.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageFlight.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\StageEnemyFactory.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\StageEnemies.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\BossAttackController.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\BossPresentation.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\enemy\EnemyAttackPatterns.cpp">
+      <Filter>app\敵・ボス</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\BulletPool.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\ProjectileSystem.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\RailScenery.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\RingGates.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatEffects.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatEffectPlayback.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatOverlay.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatProgress.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ui\StageRecords.cpp">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntime.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameResources.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameplaySceneSetup.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\RuntimeSceneObjects.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeEntry.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\StageEntryPresentation.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeCollision.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\combat\CombatResolver.cpp">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeDefeat.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\debug\GameRuntimeEditor.cpp">
+      <Filter>app\デバッグ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\debug\GameRuntimeProbe.cpp">
+      <Filter>app\デバッグ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimeTutorial.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\stage\TutorialProgress.cpp">
+      <Filter>app\ステージ</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\runtime\GameRuntimePhantom.cpp">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\Player.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerDodge.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\player\PlayerDefeatPresentation.cpp">
+      <Filter>app\プレイヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\GameScene.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\EditorScene.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\SceneSerializer.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\editor\EditorManager.cpp">
+      <Filter>src\engine\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\editor\EditorPlayController.cpp">
+      <Filter>src\engine\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\BaseScene.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleScene.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\StageSelectionPresentation.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleMotion.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleRift.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\TitleWordmark.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\SceneFactory.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\scene\SceneManager.cpp">
+      <Filter>src\engine\scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\Sprite.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Sprite.VS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
     <FxCompile Include="shaders\Object3d.PS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
@@ -105,6 +480,60 @@
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\Object3D_NoUV.VS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Particle.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Particle.VS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Skybox.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Skybox.VS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\CopyImage.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Fullscreen.VS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Grayscale.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Vignette.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\BoxFilter.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\BoxFilter5x5.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\GaussianFilter.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VignetteSmoothing.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\GameTone.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\LuminanceBasedOutline.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\DepthBasedOutline.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\RadialBlur.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Dissolve.PS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Random.PS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -133,18 +562,457 @@
     <ClInclude Include="externals\imgui\imstb_truetype.h">
       <Filter>externals\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="externals\ImGuizmo\ImGuizmo.h">
+      <Filter>externals\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiFileDialog\ImGuiFileDialog.h">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiFileDialog\ImGuiFileDialogConfig.h">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiFileDialog\dirent\dirent.h">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiFileDialog\stb\stb_image.h">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiFileDialog\stb\stb_image_resize2.h">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\implot\implot.h">
+      <Filter>externals\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\implot\implot_internal.h">
+      <Filter>externals\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\crude_json.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_bezier_math.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_bezier_math.inl">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_canvas.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_extra_math.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_extra_math.inl">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_node_editor.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_node_editor_internal.h">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\imgui-node-editor\imgui_node_editor_internal.inl">
+      <Filter>externals\imgui-node-editor</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\ImGuiColorTextEdit\TextEditor.h">
+      <Filter>externals\ImGuiColorTextEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="externals\IconFontCppHeaders\IconsFontAwesome6.h">
+      <Filter>externals\IconFontCppHeaders</Filter>
+    </ClInclude>
     <ClInclude Include="include\engine\3d\ResourceObject.h">
       <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="include\engine\io\Input.h">
+      <Filter>include\engine\io</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\WinApp.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\DirectXCommon.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\Logger.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\StringUtility.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\D3DResourceLeakChecker.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\2d\Sprite.h">
+      <Filter>include\engine\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\2d\SpriteCommon.h">
+      <Filter>include\engine\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\Math.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\TextureManager.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Object3d.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Object3dCommon.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Skybox.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ModelCommon.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Model.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ModelManager.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Camera.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\SrvManager.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\Particle.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ParticleManager.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ParticleEmitter.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\ImGuiManager.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\audio\SoundManager.h">
+      <Filter>include\engine\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\Framework.h">
+      <Filter>include\engine\base</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\MyGame.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\debug\GameplaySmokeTest.h">
+      <Filter>app\デバッグ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\GameplayAudio.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\GameplayAim.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\Bullet.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\Enemy.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyFlight.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyFireControl.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyAttackPatterns.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\FeverState.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatRewards.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerShooting.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerControl.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerSkill.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerSkillPresentation.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerFlightEffects.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerCombatFeedback.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\GameplayHud.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\TutorialProgress.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\GameplayMenu.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageResultMenu.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageResults.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\ClearResultPresentation.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\FlightSpeedEffects.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\CameraMotionBlur.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\FlightMotionBlur.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\GameplayShadows.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\presentation\GameplayCamera.h">
+      <Filter>app\カメラ・音声・演出</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\EnemyTypes.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\MainStage.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageDirector.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageFlight.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\StageEnemyFactory.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\StageEnemies.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\BossAttackController.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\enemy\BossPresentation.h">
+      <Filter>app\敵・ボス</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\BulletPool.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\ProjectileSystem.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\RailScenery.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\JustDodgeFeedback.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\RingGates.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\3d\ScreenProjection.h">
+      <Filter>include\engine\3d</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\SceneryAssets.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatEffects.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatEffectPlayback.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatResolver.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatOverlay.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\combat\CombatProgress.h">
+      <Filter>app\戦闘・エフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\StageRecords.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntime.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameResources.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameplaySceneSetup.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\RuntimeSceneObjects.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageEntryTiming.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\stage\StageEntryPresentation.h">
+      <Filter>app\ステージ</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntimeMath.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\runtime\GameRuntimeTuning.h">
+      <Filter>app\起動・ゲーム進行</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\CombatHud.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\ui\MenuUi.h">
+      <Filter>app\HUD・メニュー・リザルト</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\Player.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerDodge.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\app\player\PlayerDefeatPresentation.h">
+      <Filter>app\プレイヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\GameScene.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\EditorScene.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\SceneSerializer.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\editor\EditorManager.h">
+      <Filter>include\engine\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\editor\EditorPlayController.h">
+      <Filter>include\engine\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\BaseScene.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleScene.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\StageSelectionPresentation.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleMotion.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleRift.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\TitleWordmark.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\SceneManager.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\AbstractSceneFactory.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\SceneType.h">
+      <Filter>include\engine\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\scene\SceneFactory.h">
+      <Filter>include\engine\scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="externals\imgui\LICENSE.txt">
       <Filter>externals\imgui</Filter>
     </Text>
+    <Text Include="externals\ImGuizmo\LICENSE">
+      <Filter>externals\ImGuizmo</Filter>
+    </Text>
+    <Text Include="externals\ImGuiFileDialog\LICENSE">
+      <Filter>externals\ImGuiFileDialog</Filter>
+    </Text>
+    <Text Include="externals\implot\LICENSE">
+      <Filter>externals\implot</Filter>
+    </Text>
+    <Text Include="externals\imgui-node-editor\LICENSE">
+      <Filter>externals\imgui-node-editor</Filter>
+    </Text>
+    <Text Include="externals\ImGuiColorTextEdit\LICENSE">
+      <Filter>externals\ImGuiColorTextEdit</Filter>
+    </Text>
+    <Text Include="externals\IconFontCppHeaders\licence.txt">
+      <Filter>externals\IconFontCppHeaders</Filter>
+    </Text>
+    <Text Include="resources\fonts\FONT_AWESOME_LICENSE.txt">
+      <Filter>resources\fonts</Filter>
+    </Text>
+    <Text Include="resources\fonts\ZEN_KAKU_GOTHIC_OFL.txt"><Filter>resources\fonts</Filter></Text>
+    <Text Include="resources\fonts\BARLOW_OFL.txt"><Filter>resources\fonts</Filter></Text>
+    <Text Include="resources\fonts\RAJDHANI_OFL.txt"><Filter>resources\fonts</Filter></Text>
+    <Text Include="resources\fonts\MPLUS1P_OFL.txt"><Filter>resources\fonts</Filter></Text>
+    <Text Include="resources\fonts\HUD_FONTS.md"><Filter>resources\fonts</Filter></Text>
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\fonts\fa-solid-900.ttf">
+      <Filter>resources\fonts</Filter>
+    </None>
+    <None Include="resources\fonts\fa-regular-400.ttf">
+      <Filter>resources\fonts</Filter>
+    </None>
+    <None Include="resources\fonts\ZenKakuGothicNew-Medium.ttf"><Filter>resources\fonts</Filter></None>
+    <None Include="resources\fonts\BarlowCondensed-SemiBold.ttf"><Filter>resources\fonts</Filter></None>
+    <None Include="resources\fonts\Rajdhani-SemiBold.ttf"><Filter>resources\fonts</Filter></None>
+    <None Include="resources\fonts\MPLUS1p-Medium.ttf"><Filter>resources\fonts</Filter></None>
+    <None Include="resources\skybox\kloofendal_48d_partly_cloudy_puresky_4k_cube.dds">
+      <Filter>resources\skybox</Filter>
+    </None>
+    <None Include="resources\grass.png">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\gradationLine.png">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\plane.bin">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\plane.gltf">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\circle2.png">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\sphere.mtl">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="resources\sphere.obj">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="shaders\EmitParticle.CS.hlsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\InitializeParticle.CS.hlsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\Fullscreen.hlsli">
+      <Filter>shaders</Filter>
+    </None>
     <None Include="shaders\Object3d.hlsli">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\Skybox.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\UpdateParticle.CS.hlsl">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CG2.rc" />
   </ItemGroup>
 </Project>

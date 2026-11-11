@@ -1,0 +1,11 @@
+Flame03-hollow
+Author: Unity Labs Paris / Unity Technologies (Thomas ICHE)
+Source: https://unity.com/blog/engine-platform/free-vfx-image-sequences-flipbooks
+Download: https://unity3d.com/files/labs/downloads/vfx/assets01/Flame03-hollow/Flame03-hollow-flipbooks.zip
+License: CC0 1.0 Universal
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+wreck_fire_flipbook.png is Flame03-hollow_16x4.tga converted losslessly to PNG.
+The image is 2048 x 1024. Its visible frames form 16 columns and 5 rows;
+the game samples this actual layout rather than the layout in the filename.
+The original pixel colours and spatial layout have not been modified.
