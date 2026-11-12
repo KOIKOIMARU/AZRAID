@@ -1,5 +1,5 @@
 // ===== StageSelectionPresentation.cpp =====
-// ステージ選択の待機中と出撃時に、裂け目の開閉や自機を見せる演出を進める。
+// ステージ選択の待機中と出撃時に、裂け目の開閉や自機を見せる演出を進める
 
 #include "engine/scene/StageSelectionPresentation.h"
 
@@ -27,7 +27,7 @@ constexpr float kStagePortalPanelHalfHeight = 500.0f;
 StageSelectionPresentation::StageSelectionPresentation() = default;
 StageSelectionPresentation::~StageSelectionPresentation() = default;
 
-// ステージ選択を開くたびに、待機・出撃・裂け目の開閉に使う時刻と引き継ぎ状態を初期化する。
+// ステージ選択を開くたびに、待機・出撃・裂け目の開閉に使う時刻と引き継ぎ状態を初期化する
 void StageSelectionPresentation::Reset([[maybe_unused]] bool stageSelection)
 {
     stageSelectionElapsed_ = 0.0f;
@@ -61,7 +61,7 @@ void StageSelectionPresentation::Reset([[maybe_unused]] bool stageSelection)
 #endif
 }
 
-// 裂け目を構成するパネルと専用カメラを解放する。
+// 裂け目を構成するパネルと専用カメラを解放する
 void StageSelectionPresentation::Clear()
 {
     for (auto& panel : stagePortalPanels_) { panel.reset(); }
@@ -74,11 +74,11 @@ bool StageSelectionPresentation::InputReady() const
     return stageSelectionElapsed_ >= kStageSelectionInputDelay;
 }
 
-// 待機演出が入力を受け付けられる時刻に達したか返す。開発用の周回確認では専用の待ち時間を使う。
+// 待機演出が入力を受け付けられる時刻に達したか返す　開発用の周回確認では専用の待ち時間を使う
 bool StageSelectionPresentation::CanConfirm() const
 {
 #ifdef _DEBUG
-    // 映像確認のときだけ3種類の周回を通してから自動出撃する。
+    // 映像確認のときだけ3種類の周回を通してから自動出撃する
     if (stagePatrolReview_ && stageSelectionElapsed_ < 38.0f) { return false; }
 #endif
     return InputReady();
@@ -89,16 +89,16 @@ void StageSelectionPresentation::EnableInputNow()
     stageSelectionElapsed_ = (std::max)(stageSelectionElapsed_, kStageSelectionInputDelay);
 }
 
-// 出撃決定時点の開口幅と最後に切り開いた時刻を控え、選択中の背景の状態を引き継ぐ。
+// 出撃決定時点の開口幅と最後に切り開いた時刻を控え、選択中の背景の状態を引き継ぐ
 void StageSelectionPresentation::BeginDeparture()
 {
-    // 決定した瞬間の隙間を起点にして閉じる。周回中の切断の途中でも幅を飛ばさない。
+    // 決定した瞬間の隙間を起点にして閉じる　周回中の切断の途中でも幅を飛ばさない
     const auto idle = StagePortalIdle(stageSelectionElapsed_);
     stageDepartureGap_ = idle.gap;
     stageDepartureCutAge_ = idle.cutAge;
 }
 
-// 選択画面を飛んでいた機体を出撃開始の位置へ戻す。戻りの時計を進め、完了した時点を返す。
+// 選択画面を飛んでいた機体を出撃開始の位置へ戻す　戻りの時計を進め、完了した時点を返す
 bool StageSelectionPresentation::AdvanceReturn(GameScene* preview, float delta)
 {
     const float launchDelta = delta * stageLaunchRate_;
@@ -117,12 +117,12 @@ bool StageSelectionPresentation::AdvanceReturn(GameScene* preview, float delta)
     return false;
 }
 
-// ステージ紹介と出撃の時計を進め、次の演出へ移れる時点を返す。
+// ステージ紹介と出撃の時計を進め、次の演出へ移れる時点を返す
 bool StageSelectionPresentation::AdvanceOverview(float delta)
 {
     float launchDelta = delta * stageLaunchRate_;
 #ifdef _DEBUG
-    // 明示した映像試験だけで各見せ場を停止。F8で進み、最後は通常の本編まで通す。
+    // 明示した映像試験だけで各見せ場を停止　F8で進み、最後は通常の本編まで通す
     if (stageLaunchReview_) {
         constexpr std::array<float,11> stops{{0.0f,0.20f,0.65f,1.70f,2.15f,2.50f,3.30f,4.20f,5.00f,5.35f,5.99f}};
         const float clock=(std::max)(0.0f,stageOverviewTime_);
@@ -147,7 +147,7 @@ bool StageSelectionPresentation::OverviewComplete() const
     return stageOverviewTime_ >= StageEntryTiming::kStageStartOverviewDuration;
 }
 
-// 出撃開始時点のカメラと機体の時刻を取り込み、ステージ選択と飛行演出をつなぐ。
+// 出撃開始時点のカメラと機体の時刻を取り込み、ステージ選択と飛行演出をつなぐ
 bool StageSelectionPresentation::CaptureEntry(const Camera& source, Camera& target, float titleElapsed, float flybyClock)
 {
     if (stageEntryCaptured_) { return false; }
@@ -163,7 +163,7 @@ bool StageSelectionPresentation::CaptureEntry(const Camera& source, Camera& targ
     return true;
 }
 
-// 画角と画面比率を更新し、ステージの視点を引き継ぐ前は待機用のカメラ位置を使う。
+// 画角と画面比率を更新し、ステージの視点を引き継ぐ前は待機用のカメラ位置を使う
 void StageSelectionPresentation::UpdateCamera(Camera& camera, float aspectRatio) const
 {
     camera.SetAspectRatio(aspectRatio);
@@ -175,7 +175,7 @@ void StageSelectionPresentation::UpdateCamera(Camera& camera, float aspectRatio)
     camera.Update();
 }
 
-// 裂け目の両側のパネルと断面に使うモデルを、初回だけ用意する。
+// 裂け目の両側のパネルと断面に使うモデルを、初回だけ用意する
 void StageSelectionPresentation::PreparePortal(Object3dCommon* common)
 {
     if (!common || stagePortalPanels_.back()) { return; }
@@ -212,7 +212,7 @@ void StageSelectionPresentation::PreparePortal(Object3dCommon* common)
     }
 }
 
-// 切断の時刻と機体の通過に合わせ、ステージが見える開口部の形を更新する。
+// 切断の時刻と機体の通過に合わせ、ステージが見える開口部の形を更新する
 void StageSelectionPresentation::UpdatePortal(GameScene* preview, TitleRift* rift, bool departing)
 {
     if (!stagePortalCamera_) { return; }
@@ -222,8 +222,8 @@ void StageSelectionPresentation::UpdatePortal(GameScene* preview, TitleRift* rif
     const float seamY = stageEntrySeam_.x;
     const float slope = stageEntrySeam_.y;
     const float angle = std::atan(-slope);
-    // 機体と同じカメラ・深度で、選択時の24m先に厚みのある入口を固定する。
-    constexpr float unitsPerPixel=2.0f*22.4f*0.4830551f/720.0f; // FOV 0.90、面の手前から投影。
+    // 機体と同じカメラ・深度で、選択時の24m先に厚みのある入口を固定する
+    constexpr float unitsPerPixel=2.0f*22.4f*0.4830551f/720.0f; // FOV 0.90、面の手前から投影
     const float centerY = (360.0f-seamY-640.0f*slope)*unitsPerPixel;
     const float departure=(std::max)(0.0f,stageReturnTime_)+(std::max)(0.0f,stageOverviewTime_);
     const float aperture=departing ? stageDepartureGap_+(46.0f-stageDepartureGap_)*Smooth(departure/1.05f) : idle.gap;
@@ -248,7 +248,7 @@ void StageSelectionPresentation::UpdatePortal(GameScene* preview, TitleRift* rif
             centerY+std::cos(angle)*distance,24.0f+(edge ? -1.64f : 0.0f)},frame);
         panel->SetTranslate({position.x+frame.m[3][0],position.y+frame.m[3][1],position.z+frame.m[3][2]});
         panel->SetRotate(rotation);
-        // 本編側の黒レベル補正を通しても面の厚みが残る値へ合わせる。
+        // 本編側の黒レベル補正を通しても面の厚みが残る値へ合わせる
         const bool inScene=stageOverviewTime_ >= 0.0f;
         if (edge) { panel->SetColor({(inScene ? 0.27f : 0.13f)+edgeLight*0.26f,
             (inScene ? 0.27f : 0.17f)+edgeLight*0.35f,(inScene ? 0.27f : 0.21f)+edgeLight*0.40f,1.0f}); }
@@ -277,17 +277,17 @@ void StageSelectionPresentation::UpdatePortal(GameScene* preview, TitleRift* rif
     }
 }
 
-// 裂け目が残っている間だけ、ステージの表示段階に対応する幕とパネルを描く。
+// 裂け目が残っている間だけ、ステージの表示段階に対応する幕とパネルを描く
 void StageSelectionPresentation::DrawPortal(TitleRift* rift, SrvManager* srv,
     Object3dCommon* common, float titleElapsed, bool inScene)
 {
     if (!rift || !srv || !common || !stagePortalPanels_.back() ||
         stageOverviewTime_ >= StageEntryTiming::kStagePortalClearTime) { return; }
     if (inScene != (stageOverviewTime_ >= 0.0f)) { return; }
-    // 出撃後は本編と同じ描画先・深度を使う。機体の色調や縁の前後関係を途中で変えない。
-    // 本編の深度はPreDrawで用意済み。ここでは描画先の変更・クリアをしない。
+    // 出撃後は本編と同じ描画先・深度を使う　機体の色調や縁の前後関係を途中で変えない
+    // 本編の深度はPreDrawで用意済み　ここでは描画先の変更・クリアをしない
     if (!inScene) {
-        // タイトルと同じ色・同じ切断線。面を描き直す際に位置や色を変更しない。
+        // タイトルと同じ色・同じ切断線　面を描き直す際に位置や色を変更しない
         rift->DrawStageCurtain(titleElapsed,stageEntrySeam_,stagePortalGap_,0.0f);
         rift->BindFlightTarget(true);
     }
@@ -308,7 +308,7 @@ void StageSelectionPresentation::DrawPortal(TitleRift* rift, SrvManager* srv,
     if (!inScene) { rift->BindFlightTarget(false); }
 }
 
-// 選択中は手前に裂け目を描き、出撃時はステージのカメラに合わせて画面をつなぐ。
+// 選択中は手前に裂け目を描き、出撃時はステージのカメラに合わせて画面をつなぐ
 void StageSelectionPresentation::DrawOverlay(GameScene* preview, TitleRift* rift, SrvManager* srv,
     Object3dCommon* common, float titleElapsed)
 {
@@ -339,7 +339,7 @@ void StageSelectionPresentation::DrawOverlay(GameScene* preview, TitleRift* rift
         };
         const auto upper=line(1.0f), lower=line(-1.0f);
         const Math::Vector4 edges{upper.x,upper.y,lower.x,lower.y};
-        // 深度は実際の立体面を使い、色だけはタイトルと同じ合成先で統一する。
+        // 深度は実際の立体面を使い、色だけはタイトルと同じ合成先で統一する
         rift->DrawStageCurtain(titleElapsed,stageEntrySeam_,stagePortalGap_,0.0f,1.0f,0.0f,0.0f,&edges);
     }
 }

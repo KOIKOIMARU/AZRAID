@@ -3,7 +3,7 @@
 #include <array>
 
 namespace StageEntryTiming {
-// タイトルから本編に制御を渡すときに、両方が同じ時計を読む。
+// タイトルから本編に制御を渡すときに、両方が同じ時計を読む
 inline constexpr float kTitleEntryDuration = 1.80f;
 inline constexpr float kTitleEntryWorldTime = 0.60f;
 inline constexpr float kTitleEntryDiveTime = kTitleEntryWorldTime + 0.47f;

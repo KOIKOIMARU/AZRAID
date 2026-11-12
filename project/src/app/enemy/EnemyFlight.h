@@ -4,7 +4,7 @@
 #include "app/enemy/EnemyTypes.h"
 #include "engine/base/Math.h"
 
-// 進入・攻撃中・離脱の飛行経路を計算する。機体のHPや描画オブジェクトはEnemyが持つ。
+// 進入・攻撃中・離脱の飛行経路を計算する　機体のHPや描画オブジェクトはEnemyが持つ
 class EnemyFlight {
 public:
     struct Pose {
@@ -49,7 +49,7 @@ private:
     float bossRecoveryRate_ = 0.0f;
     Math::Vector3 bossFlightTarget_{};
     Math::Vector3 bossFlightOffset_{};
-    Math::Vector3 sniperBracePosition_{}; // zは構え始めに記録したレールからの距離。
+    Math::Vector3 sniperBracePosition_{}; // zは構え始めに記録したレールからの距離
     bool sniperBraced_ = false;
     bool trainingTarget_ = false;
 };

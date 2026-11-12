@@ -30,12 +30,13 @@ inline constexpr const char* kBossModelPath =
 inline constexpr const char* kBossTexturePath =
     "resources/free_models/Imperial-20260707T180457Z-3-001/Imperial/Textures/Imperial_Purple.dds";
 
-// タイトルと本編で同じ素材を使うため、読み込みの進捗はアプリ全体で共有する。
+// タイトルと本編で同じ素材を使うため、読み込みの進捗はアプリ全体で共有する
 bool PreloadStep(DirectXCommon* dxCommon, SrvManager* srvManager);
 bool IsPreloaded();
 int GetStep();
 int GetStepCount();
 const char* GetLabel();
+// 直前の段階ミリ秒を返す
 float GetLastStepMs();
 float GetTotalMs();
 }

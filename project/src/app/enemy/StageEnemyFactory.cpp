@@ -1,5 +1,5 @@
 // ===== StageEnemyFactory.cpp =====
-// 敵の種類に合ったモデルと外見を選び、ステージに出す敵を生成する。
+// 敵の種類に合ったモデルと外見を選び、ステージに出す敵を生成する
 
 #include "app/enemy/StageEnemyFactory.h"
 
@@ -7,7 +7,7 @@
 #include "app/runtime/GameResources.h"
 #include "engine/3d/ModelManager.h"
 
-// 読込済みのモデルから機種ごとの見た目を準備し、モデル欠落時の代替も決める。
+// 読込済みのモデルから機種ごとの見た目を準備し、モデル欠落時の代替も決める
 void StageEnemyFactory::Prepare(ModelManager& models)
 {
     using namespace GameResources;
@@ -23,7 +23,7 @@ void StageEnemyFactory::Prepare(ModelManager& models)
     boss_ = { bossModel ? bossModel : fallback_.model, kBossTexturePath };
 }
 
-// 機種に対応するモデルとテクスチャを選び、指定位置・HP・スケールで敵を初期化する。モデルがなければnullptrを返す。
+// 機種に対応するモデルとテクスチャを選び、指定位置・HP・スケールで敵を初期化する　モデルがなければnullptrを返す
 std::unique_ptr<Enemy> StageEnemyFactory::Create(Object3dCommon& common, const Math::Vector3& position,
     EnemyBehavior behavior, EnemyEntryStyle entryStyle, int maxHp, float scale) const
 {
@@ -35,10 +35,10 @@ std::unique_ptr<Enemy> StageEnemyFactory::Create(Object3dCommon& common, const M
     return enemy;
 }
 
-// 敵の機種と設定HPに応じて、モデルとテクスチャの組み合わせを選ぶ。
+// 敵の機種と設定HPに応じて、モデルとテクスチャの組み合わせを選ぶ
 StageEnemyFactory::Appearance StageEnemyFactory::SelectAppearance(EnemyBehavior behavior, int maxHp) const
 {
-    // 通常機の代替モデルには、そのモデルに対応するテクスチャを使う。
+    // 通常機の代替モデルには、そのモデルに対応するテクスチャを使う
     switch (behavior) {
     case EnemyBehavior::Boss:
         return boss_;

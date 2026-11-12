@@ -1,5 +1,5 @@
 // ===== Skybox.cpp =====
-// カメラの向きに合わせて、キューブマップをステージの空として描く。
+// カメラの向きに合わせて、キューブマップをステージの空として描く
 
 #include "engine/3d/Skybox.h"
 
@@ -17,7 +17,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-// 背景用のキューブマップを読み、立方体と描画設定を準備する。
+// 背景用のキューブマップを読み、立方体と描画設定を準備する
 void Skybox::Initialize(
     DirectXCommon* dxCommon,
     SrvManager* srvManager,
@@ -39,7 +39,7 @@ void Skybox::Initialize(
     CreateViewProjectionResource();
 }
 
-// 現在のカメラに合わせて空の描画行列を作り、移動で空の見え方がずれないようにする。
+// 現在のカメラに合わせて空の描画行列を作り、移動で空の見え方がずれないようにする
 void Skybox::Update(const Camera* camera)
 {
     assert(camera);
@@ -58,7 +58,7 @@ void Skybox::Update(const Camera* camera)
         Math::Transpose(viewProjection);
 }
 
-// キューブマップとビュー投影を渡し、遠景の空を描く。
+// キューブマップとビュー投影を渡し、遠景の空を描く
 void Skybox::Draw()
 {
     auto* commandList = dxCommon_->GetCommandList();
@@ -82,7 +82,7 @@ void Skybox::Draw()
     commandList->DrawInstanced(vertexCount_, 1, 0, 0);
 }
 
-// 空を描くシェーダーが行列とキューブマップを読むための参照先を定義する。
+// 空を描くシェーダーが行列とキューブマップを読むための参照先を定義する
 void Skybox::CreateRootSignature()
 {
     auto* device = dxCommon_->GetDevice();
@@ -147,7 +147,7 @@ void Skybox::CreateRootSignature()
     assert(SUCCEEDED(hr));
 }
 
-// 空を遠景として描くシェーダー、頂点形式、深度の設定を作る。
+// 空を遠景として描くシェーダー、頂点形式、深度の設定を作る
 void Skybox::CreateGraphicsPipelineState()
 {
     auto* device = dxCommon_->GetDevice();
@@ -213,7 +213,7 @@ void Skybox::CreateGraphicsPipelineState()
     assert(SUCCEEDED(hr));
 }
 
-// キューブマップを方向で読むための立方体の頂点を用意する。
+// キューブマップを方向で読むための立方体の頂点を用意する
 void Skybox::CreateVertexBuffer()
 {
     // キューブの頂点座標を、そのままCubemapのサンプリング方向として使う
@@ -277,7 +277,7 @@ void Skybox::CreateVertexBuffer()
     vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-// 空のカメラ行列をGPUへ渡す定数バッファを作る。
+// 空のカメラ行列をGPUへ渡す定数バッファを作る
 void Skybox::CreateViewProjectionResource()
 {
     viewProjectionResource_ =

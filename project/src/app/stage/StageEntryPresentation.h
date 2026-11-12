@@ -1,4 +1,4 @@
-// 出撃と再挑戦の演出で、機体・カメラ・目標表示の姿勢や時刻を計算する。
+// 出撃と再挑戦の演出で、機体・カメラ・目標表示の姿勢や時刻を計算する
 
 #pragma once
 
@@ -7,7 +7,7 @@
 #include <array>
 #include <cstddef>
 
-// 出撃・再挑戦の飛行姿勢とHUDの時刻を計算する。本編の機体やカメラは呼び出し側が所有する。
+// 出撃・再挑戦の飛行姿勢とHUDの時刻を計算する　本編の機体やカメラは呼び出し側が所有する
 class StageEntryPresentation {
 public:
     struct FlightInput {

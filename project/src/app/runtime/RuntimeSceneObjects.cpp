@@ -1,5 +1,5 @@
 // ===== RuntimeSceneObjects.cpp =====
-// シーンに配置したオブジェクトを読み込み、更新・描画・保存する。
+// シーンに配置したオブジェクトを読み込み、更新・描画・保存する
 
 #include "app/runtime/RuntimeSceneObjects.h"
 
@@ -24,7 +24,7 @@ constexpr const char* kRuntimeSceneModelItems[] = {
 };
 } // namespace
 
-// 配置データから描画オブジェクトを作る。読み込みに成功してから現在の配置と入れ替える。
+// 配置データから描画オブジェクトを作る　読み込みに成功してから現在の配置と入れ替える
 bool RuntimeSceneObjects::Load(const char* path, Object3dCommon& common, SceneSerializer::SceneSettings& settings)
 {
     std::vector<SceneSerializer::ObjectRecord> records;
@@ -37,7 +37,7 @@ bool RuntimeSceneObjects::Load(const char* path, Object3dCommon& common, SceneSe
     nextObjects.reserve(records.size());
     nextRecords.reserve(records.size());
     std::string nextPath(path);
-    // モデル番号が有効なレコードだけを、描画物体と同じ順序で持つ。
+    // モデル番号が有効なレコードだけを、描画物体と同じ順序で持つ
     const int modelItemCount = static_cast<int>(std::size(kRuntimeSceneModelItems));
     for (auto& record : records) {
         if (record.modelIndex < 0 || modelItemCount <= record.modelIndex) {
@@ -61,14 +61,14 @@ bool RuntimeSceneObjects::Load(const char* path, Object3dCommon& common, SceneSe
         nextRecords.push_back(std::move(record));
     }
 
-    // 読み込みが途中で失敗しても、旧配置と保存先の対応が崩れないよう一緒に置き換える。
+    // 読み込みが途中で失敗しても、旧配置と保存先の対応が崩れないよう一緒に置き換える
     objects_ = std::move(nextObjects);
     records_ = std::move(nextRecords);
     path_ = std::move(nextPath);
     return true;
 }
 
-// 現在の配置から保存用のレコードを作り、シーン設定と一緒に書き出す。
+// 現在の配置から保存用のレコードを作り、シーン設定と一緒に書き出す
 bool RuntimeSceneObjects::Save(const char* path, const SceneSerializer::SceneSettings& settings)
 {
     if (!path || path[0] == '\0') { return false; }
@@ -80,7 +80,7 @@ bool RuntimeSceneObjects::Save(const char* path, const SceneSerializer::SceneSet
     return true;
 }
 
-// 描画オブジェクトのモデル名や現在の姿勢を保存用データへ写す。
+// 描画オブジェクトのモデル名や現在の姿勢を保存用データへ写す
 std::vector<SceneSerializer::ObjectRecord> RuntimeSceneObjects::BuildRecords() const
 {
     std::vector<SceneSerializer::ObjectRecord> records = records_;
@@ -111,7 +111,7 @@ std::vector<SceneSerializer::ObjectRecord> RuntimeSceneObjects::BuildRecords() c
     return records;
 }
 
-// 配置済みの各物体について、現在の姿勢を描画用の行列へ反映する。
+// 配置済みの各物体について、現在の姿勢を描画用の行列へ反映する
 void RuntimeSceneObjects::Update()
 {
     for (const auto& object : objects_) {
@@ -119,7 +119,7 @@ void RuntimeSceneObjects::Update()
     }
 }
 
-// 配置ファイルから用意した物体を描画する。
+// 配置ファイルから用意した物体を描画する
 void RuntimeSceneObjects::Draw() const
 {
     for (const auto& object : objects_) {

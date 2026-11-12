@@ -1,5 +1,5 @@
 // ===== RailScenery.cpp =====
-// レールに沿って街並みを配置し、進行位置に合わせて繰り返し使う背景を更新する。
+// レールに沿って街並みを配置し、進行位置に合わせて繰り返し使う背景を更新する
 
 #include "app/stage/RailScenery.h"
 #include "app/stage/SceneryAssets.h"
@@ -18,11 +18,11 @@ namespace {
 using namespace GameRuntimeMath;
 using namespace SceneryAssets;
 
-// 背景の範囲をカメラへ写し、画面に入る可能性があるかを判定する。
+// 背景の範囲をカメラへ写し、画面に入る可能性があるかを判定する
 bool BoundsIntersectCamera(const Math::Vector3& minimum, const Math::Vector3& maximum,
     const Math::Matrix4x4& worldViewProjection)
 {
-    // 同じクリップ面の外に全頂点がある箱だけを省く。カメラを跨ぐ大きな敷地も消さない。
+    // 同じクリップ面の外に全頂点がある箱だけを省く　カメラを跨ぐ大きな敷地も消さない
     unsigned int outsideEveryCorner = 0x3fu;
     const auto& m = worldViewProjection.m;
     for (int corner = 0; corner < 8; ++corner) {
@@ -47,7 +47,7 @@ bool BoundsIntersectCamera(const Math::Vector3& minimum, const Math::Vector3& ma
     return false;
 }
 
-// 周回する背景の前後位置を、繰り返し区間の範囲へ戻す。
+// 周回する背景の前後位置を、繰り返し区間の範囲へ戻す
 float WrapSceneryLocalZ(float localZ, float loopLength, float nearLocalZ)
 {
     const float safeLoopLength = (std::max)(loopLength, 1.0f);
@@ -56,7 +56,7 @@ float WrapSceneryLocalZ(float localZ, float loopLength, float nearLocalZ)
 }
 }
 
-// 本編と練習で使う区間の境界を保存し、背景を切り替える計算に使う。
+// 本編と練習で使う区間の境界を保存し、背景を切り替える計算に使う
 void RailScenery::SetDistricts(bool tutorial, float defenseStartZ, float plazaStartZ)
 {
     tutorial_ = tutorial;
@@ -64,7 +64,7 @@ void RailScenery::SetDistricts(bool tutorial, float defenseStartZ, float plazaSt
     plazaStartZ_ = plazaStartZ;
 }
 
-// 背景の描画オブジェクトと、配置・表示に使った状態を片づける。
+// 背景の描画オブジェクトと、配置・表示に使った状態を片づける
 void RailScenery::Clear()
 {
     transparentOrder_.clear();
@@ -75,7 +75,7 @@ void RailScenery::Clear()
     camera_ = nullptr;
 }
 
-// 地形と施設の配置を作り、飛行中に表示する区画の描画オブジェクトを準備する。
+// 地形と施設の配置を作り、飛行中に表示する区画の描画オブジェクトを準備する
 bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, size_t count)
 {
     common_ = common;
@@ -105,7 +105,7 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
             float environmentCoefficient) {
             const size_t index = sceneryIndex++;
             if (index < first || index >= first + count) { return; }
-            // 本編の外周も中央と同じ航空施設の意匠へ揃える。既存の配置・循環は引き継ぐ。
+            // 本編の外周も中央と同じ航空施設の意匠へ揃える　既存の配置・循環は引き継ぐ
             if (!tutorial_) {
                 const std::string_view requestedModel = modelPath;
                 if (requestedModel == kCityBuildingSmallModelPath) { modelPath = kAviationBuildingSupportModelPath; }
@@ -158,7 +158,7 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
                 scenery.object->SetMetallic(0.05f);
             }
             if ((isAviation && !isGlazing && !isPaving) || modelPathText == kTransitLandmarkModelPath) {
-                // 施設だけを既存の柔らかい拡散光へ合わせ、陰側の窓・扉・段差も残す。
+                // 施設だけを既存の柔らかい拡散光へ合わせ、陰側の窓・扉・段差も残す
                 scenery.object->SetLightingMode(2);
                 scenery.object->SetShadowReceiveStrength(0.70f);
                 scenery.object->SetEnvironmentCoefficient(0.055f);
@@ -217,7 +217,7 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
                 scenery.boundsMax = { (std::max)(scenery.boundsMax.x, v.x),
                     (std::max)(scenery.boundsMax.y, v.y), (std::max)(scenery.boundsMax.z, v.z) };
                 if (scenery.isBuilding || scenery.isRoad || scenery.isRoadDetail) {
-                    // 回転後の実際の端を含める。中心だけで判定すると建物の手前側が突然出る。
+                    // 回転後の実際の端を含める　中心だけで判定すると建物の手前側が突然出る
                     const auto position = TransformCoord({ vertex.position.x, vertex.position.y, vertex.position.z }, transform);
                     scenery.halfDepth = (std::max)(scenery.halfDepth, std::abs(position.z));
                 }
@@ -260,7 +260,7 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
     constexpr float kRoadY = -3.05f;
     constexpr float kSurfaceDetailY = kRoadY - 0.135f;
     constexpr float kBuildingY = kRoadY - 0.15f;
-    // 元の道路の最下面もkBuildingYと同じ高さ。基盤は下へ離して面の競合を防ぐ。
+    // 元の道路の最下面もkBuildingYと同じ高さ　基盤は下へ離して面の競合を防ぐ
     constexpr float kTerrainY = kBuildingY - 0.30f;
     constexpr float kHalfPi = 1.57079632679f;
 
@@ -269,8 +269,8 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
         addSceneryStyled(
             kCityStreet4LaneModelPath,
             { 0.0f, kRoadY, -9.0f + segmentZ },
-            // 元モデルはX方向へ続く6mの道路、Z方向18mに車道と歩道が並ぶ。
-            // 90度回して進行方向へ18mずつ連結。歩道が横断帯として反復しないようにする。
+            // 元モデルはX方向へ続く6mの道路、Z方向18mに車道と歩道が並ぶ
+            // 90度回して進行方向へ18mずつ連結　歩道が横断帯として反復しないようにする
             { 3.0f, 1.0f, 14.0f / 3.0f },
             { 0.0f, kHalfPi, 0.0f },
             cityLoopLength,
@@ -445,44 +445,44 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
             0.0f);
     }
     if (!tutorial_) {
-        // 路面と同じ648m周期。全遠景を初期化時に確保し、実行中に増やさない。
-        // 自機の可動域(±8.9m)の外へ配置し、戦闘の中央には障害物を足さない。
+        // 路面と同じ648m周期　全遠景を初期化時に確保し、実行中に増やさない
+        // 自機の可動域(±8.9m)の外へ配置し、戦闘の中央には障害物を足さない
         for (int index = 0; index < 18; ++index) {
             addSceneryStyled(kTracksideModelPath,
                 { 0.0f, kRoadY, 18.0f + 36.0f * static_cast<float>(index) },
                 { 1.0f, 1.0f, 1.0f }, {}, cityLoopLength, 0.0f,
                 { 0.94f, 0.96f, 0.97f, 1.0f }, 2, 0.015f);
         }
-        // 路面・歩道・建物の敷地の隙間を含む地表。四枚が端で接続し、視界外でだけ循環する。
+        // 路面・歩道・建物の敷地の隙間を含む地表　四枚が端で接続し、視界外でだけ循環する
         for (int index = 0; index < 4; ++index) {
             addSceneryStyled(kAviationTerrainModelPath,
                 { 0.0f, kTerrainY, 256.0f * static_cast<float>(index) },
                 { 1.0f, 1.0f, 1.0f }, {}, 1024.0f, 0.0f,
                 { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
         }
-        // 航空施設と外周の街区を、同じ固定敷地の管理道路・舗装・植栽でつなぐ。
+        // 航空施設と外周の街区を、同じ固定敷地の管理道路・舗装・植栽でつなぐ
         addSceneryStyled(kAviationCampusGroundModelPath,
             {0.0f,kTerrainY,162.0f},{1.0f,1.0f,1.0f},{},0.0f,0.0f,
             {1.0f,1.0f,1.0f,1.0f},2,0.015f);
-        // 地上から約15mより上に橋桁、支柱は左右22mより外。敵と自機の飛行域は塞がない。
-        // 部品はオフラインで8材質へ結合済み。プレイ中にモデルやGPU資源を追加しない。
+        // 地上から約15mより上に橋桁、支柱は左右22mより外　敵と自機の飛行域は塞がない
+        // 部品はオフラインで8材質へ結合済み　プレイ中にモデルやGPU資源を追加しない
         addSceneryStyled(kTransitLandmarkModelPath,
             { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
             0.0f, 0.0f, { 0.86f, 0.90f, 0.93f, 1.0f }, 1, 0.025f);
-        // 進入設備、運航棟、管制塔、退出側の整備場を同じ固定敷地へまとめる。
-        // 元の高架へ接続する形状をオフラインで7材質に結合。飛行域の左右17mは空ける。
+        // 進入設備、運航棟、管制塔、退出側の整備場を同じ固定敷地へまとめる
+        // 元の高架へ接続する形状をオフラインで7材質に結合　飛行域の左右17mは空ける
         addSceneryStyled(kAviationDistrictModelPath,
             { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
             0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.025f);
-        // 窓だけを別の材質設定にする。既存の不透明パスで描き、追加の描画先やSRVは使わない。
+        // 窓だけを別の材質設定にする　既存の不透明パスで描き、追加の描画先やSRVは使わない
         addSceneryStyled(kAviationGlazingModelPath,
             { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
             0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.16f);
-        // 序盤の飛行進入路だけを敷地へ固定。地表の誘導線は自動車用の車線へ重ねない。
+        // 序盤の飛行進入路だけを敷地へ固定　地表の誘導線は自動車用の車線へ重ねない
         addSceneryStyled(kAviationFlightwayModelPath,
             { 0.0f, kBuildingY, kTransitLandmarkWorldZ }, { 1.0f, 1.0f, 1.0f }, {},
             0.0f, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
-        // 近景と遠景を含む六つの共有敷地を起動時に確保。視界外で循環する。
+        // 近景と遠景を含む六つの共有敷地を起動時に確保　視界外で循環する
         for (int index = 0; index < kDefenseModuleCount; ++index) {
             const Math::Vector3 anchor{ 0.0f, kBuildingY,
                 kDefenseModuleLength * (static_cast<float>(index) + 0.5f) };
@@ -494,11 +494,11 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
             addSceneryStyled(relay ? kAviationDefenseRelayGlazingModelPath : kAviationDefenseGlazingModelPath,
                 anchor, { 1.0f, 1.0f, 1.0f }, rotate,
                 kDefenseLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 1, 0.16f);
-            // 舗装だけは同じ向きへ固定し、継ぎ目でアスファルトの粒を反転させない。
+            // 舗装だけは同じ向きへ固定し、継ぎ目でアスファルトの粒を反転させない
             addSceneryStyled(kAviationDefenseFlightwayModelPath, anchor, { 1.0f, 1.0f, 1.0f }, {},
                 kDefenseLoopLength, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 2, 0.015f);
         }
-        // 低い外周施設と広い舗装面。ボス戦が長引いても同じ固定プールで続ける。
+        // 低い外周施設と広い舗装面　ボス戦が長引いても同じ固定プールで続ける
         for (int index = 0; index < kBossApronModuleCount; ++index) {
             const Math::Vector3 anchor{ 0.0f, kBuildingY,
                 kBossApronModuleLength * (static_cast<float>(index) + 0.5f) };
@@ -520,7 +520,7 @@ bool RailScenery::Prepare(Object3dCommon* common, Camera* camera, size_t first, 
     return ready;
 }
 
-// 現在のレール距離から、区間ごとの背景をなじませるための比率を求める。
+// 現在のレール距離から、区間ごとの背景をなじませるための比率を求める
 Math::Vector2 RailScenery::DistrictWeights(float worldZ) const
 {
     if (tutorial_) { return {}; }
@@ -532,22 +532,22 @@ Math::Vector2 RailScenery::DistrictWeights(float worldZ) const
     return { blend(defenseStartZ_, 96.0f), blend(plazaStartZ_, 144.0f) };
 }
 
-// ボス戦の広場が始まる前後位置を、本編の背景配置から求める。
+// ボス戦の広場が始まる前後位置を、本編の背景配置から求める
 float RailScenery::BossApronStartZ() const
 {
     if (tutorial_ || plazaStartZ_ == -1.0f) { return -1.0f; }
     const float defenseStartZ = defenseStartZ_ >= 0.0f ?
         (std::max)(defenseStartZ_, 450.0f) : defenseStartZ_;
-    // 中盤の128m敷地の端へ接続。境界の確定時には全ての変更対象が描画範囲より先にある。
+    // 中盤の128m敷地の端へ接続　境界の確定時には全ての変更対象が描画範囲より先にある
     return defenseStartZ + std::ceil((plazaStartZ_ + 96.0f - defenseStartZ) /
         kDefenseModuleLength) * kDefenseModuleLength;
 }
 
-// 進行距離に応じて背景の表示範囲と使う区画を更新する。
+// 進行距離に応じて背景の表示範囲と使う区画を更新する
 void RailScenery::Update(float railDistance)
 {
-    // 序盤の敷地（Z=396まで）と路面（Z=450まで）を終えてから中盤へ入る。
-    // 負の原点は明示的なDebugフェーズ移動だけで使用する。
+    // 序盤の敷地（Z=396まで）と路面（Z=450まで）を終えてから中盤へ入る
+    // 負の原点は明示的なDebugフェーズ移動だけで使用する
     const float defenseStartZ = defenseStartZ_ >= 0.0f ?
         (std::max)(defenseStartZ_, 450.0f) : defenseStartZ_;
     const float bossApronStartZ = BossApronStartZ();
@@ -569,7 +569,7 @@ void RailScenery::Update(float railDistance)
                 scenery.isVisible = false;
                 continue;
             }
-            // 原点は区画の境界へ固定する。周期全体を保持し、近・遠クリップの外でだけ循環。
+            // 原点は区画の境界へ固定する　周期全体を保持し、近・遠クリップの外でだけ循環
             const float cycle = startZ + scenery.anchor.z - railDistance +
                 scenery.halfDepth - nearLocalZ;
             localZ = cycle - std::floor(cycle / scenery.loopLength) * scenery.loopLength +
@@ -581,7 +581,7 @@ void RailScenery::Update(float railDistance)
             localZ - scenery.halfDepth <= scenery.drawFarLocalZ;
         if (scenery.isDefenseDistrict) {
             const float worldZ = railDistance + localZ;
-            // 広場の舗装面へ隙間なく接続し、建物の敷地同士は重ねない。
+            // 広場の舗装面へ隙間なく接続し、建物の敷地同士は重ねない
             scenery.isVisible &= worldZ - scenery.halfDepth >= defenseStartZ - 0.01f &&
                 (bossApronStartZ == -1.0f || worldZ + scenery.halfDepth <= bossApronStartZ + 0.01f);
         } else if (scenery.isBossApron) {
@@ -589,7 +589,7 @@ void RailScenery::Update(float railDistance)
         }
         if (bossApronStartZ != -1.0f && (scenery.isRoad || scenery.isTrackside ||
             scenery.isRoadDetail)) {
-            // 舗装は専用面で繋がっている。18m道路片の端まで判定し、最後の歩道が広場へ突き出さない。
+            // 舗装は専用面で繋がっている　18m道路片の端まで判定し、最後の歩道が広場へ突き出さない
             const float halfDepth = scenery.isRoad ? 9.0f : scenery.halfDepth;
             scenery.isVisible &= railDistance + localZ + halfDepth < bossApronStartZ;
         }
@@ -634,18 +634,18 @@ void RailScenery::Update(float railDistance)
             };
             if (scenery.isBuilding) {
                 const float side = scenery.anchor.x < 0.0f ? -1.0f : 1.0f;
-                // 最も狭い街区でも旧配置の31.5mを下回らず、既存の退場ルートを塞がない。
+                // 最も狭い街区でも旧配置の31.5mを下回らず、既存の退場ルートを塞がない
                 const float facadeX = scenery.isBackRow ? value(54.0f, 46.0f, 89.0f) :
                     value(38.0f, 31.5f, 64.0f);
                 position.x = side * facadeX;
-                // 施設の接続部に建物がめり込まないよう、左右の敷地を空ける。
-                // ワールド座標から決めるため、近づいた途端に建物が動くことはない。
+                // 施設の接続部に建物がめり込まないよう、左右の敷地を空ける
+                // ワールド座標から決めるため、近づいた途端に建物が動くことはない
                 const float facilityDistance = std::abs(position.z - kTransitLandmarkWorldZ);
                 const float setback = std::clamp((78.0f - facilityDistance) / 30.0f, 0.0f, 1.0f);
                 position.x += side * setback * (scenery.isBackRow ? 8.0f : 13.0f);
-                // 建物ごとの元の高さの差は残す。ボス広場は低い街並みと空でシルエットを抜く。
+                // 建物ごとの元の高さの差は残す　ボス広場は低い街並みと空でシルエットを抜く
                 scale.y *= scenery.isBackRow ? value(0.95f, 1.65f, 0.90f) : value(0.80f, 1.65f, 0.72f);
-                // 序盤だけを運航区画として構成する。ワールド位置に固定し、表示中には動かさない。
+                // 序盤だけを運航区画として構成する　ワールド位置に固定し、表示中には動かさない
                 const float openingT = std::clamp((position.z - 390.0f) / 90.0f, 0.0f, 1.0f);
                 const float opening = 1.0f - openingT * openingT * (3.0f - 2.0f * openingT);
                 const float defenseEndT = bossApronStartZ == -1.0f ? 0.0f :
@@ -666,7 +666,7 @@ void RailScenery::Update(float railDistance)
                 const float bossApronX = scenery.isBackRow ? 151.0f + cluster * 18.0f : 123.0f + cluster * 12.0f;
                 const float campusX = Lerp(defenseX, bossApronX, bossApron);
                 position.x = Lerp(position.x, side * Lerp(campusX, openingX, opening), campus);
-                // 元の階高・窓の縦横比を戻し、管制塔の輪郭を一般の街並みより上へ抜く。
+                // 元の階高・窓の縦横比を戻し、管制塔の輪郭を一般の街並みより上へ抜く
                 const float openingScale = scenery.scale.x * (scenery.isBackRow ? 1.02f : 1.0f);
                 scale.y = Lerp(scale.y, openingScale * Lerp(1.0f, 0.72f, bossApron), campus);
                 scale.z = Lerp(scale.z, scenery.scale.x, campus);
@@ -676,7 +676,7 @@ void RailScenery::Update(float railDistance)
                     Lerp(scenery.color.y, districtColor.y, campus),
                     Lerp(scenery.color.z, districtColor.z, campus), 1.0f });
             } else if (scenery.isRoad) {
-                // 回転後の道幅はローカルZ。長さXを変えると連結部に隙間ができる。
+                // 回転後の道幅はローカルZ　長さXを変えると連結部に隙間ができる
                 scale.z *= value(14.8f, 12.0f, 24.0f) / 14.0f;
             }
         }
@@ -689,7 +689,7 @@ void RailScenery::Update(float railDistance)
     }
 }
 
-// 表示中の地面や建物を描く。ガラスなどの透明部は指定された描画パスで重ねる。
+// 表示中の地面や建物を描く　ガラスなどの透明部は指定された描画パスで重ねる
 void RailScenery::Draw(ModelDrawPass drawPass)
 {
     if (objects_.empty() || !common_) {
@@ -710,7 +710,7 @@ void RailScenery::Draw(ModelDrawPass drawPass)
                 transparentOrder_.push_back(&scenery);
             }
         }
-        // カメラを動かしても手前のガラスが奥の室内を消さないよう、深度は読み取りだけにする。
+        // カメラを動かしても手前のガラスが奥の室内を消さないよう、深度は読み取りだけにする
         const Math::Matrix4x4 view = camera_ ? camera_->GetViewMatrix() : Math::MakeIdentity4x4();
         std::sort(transparentOrder_.begin(), transparentOrder_.end(),
             [&view](const Object* a, const Object* b) {

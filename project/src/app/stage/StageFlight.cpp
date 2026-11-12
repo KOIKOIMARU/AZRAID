@@ -1,5 +1,5 @@
 // ===== StageFlight.cpp =====
-// 区間ごとの速度や加速に従ってレール上の進行距離を更新し、ステージ進行に反映する。
+// 区間ごとの速度や加速に従ってレール上の進行距離を更新し、ステージ進行に反映する
 
 #include "app/stage/StageFlight.h"
 
@@ -22,7 +22,7 @@ float InitialSpeed(bool tutorial)
 }
 }
 
-// レールの距離、速度、区間名を初期状態へ戻す。練習と本編で開始速度を切り替える。
+// レールの距離、速度、区間名を初期状態へ戻す　練習と本編で開始速度を切り替える
 void StageFlight::Reset(bool tutorial)
 {
     director_.Reset(tutorial);
@@ -36,7 +36,7 @@ void StageFlight::Reset(bool tutorial)
     combatBeat_ = "Intro";
 }
 
-// 現在区間から目標速度とカメラの傾きを求める。リングとフィーバーの加速もここで合成する。
+// 現在区間から目標速度とカメラの傾きを求める　リングとフィーバーの加速もここで合成する
 void StageFlight::PrepareFrame(bool feverActive, float ringBoost)
 {
     const float gateSpeed = 1.0f + ringBoost * (feverActive ? 0.22f : 0.65f);
@@ -57,7 +57,7 @@ void StageFlight::PrepareFrame(bool feverActive, float ringBoost)
     cameraBias_.fov = Lerp(cameraBias_.fov, segment.fovBoost, 0.035f);
 }
 
-// 目標速度に近づけてレール距離を進める。スロー解除時の加速演出と敵配置の進行も更新する。
+// 目標速度に近づけてレール距離を進める　スロー解除時の加速演出と敵配置の進行も更新する
 void StageFlight::Advance(float worldTimeScale, StageDirector::EnemyLoad load, bool feverActive, float ringBoost, bool bossSpawned)
 {
     speed_ = Lerp(speed_, targetSpeed_, ringBoost > 0.0f ? 0.20f : feverActive ? kFeverAccelerationResponse : 0.070f);
@@ -68,11 +68,11 @@ void StageFlight::Advance(float worldTimeScale, StageDirector::EnemyLoad load, b
     previousWorldScale_ = worldTimeScale;
     distance_ += speed_ * worldTimeScale;
 
-    // 背景は練習中も流す。配置の進行は敵の出現枠やボスの状態で別に決まる。
+    // 背景は練習中も流す　配置の進行は敵の出現枠やボスの状態で別に決まる
     director_.Advance(worldTimeScale, load, feverActive, bossSpawned);
 }
 
-// 配置表からリングを取り出し、自機の前方に置く。高速時は前方距離を広げ、接近までの時間を確保する。
+// 配置表からリングを取り出し、自機の前方に置く　高速時は前方距離を広げ、接近までの時間を確保する
 std::optional<Math::Vector3> StageFlight::TryConsumeGatePosition()
 {
     const auto* gate = director_.TryConsumeGate();
@@ -82,7 +82,7 @@ std::optional<Math::Vector3> StageFlight::TryConsumeGatePosition()
     return Math::Vector3{ gate->x, gate->y, distance_ + lead };
 }
 
-// 本編でボス警告を始める進行度に達したか返す。警告を一度に絞る処理は演出側で行う。
+// 本編でボス警告を始める進行度に達したか返す　警告を一度に絞る処理は演出側で行う
 bool StageFlight::IsBossWarningDue() const
 {
     return !director_.IsTutorial() && director_.Progress() >= MainStage::kBossWarningProgress;
@@ -94,7 +94,7 @@ void StageFlight::FinishStage()
     combatBeat_ = "Boss destroyed";
 }
 
-// 現在の飛行速度を、モードごとの基準から0〜1の演出用の値に換算する。
+// 現在の飛行速度を、モードごとの基準から0〜1の演出用の値に換算する
 float StageFlight::SpeedRate() const
 {
     const bool tutorial = director_.IsTutorial();
@@ -103,14 +103,14 @@ float StageFlight::SpeedRate() const
     return std::clamp((speed_ - base) / range, 0.0f, 1.0f);
 }
 
-// 目標速度と現在速度の差から、加速演出で使う0〜1の値を求める。
+// 目標速度と現在速度の差から、加速演出で使う0〜1の値を求める
 float StageFlight::AccelerationRate() const
 {
     return std::clamp((targetSpeed_ - speed_) / 0.045f, 0.0f, 1.0f);
 }
 
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_GUI)
-// 開発用に区間を選び、レールと配置の進行度を確認したい地点へ移す。
+// 開発用に区間を選び、レールと配置の進行度を確認したい地点へ移す
 StageFlight::DebugPhase StageFlight::SeekPhaseForDebug(int phaseIndex)
 {
     struct Phase {

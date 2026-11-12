@@ -1,5 +1,5 @@
 // ===== ParticleManager.cpp =====
-// パーティクル群をGPUで生成・更新する処理と、インスタンシング描画を管理する。
+// パーティクル群をGPUで生成・更新する処理と、インスタンシング描画を管理する
 
 #include "engine/3d/ParticleManager.h"
 
@@ -29,7 +29,7 @@ namespace
         Vector2 texcoord;
     };
 
-    // 板ポリ（2三角形 = 6頂点）※中心(0,0)・サイズ1想定。必要ならスケールはWVP側で。
+    // 板ポリ（2三角形 = 6頂点）※中心(0,0)・サイズ1想定　必要ならスケールはWVP側で
     std::array<ParticleVertex, 6> MakeQuadVertices()
     {
         // 左下(-0.5,-0.5) ～ 右上(0.5,0.5)
@@ -51,7 +51,7 @@ ParticleManager* ParticleManager::GetInstance()
     return &instance;
 }
 
-// 粒子共通の頂点、カメラ定数、描画設定と計算用シェーダーを準備する。
+// 粒子共通の頂点、カメラ定数、描画設定と計算用シェーダーを準備する
 void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
     assert(dxCommon);
@@ -190,7 +190,7 @@ void ParticleManager::Initialize(DirectXCommon* dxCommon, SrvManager* srvManager
 }
 
 
-// 粒子の空き番号と初期値を作るGPU処理の設定を用意する。
+// 粒子の空き番号と初期値を作るGPU処理の設定を用意する
 void ParticleManager::CreateInitializePipeline()
 {
     CD3DX12_DESCRIPTOR_RANGE rangeParticle{};
@@ -244,7 +244,7 @@ void ParticleManager::CreateInitializePipeline()
     assert(SUCCEEDED(hr));
 }
 
-// 空き番号へ新しい粒子を書き込むGPU処理の設定を用意する。
+// 空き番号へ新しい粒子を書き込むGPU処理の設定を用意する
 void ParticleManager::CreateEmitPipeline()
 {
     CD3DX12_DESCRIPTOR_RANGE rangeParticle{};
@@ -300,7 +300,7 @@ void ParticleManager::CreateEmitPipeline()
     assert(SUCCEEDED(hr));
 }
 
-// 生存中の粒子を進めて期限切れの枠を回収するGPU処理の設定を用意する。
+// 生存中の粒子を進めて期限切れの枠を回収するGPU処理の設定を用意する
 void ParticleManager::CreateUpdatePipeline()
 {
     CD3DX12_DESCRIPTOR_RANGE rangeParticle{};
@@ -355,7 +355,7 @@ void ParticleManager::CreateUpdatePipeline()
     assert(SUCCEEDED(hr));
 }
 
-// グループの粒子と空き番号を初期化するよう、GPUに計算を依頼する。
+// グループの粒子と空き番号を初期化するよう、GPUに計算を依頼する
 void ParticleManager::DispatchInitialize(ParticleGroup& group)
 {
     auto* cl = dxCommon_->GetCommandList();
@@ -421,7 +421,7 @@ void ParticleManager::DispatchInitialize(ParticleGroup& group)
     group.needsInitialize = false;
 }
 
-// 発生位置・方向・個数を渡し、グループに新しい粒子を追加するGPU命令を送る。
+// 発生位置・方向・個数を渡し、グループに新しい粒子を追加するGPU命令を送る
 void ParticleManager::DispatchEmit(ParticleGroup& group)
 {
     if (!group.needsEmit || !group.emitterData || group.emitterData->emit == 0) {
@@ -484,7 +484,7 @@ void ParticleManager::DispatchEmit(ParticleGroup& group)
     group.needsEmit = false;
 }
 
-// GPUで各粒子の位置と寿命を更新し、期限切れの番号を次の発生に使えるようにする。
+// GPUで各粒子の位置と寿命を更新し、期限切れの番号を次の発生に使えるようにする
 void ParticleManager::DispatchUpdate(ParticleGroup& group)
 {
     auto* cl = dxCommon_->GetCommandList();
@@ -518,7 +518,7 @@ void ParticleManager::DispatchUpdate(ParticleGroup& group)
     cl->ResourceBarrier(_countof(uavBarriers), uavBarriers);
 }
 
-// 現在のビューと投影を粒子へ渡し、更新できるときだけ時間を進める。
+// 現在のビューと投影を粒子へ渡し、更新できるときだけ時間を進める
 void ParticleManager::Update(
     const Matrix4x4& viewMatrix,
     const Matrix4x4& projectionMatrix, bool advanceSimulation
@@ -543,7 +543,7 @@ void ParticleManager::Update(
     }
 }
 
-// グループごとに必要な更新を送り、テクスチャと粒子データを参照してまとめて描く。
+// グループごとに必要な更新を送り、テクスチャと粒子データを参照してまとめて描く
 void ParticleManager::Draw(bool advanceSimulation)
 {
     auto* cl = dxCommon_->GetCommandList();
@@ -571,7 +571,7 @@ void ParticleManager::Draw(bool advanceSimulation)
         // CPU側Emitterから射出許可が出ていれば、描画前にGPUでParticleを追加する
         if (advanceSimulation) {
             DispatchEmit(group);
-            // 射出された粒子も含め、移動と寿命を進める。
+            // 射出された粒子も含め、移動と寿命を進める
             DispatchUpdate(group);
         }
 
@@ -605,7 +605,7 @@ void ParticleManager::Draw(bool advanceSimulation)
 // ======================================
 // 終了処理
 // ======================================
-// 全グループの参照と共有の描画リソースを解放する。
+// 全グループの参照と共有の描画リソースを解放する
 void ParticleManager::Finalize()
 {
     // Particle用SRV/UAVを解放
@@ -633,7 +633,7 @@ void ParticleManager::Finalize()
     srvManager_ = nullptr;
 }
 
-// グループごとのテクスチャ、粒子バッファ、空き枠のカウンタを準備する。
+// グループごとのテクスチャ、粒子バッファ、空き枠のカウンタを準備する
 bool ParticleManager::CreateParticleGroup(
     const std::string& name,
     const std::string& textureFilePath,
@@ -772,7 +772,7 @@ bool ParticleManager::CreateParticleGroup(
     }
 }
 
-// 指定名のグループを終了し、記述子を返して一覧から外す。
+// 指定名のグループを終了し、記述子を返して一覧から外す
 bool ParticleManager::RemoveParticleGroup(const std::string& name)
 {
     const auto it = particleGroups_.find(name);
@@ -804,7 +804,7 @@ bool ParticleManager::IsGpuPipelineReady() const
         updatePipelineState_;
 }
 
-// グループが確保した粒子用の参照番号を返し、各番号を無効にする。
+// グループが確保した粒子用の参照番号を返し、各番号を無効にする
 void ParticleManager::ReleaseParticleGroupDescriptors(ParticleGroup& group)
 {
     if (!srvManager_) {
@@ -823,7 +823,7 @@ void ParticleManager::ReleaseParticleGroupDescriptors(ParticleGroup& group)
     release(group.freeListUavIndex);
 }
 
-// グループに設定済みの方向で、指定位置から粒子の発生を依頼する。
+// グループに設定済みの方向で、指定位置から粒子の発生を依頼する
 void ParticleManager::Emit(
     const std::string& name,
     const Vector3& position,
@@ -834,7 +834,7 @@ void ParticleManager::Emit(
     Emit(name, position, it->second.emitterData->direction, count);
 }
 
-// 発生元に位置・方向・個数を設定し、次のGPU更新で発生できるようにする。
+// 発生元に位置・方向・個数を設定し、次のGPU更新で発生できるようにする
 void ParticleManager::Emit(
     const std::string& name,
     const Vector3& position,

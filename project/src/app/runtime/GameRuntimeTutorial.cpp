@@ -1,5 +1,5 @@
 // ===== GameRuntimeTutorial.cpp =====
-// チュートリアルの練習用の敵やリングを出し、達成状況に応じて次の課題へ進める。
+// チュートリアルの練習用の敵やリングを出し、達成状況に応じて次の課題へ進める
 
 #include "app/runtime/GameRuntime.h"
 #include "engine/base/DirectXCommon.h"
@@ -13,7 +13,7 @@
 #include <stdexcept>
 #endif
 
-// 射撃や撃破などの累計を練習側へ渡し、課題開始から増えた分を判定できるようにする。
+// 射撃や撃破などの累計を練習側へ渡し、課題開始から増えた分を判定できるようにする
 TutorialProgress::Stats GameRuntime::ReadTutorialStats() const
 {
     return { combatResolver_.Stats().defeated, playerSkill_.ActivationCount(), playerSkill_.DefeatCount(), ringGates_.PassCount() };
@@ -32,20 +32,20 @@ void GameRuntime::SpawnTutorialRing()
 
 void GameRuntime::SpawnTutorialTargets(int count, int hp)
 {
-    // 通常の標的は機体同士が重ならない間隔。チャージだけは爆風で巻き込める小編隊。
+    // 通常の標的は機体同士が重ならない間隔　チャージだけは爆風で巻き込める小編隊
     const float spacing = tutorial_.CurrentLesson() == TutorialProgress::Lesson::Charge ? 3.0f : 5.2f;
     stageEnemies_.SpawnTrainingTargets(stageFlight_.Distance(), count, hp, spacing);
 }
 
-// 課題を切り替え、達成判定の基準値と練習用の機体・敵・リングをそろえる。
+// 課題を切り替え、達成判定の基準値と練習用の機体・敵・リングをそろえる
 void GameRuntime::BeginTutorialLesson(TutorialProgress::Lesson lesson)
 {
-    // 残弾やロック先を次の課題へ持ち越さない。弾は通常の更新経路でプールへ戻す。
+    // 残弾やロック先を次の課題へ持ち越さない　弾は通常の更新経路でプールへ戻す
     projectiles_.KillAll();
     stageEnemies_.KillAll();
     ringGates_.Deactivate();
     const auto setup = tutorial_.BeginLesson(lesson, ReadTutorialStats());
-    // 直前の被弾を持ち越さず、各課題を同じ条件で練習する。位置は変えない。
+    // 直前の被弾を持ち越さず、各課題を同じ条件で練習する　位置は変えない
     if (player_) { const auto position = player_->GetTranslate(); player_->Reset(position); }
     playerControl_.Shooting().Reset();
     hud_.ClearChargeFlash();
@@ -60,7 +60,7 @@ void GameRuntime::BeginTutorialLesson(TutorialProgress::Lesson lesson)
     }
 }
 
-// 回避課題の発射予告とカウントを進め、練習用の敵弾を撃つ。
+// 回避課題の発射予告とカウントを進め、練習用の敵弾を撃つ
 void GameRuntime::UpdateTutorialAttack()
 {
     if (!tutorial_.Started() || tutorial_.CurrentLesson() != TutorialProgress::Lesson::Dodge ||
@@ -83,7 +83,7 @@ void GameRuntime::UpdateTutorialAttack()
     }
 }
 
-// 現在の操作や戦闘結果を課題に渡し、必要な練習物の再配置や次の課題への移行を行う。
+// 現在の操作や戦闘結果を課題に渡し、必要な練習物の再配置や次の課題への移行を行う
 void GameRuntime::UpdateTutorialLesson()
 {
     if (!IsTutorial() || !player_ || isGameOver_ || isGameClear_) { return; }
@@ -110,7 +110,7 @@ void GameRuntime::UpdateTutorialLesson()
     }
 }
 
-// 練習用の入力案内をHUDの表示範囲へ描き、現在の達成条件を示す。
+// 練習用の入力案内をHUDの表示範囲へ描き、現在の達成条件を示す
 void GameRuntime::DrawTutorialGuideHud(ImDrawList& draw, const Math::Vector2& min, const Math::Vector2& size)
 {
     if (!IsTutorial() || !tutorial_.Started() || isGameClear_ || isGameOver_) { return; }
@@ -132,10 +132,10 @@ void GameRuntime::DrawTutorialGuideHud(ImDrawList& draw, const Math::Vector2& mi
 }
 
 #ifdef _DEBUG
-// 課題ごとに移動、射撃、回避などを実行して、課題の進行と完了後の切り替えを確認する。
+// 課題ごとに移動、射撃、回避などを実行して、課題の進行と完了後の切り替えを確認する
 bool GameRuntime::RunTutorialProbe(const std::string& logPath, bool preview, bool departure)
 {
-    // 実際の入力・弾・衝突で全課題を通す。課題の成功フラグや撃破数は書き換えない。
+    // 実際の入力・弾・衝突で全課題を通す　課題の成功フラグや撃破数は書き換えない
     static int frame = 0;
     static int lessonFrame = 0;
     static int previousLesson = -1;
@@ -291,7 +291,7 @@ bool GameRuntime::RunTutorialProbe(const std::string& logPath, bool preview, boo
         }
         break;
     case TutorialProgress::Lesson::Shoot:
-        // 元の退場期限を超えても二機の標的が残ることを確認してから撃つ。
+        // 元の退場期限を超えても二機の標的が残ることを確認してから撃つ
         if (lessonFrame == 720) {
             require(stageEnemies_.Active().size() == 2 && stageEnemies_.EscapedCount() == 0 && tutorial_.ProgressForProbe() == 0,
                 "Training targets escaped before player learned aiming");
@@ -355,7 +355,7 @@ bool GameRuntime::RunTutorialProbe(const std::string& logPath, bool preview, boo
     case TutorialProgress::Lesson::Fever: {
         const bool feverActive = rewards_.Fever().IsActive();
         const bool feverReady = rewards_.Fever().IsReady();
-        // 初回は発動前の残弾も片付け、撃破を持ち込まず時間切れを確認する。
+        // 初回は発動前の残弾も片付け、撃破を持ち込まず時間切れを確認する
         if (!feverRetryVerified && (feverReady || (feverActive && !feverWasActive))) {
             for (const auto& bullet : projectiles_.PlayerPool().Active()) { bullet->Kill(); }
         }

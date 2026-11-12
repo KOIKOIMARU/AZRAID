@@ -1,5 +1,5 @@
 // ===== TutorialProgress.cpp =====
-// 課題ごとの達成条件と計測値を持ち、練習開始・成功・やり直しのタイミングを決める。
+// 課題ごとの達成条件と計測値を持ち、練習開始・成功・やり直しのタイミングを決める
 
 #include "app/stage/TutorialProgress.h"
 
@@ -28,7 +28,7 @@ void TutorialProgress::Reset()
     *this = {};
 }
 
-// 課題開始時の命中数などを控え、この課題中に増えた分で成功を判定できるようにする。
+// 課題開始時の命中数などを控え、この課題中に増えた分で成功を判定できるようにする
 TutorialProgress::Setup TutorialProgress::BeginLesson(Lesson lesson, Stats stats)
 {
     Reset();
@@ -46,14 +46,14 @@ TutorialProgress::Setup TutorialProgress::BeginLesson(Lesson lesson, Stats stats
     case Lesson::Ring:
         return { .feverGauge = 40, .spawnRing = true };
     case Lesson::Fever:
-        // 満タン手前から始め、命中・撃破による本編と同じ自動発動を練習する。
+        // 満タン手前から始め、命中・撃破による本編と同じ自動発動を練習する
         return { .targets = { 3, 2 }, .feverGauge = 65 };
     default:
         return {};
     }
 }
 
-// 練習中の入力と戦闘結果を調べ、課題の成功や次の課題への移行に必要な通知を返す。
+// 練習中の入力と戦闘結果を調べ、課題の成功や次の課題への移行に必要な通知を返す
 TutorialProgress::Events TutorialProgress::Advance(float frameStep, const Frame& frame)
 {
     Events events;
@@ -114,7 +114,7 @@ TutorialProgress::Events TutorialProgress::Advance(float frameStep, const Frame&
             feverExperience_ += frameStep;
             progress_ += frame.stats.defeats - start_.defeats;
         }
-        // 発動が切れても体験済みの撃破数は残す。次の発動で続きを練習できる。
+        // 発動が切れても体験済みの撃破数は残す　次の発動で続きを練習できる
         start_.defeats = frame.stats.defeats;
         if (progress_ >= 3 && feverExperience_ >= 120.0f && !frame.skillActive) { complete(); }
         if (!frame.targetsAlive && !ShowingSuccess() && !frame.skillActive) { events.targets = { 3, 2 }; }
@@ -125,7 +125,7 @@ TutorialProgress::Events TutorialProgress::Advance(float frameStep, const Frame&
     return events;
 }
 
-// 練習弾までの待ち時間を進める。画面の予告にも残り時間を渡し、発射時刻にtrueを返す。
+// 練習弾までの待ち時間を進める　画面の予告にも残り時間を渡し、発射時刻にtrueを返す
 bool TutorialProgress::AdvanceDodgeAttack(float frameStep)
 {
     attackTimer_ -= frameStep;
@@ -133,30 +133,30 @@ bool TutorialProgress::AdvanceDodgeAttack(float frameStep)
     return attackTimer_ <= 0.0f;
 }
 
-// 練習弾を撃った後、次の練習弾までの待ち時間を設定する。
+// 練習弾を撃った後、次の練習弾までの待ち時間を設定する
 void TutorialProgress::OnDodgeShotFired()
 {
     attackTimer_ = 150.0f;
 }
 
-// 回避した位置で弾が十分近ければ、この練習課題の回避を成功として記録する。
+// 回避した位置で弾が十分近ければ、この練習課題の回避を成功として記録する
 void TutorialProgress::ObserveDodge(const Math::Vector3& player, const Math::Vector3& bullet)
 {
-    // 空振りのSHIFTでは進めない。実際の弾が近ければジャスト判定より広く認める。
+    // 空振りのSHIFTでは進めない　実際の弾が近ければジャスト判定より広く認める
     if (bullet.z - player.z >= -1.0f && bullet.z - player.z < 11.0f &&
         std::abs(bullet.x - player.x) < 6.0f && std::abs(bullet.y - player.y) < 2.5f) {
         dodgeConfirmed_ = true;
     }
 }
 
-// 自機の前方近くにある弾かを距離と横・縦のずれで判定し、回避案内に使う。
+// 自機の前方近くにある弾かを距離と横・縦のずれで判定し、回避案内に使う
 bool TutorialProgress::IsDodgePromptShot(const Math::Vector3& player, const Math::Vector3& bullet)
 {
     return bullet.z > player.z && bullet.z < player.z + 16.0f &&
         std::abs(bullet.x - player.x) < 5.0f && std::abs(bullet.y - player.y) < 2.5f;
 }
 
-// 練習用に、チャージ弾が直撃した回数を記録する。
+// 練習用に、チャージ弾が直撃した回数を記録する
 void TutorialProgress::RecordChargedHit()
 {
     if (lesson_ == Lesson::Charge) { chargedHit_ = true; }
@@ -206,7 +206,7 @@ const std::array<const char*, TutorialProgress::kLessonCount>& TutorialProgress:
     return kLessonNames;
 }
 
-// 現在の課題名、操作、達成状況を、ゲーム内のガイド領域へ表示する。
+// 現在の課題名、操作、達成状況を、ゲーム内のガイド領域へ表示する
 void TutorialProgress::DrawGuide(ImDrawList& list, const Math::Vector2& min, const Math::Vector2& size,
     const Math::Matrix4x4* viewProjection, float railDistance, const Guide& guide) const
 {
@@ -218,7 +218,7 @@ void TutorialProgress::DrawGuide(ImDrawList& list, const Math::Vector2& min, con
     const ImU32 accent = success ? CombatHud::Health : goldAccent ? CombatHud::GaugeGold : CombatHud::Blue;
     auto* draw = &list;
     draw->PushClipRect({ min.x, min.y }, { min.x + size.x, min.y + size.y }, true);
-    // 中央の照準と機体を隠さない、一段の操作案内。色は本編の計器と揃える。
+    // 中央の照準と機体を隠さない、一段の操作案内　色は本編の計器と揃える
     const ImVec2 start{ min.x + (size.x - 800.0f * s) * 0.5f, min.y + 28.0f * s };
     const auto p = [&](float x, float y) { return ImVec2(start.x + x * s, start.y + y * s); };
     draw->AddRectFilled(start, p(800, 138), CombatHud::SurfaceColor(IM_COL32(12, 16, 22, 225)));
@@ -288,7 +288,7 @@ void TutorialProgress::DrawGuide(ImDrawList& list, const Math::Vector2& min, con
     }
     const float keyWidth = (std::max)(150.0f, CombatHud::ReadoutWidth(key, 18.0f) + 28.0f);
 #ifdef _DEBUG
-    // 翻訳や文面の追加で、キー表示・説明・枠が重なったら実画面の試験で検出する。
+    // 翻訳や文面の追加で、キー表示・説明・枠が重なったら実画面の試験で検出する
     if (CombatHud::ReadoutWidth(action, 26 * s) > (736.0f - keyWidth) * s ||
         CombatHud::ReadoutWidth(hint, 18 * s) > 752 * s ||
         CombatHud::ReadoutWidth(progress, 18 * s) > 300 * s || keyWidth > 230.0f) {
@@ -299,7 +299,7 @@ void TutorialProgress::DrawGuide(ImDrawList& list, const Math::Vector2& min, con
     CombatHud::Readout(draw, p(24, 52), 26 * s, success ? accent : CombatHud::White, action);
     CombatHud::KeyBadge(draw, p(776 - keyWidth, 49), p(776, 85), s, key, true, accent);
     CombatHud::Readout(draw, p(24, 104), 18 * s, CombatHud::Muted, hint);
-    // 説明している計器だけを同系色で示す。未習得の計器は通常の位置のまま控えめにする。
+    // 説明している計器だけを同系色で示す　未習得の計器は通常の位置のまま控えめにする
     const CombatHud::Layout layout(min, size);
     if (lesson_ == Lesson::Charge || lesson_ == Lesson::Skill ||
         lesson_ == Lesson::Fever) {

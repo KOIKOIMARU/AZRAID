@@ -12,7 +12,7 @@ class Object3d;
 class Object3dCommon;
 class Skybox;
 
-// クリア演出専用のカメラ・機体・噴射を所有する。モデルと描画設定は本編から借りる。
+// クリア演出専用のカメラ・機体・噴射を所有する　モデルと描画設定は本編から借りる
 class ClearResultPresentation {
 public:
     ClearResultPresentation();

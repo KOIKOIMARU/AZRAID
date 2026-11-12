@@ -1,5 +1,5 @@
 // ===== ClearResultPresentation.cpp =====
-// クリア結果の背景で、自機の飛行とカメラの動きを演出する。
+// クリア結果の背景で、自機の飛行とカメラの動きを演出する
 
 #include "app/presentation/ClearResultPresentation.h"
 #include "app/runtime/GameRuntimeMath.h"
@@ -19,7 +19,7 @@
 ClearResultPresentation::ClearResultPresentation() = default;
 ClearResultPresentation::~ClearResultPresentation() = default;
 
-// クリア専用の機体、カメラ、噴射の描画を解放する。
+// クリア専用の機体、カメラ、噴射の描画を解放する
 void ClearResultPresentation::Clear()
 {
     exhaust_ = {};
@@ -35,7 +35,7 @@ const Math::Matrix4x4& ClearResultPresentation::GetProjectionMatrix() const
     return camera_->GetProjectionMatrix();
 }
 
-// リザルト用の機体、カメラと噴射を準備する。準備済みなら今ある描画枠を使う。
+// リザルト用の機体、カメラと噴射を準備する　準備済みなら今ある描画枠を使う
 void ClearResultPresentation::Initialize(
     Object3dCommon& common, Model* playerModel, Model* exhaustTrailModel, Model* exhaustCoreModel)
 {
@@ -72,7 +72,7 @@ void ClearResultPresentation::Initialize(
     ship_->SetMetallic(0.28f);
     ship_->SetSpecularColor({ 0.40f, 0.44f, 0.50f });
     ship_->SetShadowReceiveStrength(0.0f);
-    // 左右の噴射を外炎・内炎・ノズルの光の三層で準備する。
+    // 左右の噴射を外炎・内炎・ノズルの光の三層で準備する
     for (size_t index = 0; index < exhaust_.size(); ++index) {
         auto& exhaust = exhaust_[index];
         exhaust = std::make_unique<Object3d>();
@@ -85,7 +85,7 @@ void ClearResultPresentation::Initialize(
     }
 }
 
-// クリア後に映す機体とカメラを、リザルトを開いてからの経過時間で動かす。
+// クリア後に映す機体とカメラを、リザルトを開いてからの経過時間で動かす
 void ClearResultPresentation::Update(float elapsed, float aspectRatio)
 {
     if (!IsReady()) { return; }
@@ -105,7 +105,7 @@ void ClearResultPresentation::Update(float elapsed, float aspectRatio)
     const auto worldOffset = rotate(local, camera_->GetWorldMatrix());
     const auto eye = camera_->GetTranslate();
     const Math::Vector3 center{ eye.x + worldOffset.x, eye.y + worldOffset.y, eye.z + worldOffset.z };
-    // 機首の方向を保ったまま、機体のバンクを加える。
+    // 機首の方向を保ったまま、機体のバンクを加える
     const auto forward = rotate({ -0.92f, 0.10f,
         0.38f + (1 - arrival) * 0.15f + std::sin(elapsed * 0.42f) * 0.065f }, camera_->GetWorldMatrix());
     const auto referenceUp = rotate({ 0, 1, 0 }, camera_->GetWorldMatrix());
@@ -145,12 +145,12 @@ void ClearResultPresentation::Update(float elapsed, float aspectRatio)
     }
 }
 
-// クリア画面専用のカメラで空と機体を描き、その飛行に合わせた噴射を表示する。
+// クリア画面専用のカメラで空と機体を描き、その飛行に合わせた噴射を表示する
 void ClearResultPresentation::Draw(DirectXCommon& dxCommon, Skybox* skybox) const
 {
     assert(IsReady());
     dxCommon.SetFlightBlur(0.0f, { 0.5f, 0.5f }, { 0.5f, 0.5f }, { 0.5f, 0.5f }, camera_->GetAspectRatio());
-    // このフレームでは本編の空・機体を描かず、各定数バッファを一つのカメラでだけ使う。
+    // このフレームでは本編の空・機体を描かず、各定数バッファを一つのカメラでだけ使う
     if (skybox) {
         skybox->Update(camera_.get());
         skybox->Draw();

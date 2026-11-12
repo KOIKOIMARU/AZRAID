@@ -1,5 +1,5 @@
 // ===== StageEntryPresentation.cpp =====
-// ステージのプレビュー、出撃、再挑戦で使う機体とカメラの動きや目標表示を作る。
+// ステージのプレビュー、出撃、再挑戦で使う機体とカメラの動きや目標表示を作る
 
 #include "app/stage/StageEntryPresentation.h"
 
@@ -27,7 +27,7 @@ struct StageFlightKey {
     Math::Vector3 position, velocity;
 };
 
-// 直前と次の位置を補間し、飛行経路の途中で滑らかにつながる機体位置を求める。
+// 直前と次の位置を補間し、飛行経路の途中で滑らかにつながる機体位置を求める
 Math::Vector3 StageFlightSpline(float elapsed, std::span<const StageFlightKey> keys)
 {
     if (elapsed <= keys.front().time) { return keys.front().position; }
@@ -47,7 +47,7 @@ struct StageFlightSample {
     Math::Vector3 position, velocity;
 };
 
-// 戻りの飛行で使う位置の曲線を、区間内の時間から計算する。
+// 戻りの飛行で使う位置の曲線を、区間内の時間から計算する
 StageFlightSample StageReturnCurve(const std::array<Math::Vector3,4>& points, float t)
 {
     const float s=1.0f-t;
@@ -61,11 +61,11 @@ StageFlightSample StageReturnCurve(const std::array<Math::Vector3,4>& points, fl
     return {{x.first,y.first,z.first},{x.second,y.second,z.second}};
 }
 
-// 出撃直前に機体がカメラ前へ入る姿勢に向けて位置を補間する。
+// 出撃直前に機体がカメラ前へ入る姿勢に向けて位置を補間する
 StageFlightSample StageFlightApproach(Math::Vector3 origin, Math::Vector3 velocity,
     float duration, float elapsed)
 {
-    // 始点の速度を引き継ぎ、終点では相対速度・加速度をともに0にする。
+    // 始点の速度を引き継ぎ、終点では相対速度・加速度をともに0にする
     const float t=std::clamp(elapsed/duration,0.0f,1.0f), t2=t*t, t3=t2*t, t4=t3*t, t5=t4*t;
     const float p=1.0f-10.0f*t3+15.0f*t4-6.0f*t5, v=t-6.0f*t3+8.0f*t4-3.0f*t5;
     const float dp=(-30.0f*t2+60.0f*t3-30.0f*t4)/duration;
@@ -77,7 +77,7 @@ StageFlightSample StageFlightApproach(Math::Vector3 origin, Math::Vector3 veloci
 
 Math::Vector3 StageEntryShipView(float elapsed)
 {
-    // カメラの下で向きを整え、背中を見せたまま入口へ加速する。
+    // カメラの下で向きを整え、背中を見せたまま入口へ加速する
     static constexpr std::array<StageFlightKey,9> keys{{
         {0.00f,{0.0f,-3.30f,1.20f},{0.0f,0.0f,18.0f}},
         {StageEntryTiming::kStageFlybyFollowTime,{0.0f,-3.00f,4.80f},{0.0f,1.8f,18.0f}},
@@ -94,7 +94,7 @@ Math::Vector3 StageEntryShipView(float elapsed)
 
 Math::Vector3 StageEntryCameraView(float elapsed)
 {
-    // 通過した機体の後方へ回り、入口から先は同じ追走位置を引き継ぐ。
+    // 通過した機体の後方へ回り、入口から先は同じ追走位置を引き継ぐ
     static constexpr std::array<StageFlightKey,8> keys{{
         {StageEntryTiming::kStageFlybyFollowTime,{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f}},
         {0.62f,{0.0f,-0.30f,4.50f},{0.0f,0.8f,14.0f}},
@@ -108,11 +108,11 @@ Math::Vector3 StageEntryCameraView(float elapsed)
     return StageFlightSpline(elapsed,keys);
 }
 
-// 待機中の周回、開口部を通る飛行、次の周回へ戻る動きを、同じ時計でつなぐ。
+// 待機中の周回、開口部を通る飛行、次の周回へ戻る動きを、同じ時計でつなぐ
 Math::Vector3 StagePreviewPatrolPosition(float elapsed)
 {
-    // 周回の間に、入口の表面を機首から横断する二度の切断パスを入れる。
-    // 切断中は高さと奥行きを固定し、発光する切断線から機体が外れない。
+    // 周回の間に、入口の表面を機首から横断する二度の切断パスを入れる
+    // 切断中は高さと奥行きを固定し、発光する切断線から機体が外れない
     constexpr float duration=StageEntryTiming::kStagePatrolDuration;
     const float time=(std::max)(0.0f,elapsed);
     const int variation=static_cast<int>(time/duration)%3;
@@ -140,7 +140,7 @@ Math::Vector3 StagePreviewPatrolPosition(float elapsed)
     return {(canvas.x-640.0f)*canvas.z/focal,(360.0f-screenY)*canvas.z/focal,canvas.z};
 }
 
-// 開口部の位置を基準に、周回中の機体をカメラから見た座標へ移す。
+// 開口部の位置を基準に、周回中の機体をカメラから見た座標へ移す
 Math::Vector3 StagePortalView(Math::Vector3 view, Math::Vector2 seam)
 {
     const float slope=-0.19f-seam.y;
@@ -150,7 +150,7 @@ Math::Vector3 StagePortalView(Math::Vector3 view, Math::Vector2 seam)
 
 }
 
-// 選択画面から引き継いだ値と、出撃・再挑戦・目標表示の時計を初期化する。
+// 選択画面から引き継いだ値と、出撃・再挑戦・目標表示の時計を初期化する
 void StageEntryPresentation::Reset()
 {
     titleEntryTime_ = -1.0f;
@@ -167,7 +167,7 @@ Math::Vector3 StageEntryPresentation::GetStagePatrolPosition(float elapsed, Math
     return StagePortalView(StagePreviewPatrolPosition(elapsed),seam);
 }
 
-// レールの位置に合わせて上空のカメラを置き、ステージの前方へ向ける。
+// レールの位置に合わせて上空のカメラを置き、ステージの前方へ向ける
 GameplayCamera::Pose StageEntryPresentation::GetPreviewCamera(float railDistance) const
 {
     GameplayCamera::Pose pose;
@@ -180,10 +180,10 @@ GameplayCamera::Pose StageEntryPresentation::GetPreviewCamera(float railDistance
     return pose;
 }
 
-// ステージ選択中に周回する機体の位置と姿勢を、カメラに対する座標から求める。
+// ステージ選択中に周回する機体の位置と姿勢を、カメラに対する座標から求める
 StageEntryPresentation::ShipFrame StageEntryPresentation::UpdatePreview(float elapsed, const Math::Matrix4x4& frame)
 {
-    // 入口を描くカメラの実座標を、周回とその後の出撃で共有する。
+    // 入口を描くカメラの実座標を、周回とその後の出撃で共有する
     stageOverviewActive_ = true;
     stagePortalFrame_ = frame;
     const auto position=TransformCoord(GetStagePatrolPosition(elapsed,stagePortalSeam_),frame);
@@ -210,14 +210,14 @@ StageEntryPresentation::ShipFrame StageEntryPresentation::UpdatePreview(float el
     return { position, rotation, thrust };
 }
 
-// 出撃に入る前に機体の位置をつなぎ直し、次に使う姿勢と噴射の強さを返す。
+// 出撃に入る前に機体の位置をつなぎ直し、次に使う姿勢と噴射の強さを返す
 StageEntryPresentation::ShipFrame StageEntryPresentation::UpdateReturn(float elapsed, const Math::Vector3& shipPosition)
 {
     const auto length=[](Math::Vector3 v) { return std::sqrt(v.x*v.x+v.y*v.y+v.z*v.z); };
     const auto smooth=[](float t) { t=std::clamp(t,0.0f,1.0f); return t*t*(3.0f-2.0f*t); };
     const auto launchVelocity=StagePortalView({0.0f,0.0f,18.0f},stagePortalSeam_);
     const auto launchOrigin=StagePortalView(StageEntryShipView(0.0f),stagePortalSeam_);
-    // 周回の勢いで画面端へ抜け、画面外で入口へ向き直ってから登場する。
+    // 周回の勢いで画面端へ抜け、画面外で入口へ向き直ってから登場する
     if (stageReturnTime_ < 0.0f) {
         const auto inverse=Inverse(stagePortalFrame_);
         const auto origin=TransformCoord(shipPosition,inverse);
@@ -256,7 +256,7 @@ StageEntryPresentation::ShipFrame StageEntryPresentation::UpdateReturn(float ela
             stageReturnDuration_+=leg.duration;
         };
         addLeg(origin,exit,velocity,exitVelocity,42.0f,0.35f,1.35f);
-        // 左右どちらへ抜けても、背後を通って画角の下で前方へ向く。
+        // 左右どちらへ抜けても、背後を通って画角の下で前方へ向く
         const Math::Vector3 behind{side*12.0f,-12.0f,-14.0f}, behindVelocity{-side*25.0f,-10.0f,0.0f};
         addLeg(exit,behind,exitVelocity,behindVelocity,70.0f,0.35f,0.90f);
         addLeg(behind,launchOrigin,behindVelocity,launchVelocity,55.0f,0.32f,0.70f);
@@ -270,7 +270,7 @@ StageEntryPresentation::ShipFrame StageEntryPresentation::UpdateReturn(float ela
     }
     const auto& leg=stageReturnLegs_[legIndex];
     const float t=std::clamp(legTime/leg.duration,0.0f,1.0f);
-    // 速度は前後30%で滑らかに接続。遠くから戻るときだけ必要な距離を飛ぶ時間を取る。
+    // 速度は前後30%で滑らかに接続　遠くから戻るときだけ必要な距離を飛ぶ時間を取る
     const auto integral=[](float u) { return u*u*u-0.5f*u*u*u*u; };
     const float entry=std::clamp(t/0.30f,0.0f,1.0f), exit=std::clamp((t-0.70f)/0.30f,0.0f,1.0f);
     const float entryDistance=0.30f*(entry-integral(entry));
@@ -303,7 +303,7 @@ StageEntryPresentation::ShipFrame StageEntryPresentation::UpdateReturn(float ela
     return { position, rotation, 1.05f+0.50f*std::sin(t*3.1415927f) };
 }
 
-// 上空からステージを見せる導入を進め、機体とカメラを通常飛行へつなぐための姿勢を返す。
+// 上空からステージを見せる導入を進め、機体とカメラを通常飛行へつなぐための姿勢を返す
 StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float elapsed, const FlightInput& input)
 {
     FlightFrame frame;
@@ -314,7 +314,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float
     const auto smooth = [](float value) {
         const float u=std::clamp(value,0.0f,1.0f); return u*u*(3.0f-2.0f*u);
     };
-    // 入口の位置は選択画面から固定。近距離の旋回はこの座標で撮影する。
+    // 入口の位置は選択画面から固定　近距離の旋回はこの座標で撮影する
     const auto portalPoint = [&](Math::Vector3 view) {
         auto p=TransformCoord(StagePortalView(view,stagePortalSeam_),stagePortalFrame_); p.z-=titleEntryStartRail_; return p;
     };
@@ -334,7 +334,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float
     const float passKick=smooth((elapsed-kStagePortalBoostTime)/0.12f)*
         (1.0f-smooth((elapsed-clear-0.10f)/0.60f));
     const float speed=input.speedRate, distance=kRushCameraDistance+speed*0.65f;
-    // レールの時計だけを穏やかに巡航へ合わせる。機体とカメラの位置は飛ばさない。
+    // レールの時計だけを穏やかに巡航へ合わせる　機体とカメラの位置は飛ばさない
     constexpr float accelerationDuration=0.45f;
     const float acceleration=std::clamp(arrivalTime/accelerationDuration,0.0f,1.0f);
     const float cruiseTravel=arrivalTime < accelerationDuration ? accelerationDuration*
@@ -374,8 +374,8 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float
         const auto exit=portalPoint(StageEntryShipView(clear));
         const auto exitVelocity=portalVector({-2.5f,-0.5f,25.0f});
         const auto flight=StageFlightApproach(exit,exitVelocity,arrivalDuration,arrivalTime);
-        // 通過後は翼を傾けて一度だけ斜めに切り込み、街の進行方向へ収束させる。
-        // 追加の変位と速度は両端で0。入口の接続と操作開始時の位置を保つ。
+        // 通過後は翼を傾けて一度だけ斜めに切り込み、街の進行方向へ収束させる
+        // 追加の変位と速度は両端で0　入口の接続と操作開始時の位置を保つ
         const float carve=surge*surge*(1.0f-t);
         const float carveVelocity=(2.0f*surge*std::cos(t*3.1415927f)*3.1415927f*(1.0f-t)-
             surge*surge)/arrivalDuration;
@@ -388,7 +388,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float
         const float bank=std::atan(-stagePortalSeam_.y)*(1.0f-smooth(arrivalTime/0.65f))-
             0.30f*surge*surge-0.48f*carve;
         rotation=StageFlightRotation(velocity,up,bank);
-        // 飛行方向の少し後ろを追い、地面へ近づいてから通常の距離まで引く。
+        // 飛行方向の少し後ろを追い、地面へ近づいてから通常の距離まで引く
         const auto followFrame=Math::MakeAffineMatrix({1,1,1},StageFlightRotation(velocity,up,0.0f),{});
         const auto startFrame=Math::MakeAffineMatrix({1,1,1},StageFlightRotation(exitVelocity,portalUp,0.0f),{});
         const auto exitCamera=portalPoint(StageEntryCameraView(clear));
@@ -421,7 +421,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateOverview(float
     return frame;
 }
 
-// 出撃中の目標表示を、時間に応じた位置と透明度で描く。
+// 出撃中の目標表示を、時間に応じた位置と透明度で描く
 void StageEntryPresentation::DrawBriefing(float elapsed, const Math::Vector2& min, const Math::Vector2& size) const
 {
     if (elapsed < 0.0f || elapsed >= BriefingEnd()) { return; }
@@ -437,7 +437,7 @@ void StageEntryPresentation::DrawBriefing(float elapsed, const Math::Vector2& mi
         const float x = cinematic ? 640.0f-MenuUi::Width(value,fontSize,true)*0.5f : 72.0f;
         const float slide = cinematic ? (1.0f-smooth(elapsed/0.16f))*-16.0f : 0.0f;
         const ImVec2 at{origin.x+x*scale,origin.y+(y+slide)*scale};
-        // 明るい街並みでも読めるよう、文字の輪郭だけを暗くする。
+        // 明るい街並みでも読めるよう、文字の輪郭だけを暗くする
         for (const auto offset : std::array<ImVec2,4>{{{-1,-1},{1,-1},{-1,1},{1,1}}}) {
             MenuUi::Heading(draw,{at.x+offset.x*2.0f*scale,at.y+offset.y*2.0f*scale},
                 fontSize*scale,IM_COL32(7,13,24,220),value);
@@ -453,7 +453,7 @@ void StageEntryPresentation::DrawBriefing(float elapsed, const Math::Vector2& mi
         draw->AddRectFilled({min.x,min.y+size.y-height},{min.x+size.x,min.y+size.y},IM_COL32(0,0,0,255));
         const float wind=smooth((elapsed-kStagePortalBoostTime)/0.16f)*
             (1.0f-smooth((elapsed-3.25f)/0.70f));
-        // 風切りの線は画面端だけへ短く流し、機体と目標の周りを空ける。
+        // 風切りの線は画面端だけへ短く流し、機体と目標の周りを空ける
         draw->PushClipRect({min.x,min.y+height},{min.x+size.x,min.y+size.y-height},true);
         const ImVec2 vanishing{min.x+size.x*0.50f,min.y+size.y*0.44f};
         for (int index=0;index<6;++index) {
@@ -479,7 +479,7 @@ void StageEntryPresentation::DrawBriefing(float elapsed, const Math::Vector2& mi
     draw->PopClipRect();
 }
 
-// 再挑戦用の開始位置とレール距離を控え、短い出撃演出の時計を始める。
+// 再挑戦用の開始位置とレール距離を控え、短い出撃演出の時計を始める
 void StageEntryPresentation::BeginRetry(const Math::Vector3& shipPosition, float railDistance)
 {
     retryEntryTime_ = 0.0f;
@@ -491,7 +491,7 @@ void StageEntryPresentation::BeginRetry(const Math::Vector3& shipPosition, float
     titleEntryTime_ = -1.0f;
 }
 
-// 再挑戦用の機体とカメラを動かし、操作に戻る時点を返す。
+// 再挑戦用の機体とカメラを動かし、操作に戻る時点を返す
 StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateRetry(float deltaSeconds, const FlightInput& input)
 {
     FlightFrame frame;
@@ -517,7 +517,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateRetry(float de
     return frame;
 }
 
-// 出撃へ引き継ぐ機体・カメラの姿勢とモデルの大きさを控え、演出の開始状態を作る。
+// 出撃へ引き継ぐ機体・カメラの姿勢とモデルの大きさを控え、演出の開始状態を作る
 void StageEntryPresentation::BeginTitle(const Math::Vector3& viewPosition, const Math::Vector3& rotation,
     const Math::Vector3& cameraRotation, float titleScale, float shipScale, const FlightInput& input)
 {
@@ -525,7 +525,7 @@ void StageEntryPresentation::BeginTitle(const Math::Vector3& viewPosition, const
     titleEntryStartRail_ = input.railDistance;
     titleEntryRotation_ = rotation;
     titleEntryCameraRotation_ = cameraRotation;
-    // 同じ機体を同じ画角で見せる。モデル倍率の違いは距離で相殺し、切替で縮ませない。
+    // 同じ機体を同じ画角で見せる　モデル倍率の違いは距離で相殺し、切替で縮ませない
     const auto offset = RotateLocalOffset(viewPosition *
         (shipScale / (std::max)(titleScale,0.01f)),cameraRotation);
     const float distance = input.tutorial ? kGameplayCameraInitialDistance : kRushCameraDistance + input.speedRate * 0.65f;
@@ -533,7 +533,7 @@ void StageEntryPresentation::BeginTitle(const Math::Vector3& viewPosition, const
     titleEntryTime_ = kTitleEntryWorldTime;
 }
 
-// タイトル側から引き継いだ出撃演出を進め、画面内の自機とカメラを同じ時刻から求める。
+// タイトル側から引き継いだ出撃演出を進め、画面内の自機とカメラを同じ時刻から求める
 StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateTitle(float time, const FlightInput& input)
 {
     FlightFrame frame;
@@ -565,7 +565,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateTitle(float ti
     const Math::Vector3 nearPass{1.8f,2.3f,-distance + 4.8f};
     const auto path = [&](float t) {
         if (titleEntryFromStage_) {
-            // 入ってきた機首方向へ一度抜けてから旋回。切替直後に軌道を中央へ折り返さない。
+            // 入ってきた機首方向へ一度抜けてから旋回　切替直後に軌道を中央へ折り返さない
             const Math::Vector3 lead{titleEntryOrigin_.x,titleEntryOrigin_.y,
                 titleEntryOrigin_.z-input.railSpeed*60.0f*0.34f};
             return curve(titleEntryOrigin_,lead,{},{},t/1.02f);
@@ -576,12 +576,12 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateTitle(float ti
                 titleEntryOrigin_.z + exit.z},{nearPass.x + 3.4f,nearPass.y + 1.0f,nearPass.z + 1.0f},
                 nearPass,t / 0.30f);
         }
-        // 接線を揃えて近距離の旋回から奥へ突き抜ける。終端は通常レール速度へ滑らかに戻る。
+        // 接線を揃えて近距離の旋回から奥へ突き抜ける　終端は通常レール速度へ滑らかに戻る
         return curve(nearPass,{nearPass.x - 3.4f * (0.52f / 0.30f),
             nearPass.y - (0.52f / 0.30f),nearPass.z - (0.52f / 0.30f)}, {}, {},
             (t - 0.30f) / 0.52f);
     };
-    // レールだけを前進。敵の出現時計・スコア・入力は動かさない。
+    // レールだけを前進　敵の出現時計・スコア・入力は動かさない
     frame.railDistance = titleEntryStartRail_ + input.railSpeed * 60.0f * flight;
     const auto local = path(flight);
     const Math::Vector3 position{local.x,local.y,local.z + frame.railDistance};
@@ -625,7 +625,7 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateTitle(float ti
         titleEntryCameraRotation_.y * remaining,titleEntryCameraRotation_.z * remaining +
             (titleEntryFromStage_ ? 0.24f : -0.14f)*surge };
     if (titleEntryFromStage_) {
-        // 至近距離を横切る自機へ振り向く。機体を追う角度から前方の通常カメラへ戻す。
+        // 至近距離を横切る自機へ振り向く　機体を追う角度から前方の通常カメラへ戻す
         const float aimYaw=std::atan2(position.x-pose.position.x,position.z-pose.position.z);
         const float follow=ease(flight/0.20f)*(1.0f-ease((flight-0.72f)/0.30f));
         pose.rotation.y=Lerp(pose.rotation.y,aimYaw,follow);
@@ -640,14 +640,14 @@ StageEntryPresentation::FlightFrame StageEntryPresentation::UpdateTitle(float ti
 
 bool StageEntryPresentation::IsForeground() const
 {
-    // 入口の手前では機体を面より前へ置き、通り抜けてから本編の深度へ渡す。
+    // 入口の手前では機体を面より前へ置き、通り抜けてから本編の深度へ渡す
     return (stageOverviewActive_ && titleEntryTime_ < 0.0f) ||
         (titleEntryFromStage_ && stageReturnTime_ >= 0.0f && titleEntryTime_ >= 0.0f &&
             stageBriefingTime_ < kStagePortalTransitDuration) ||
         (!titleEntryFromStage_ && titleEntryTime_ >= kTitleEntryWorldTime && titleEntryTime_ < kTitleEntryDiveTime);
 }
 
-// 出撃の進行に応じて、通常の戦闘HUDを重ねる透明度を返す。
+// 出撃の進行に応じて、通常の戦闘HUDを重ねる透明度を返す
 float StageEntryPresentation::TitleHudOpacity() const
 {
     constexpr float hudBegin = kTitleEntryDuration - 0.25f;
@@ -657,16 +657,16 @@ float StageEntryPresentation::TitleHudOpacity() const
     return t * t * (3.0f - 2.0f * t);
 }
 
-// 通常戦闘の更新に入った時点で出撃演出の状態を終了する。
+// 通常戦闘の更新に入った時点で出撃演出の状態を終了する
 void StageEntryPresentation::FinishTitleEntry()
 {
     if (titleEntryTime_ >= kTitleEntryDuration) { titleEntryTime_ = -1.0f; }
 }
 
-// 再挑戦の演出を描き切った後で状態を終了し、次の更新から通常戦闘へ戻す。
+// 再挑戦の演出を描き切った後で状態を終了し、次の更新から通常戦闘へ戻す
 void StageEntryPresentation::FinishRetryFrame()
 {
-    // HUDの最後のフレームを描いてから、次の更新で戦闘へ戻る。
+    // HUDの最後のフレームを描いてから、次の更新で戦闘へ戻る
     if (retryEntryTime_ >= kRetryEntryDuration) { retryEntryTime_ = -1.0f; }
 }
 
@@ -680,7 +680,7 @@ float StageEntryPresentation::BriefingEnd() const
     return IsStageCinematic() ? kStageStartOverviewDuration + 0.35f : 4.8f;
 }
 
-// 表示中の目標案内の時計を進め、規定時間を過ぎたら表示を終える。
+// 表示中の目標案内の時計を進め、規定時間を過ぎたら表示を終える
 void StageEntryPresentation::AdvanceBriefing(float deltaSeconds)
 {
     if (stageBriefingTime_ < 0.0f) { return; }

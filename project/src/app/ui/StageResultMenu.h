@@ -1,4 +1,4 @@
-// クリア・敗北・チュートリアルの結果画面を描き、再挑戦などの選択をGameplayMenuへ渡す。
+// クリア・敗北・チュートリアルの結果画面を描き、再挑戦などの選択をGameplayMenuへ渡す
 
 #pragma once
 
@@ -45,7 +45,7 @@ public:
     void DrawClear(Input* input, const Math::Vector2& min, const Math::Vector2& size,
         const Stats& stats, float elapsed, GameplayMenu& menu);
     void DrawDefeat(Input* input, const Math::Vector2& min, const Math::Vector2& size,
-        const Stats& stats, float deltaSeconds, GameplayMenu& menu);
+        const Stats& stats, float deltaSeconds, GameplayMenu& menu); // statsは集計　deltaSecondsは前回の更新からの経過秒数　menuはメニュー
     void DrawTutorial(Input* input, const Math::Vector2& min, const Math::Vector2& size,
         std::span<const char* const> lessons, GameplayMenu& menu);
 
@@ -57,6 +57,7 @@ public:
 
 private:
     enum class Kind { Hidden, Clear, Defeat };
+    // リザルトの種類が変わった時点で表示の時計を始め、出現演出に使う経過秒数を返す
     float BeginDisplay(Kind kind);
 
     Kind kind_ = Kind::Hidden;

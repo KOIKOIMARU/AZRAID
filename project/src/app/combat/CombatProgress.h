@@ -1,6 +1,6 @@
 #pragma once
 
-// スコアと連続撃破のルール。敵・描画・入力のクラスには依存しない。
+// スコアと連続撃破のルール　敵・描画・入力のクラスには依存しない
 class CombatProgress {
 public:
     static constexpr int kChainDurationFrames = 210;
@@ -11,11 +11,12 @@ public:
 
     void Reset();
     void ResetChain();
-    // フィーバーなどの追加倍率を受け取り、連続撃破の倍率と合わせて得点へ反映する。
+    // フィーバーなどの追加倍率を受け取り、連続撃破の倍率と合わせて得点へ反映する
     void AddScore(int baseScore, int bonusMultiplier);
-    // 敵がいない移動区間では猶予を減らさず、終了中は連続撃破の進行も止める。
+    // 敵がいない移動区間では猶予を減らさず、終了中は連続撃破の進行も止める
     void Update(bool hasTarget, bool gameplayRunning);
     void RegisterDefeat();
+    // 現在のチェインを終了し、連続撃破していた場合は途切れたことをHUDへ知らせる
     void BreakChain();
     void ExtendChain(int minimumFrames);
     void RefreshChain();

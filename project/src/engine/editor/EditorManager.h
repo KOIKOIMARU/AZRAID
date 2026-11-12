@@ -1,4 +1,4 @@
-// エディタの現在モード、選択対象、編集中のファイルなどの状態を持つ。
+// エディタの現在モード、選択対象、編集中のファイルなどの状態を持つ
 
 #pragma once
 #include <array>
@@ -40,6 +40,7 @@ public:
     void SetGizmoMode(int mode);
 
     bool ConsumeAddObjectRequest();
+    // 編集画面からのプレイ開始要求を一度だけ取り出す　次のフレームでは消費済みになる
     bool ConsumeStartPlayModeRequest();
     bool ConsumeStopPlayModeRequest();
     bool ConsumeRemoveObjectRequest();

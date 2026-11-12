@@ -1,5 +1,5 @@
 // ===== FlightSpeedEffects.cpp =====
-// 飛行速度やブーストに合わせて、空間と画面上に速度線を出す。
+// 飛行速度やブーストに合わせて、空間と画面上に速度線を出す
 
 #include "app/presentation/FlightSpeedEffects.h"
 #include "app/combat/FeverState.h"
@@ -40,7 +40,7 @@ bool ProjectToScreen(const FlightSpeedEffects::Frame& frame, const Math::Vector3
         frame.camera->GetViewProjectionMatrix(), frame.viewportMin, frame.viewportSize, screenPosition);
 }
 
-// カメラから遠方の基準点を画面へ写し、速度線の集まる位置を求める。
+// カメラから遠方の基準点を画面へ写し、速度線の集まる位置を求める
 Math::Vector2 VanishingPoint(const FlightSpeedEffects::Frame& frame)
 {
     Math::Vector2 point{ frame.viewportMin.x + frame.viewportSize.x * 0.5f,
@@ -51,7 +51,7 @@ Math::Vector2 VanishingPoint(const FlightSpeedEffects::Frame& frame)
 
 }
 
-// 背景側に流す光の描画枠と配置を準備する。
+// 背景側に流す光の描画枠と配置を準備する
 void FlightSpeedEffects::Initialize(Object3dCommon* common, const Assets& assets, float railDistance)
 {
     Clear();
@@ -128,7 +128,7 @@ void FlightSpeedEffects::Clear()
     common_ = nullptr;
 }
 
-// レール距離と速度に合わせてワールド上の光を進め、必要に応じて機体の前方へ循環させる。
+// レール距離と速度に合わせてワールド上の光を進め、必要に応じて機体の前方へ循環させる
 void FlightSpeedEffects::UpdateWorld(const Frame& frame, float frameStep, bool alignStreaks)
 {
     const Math::Vector3 cameraRotate = frame.camera ? frame.camera->GetRotate() : Math::Vector3{};
@@ -183,7 +183,7 @@ void FlightSpeedEffects::UpdateWorld(const Frame& frame, float frameStep, bool a
                 const float dy = screen.y - vanishing.y;
                 const float edge = (std::max)(std::abs(dx) / (viewportSize.x * 0.5f),
                     std::abs(dy) / (viewportSize.y * 0.5f));
-                // 浮遊する縦線ではなく、消失点から外へ抜ける空気の流れに合わせる。
+                // 浮遊する縦線ではなく、消失点から外へ抜ける空気の流れに合わせる
                 rotate.z = cameraRotate.z + std::atan2(-dy, dx) - kTwoPi * 0.25f;
                 color.w *= std::clamp((edge - 0.52f) / 0.24f, 0.0f, 1.0f);
             } else {
@@ -205,7 +205,7 @@ void FlightSpeedEffects::UpdateWorld(const Frame& frame, float frameStep, bool a
     }
 }
 
-// 速度演出のうち、ワールド空間に置いた光を描く。
+// 速度演出のうち、ワールド空間に置いた光を描く
 void FlightSpeedEffects::DrawWorld()
 {
     if (cues_.empty()) {
@@ -229,7 +229,7 @@ void FlightSpeedEffects::DrawWorld()
 }
 
 
-// 画面上の流れる線を描く。照準の近くを空け、加速やスローで濃さと伸びを変える。
+// 画面上の流れる線を描く　照準の近くを空け、加速やスローで濃さと伸びを変える
 void FlightSpeedEffects::DrawScreenStreaks(const Frame& frame, const ScreenStreaks& streaks, ImDrawList& drawList) const
 {
     const auto& viewportMin = frame.viewportMin;
@@ -243,7 +243,7 @@ void FlightSpeedEffects::DrawScreenStreaks(const Frame& frame, const ScreenStrea
     const float exposureTravel = streaks.railSpeed * worldScale * (0.075f + kick * 0.065f);
     const float pixelScale = viewportSize.y / 720.0f;
     Math::Vector2 vanishing = VanishingPoint(frame);
-    // 操作で消失点が動いても、各方向で実際に画面端へ達する距離を使う。
+    // 操作で消失点が動いても、各方向で実際に画面端へ達する距離を使う
     vanishing.x = std::clamp(vanishing.x, viewportMin.x + viewportSize.x * 0.25f,
         viewportMin.x + viewportSize.x * 0.75f);
     vanishing.y = std::clamp(vanishing.y, viewportMin.y + viewportSize.y * 0.25f,
@@ -266,7 +266,7 @@ void FlightSpeedEffects::DrawScreenStreaks(const Frame& frame, const ScreenStrea
         const float boundary = (std::min)(boundaryX / (std::max)(std::abs(directionX), 0.001f),
             boundaryY / (std::max)(std::abs(directionY), 0.001f));
         const float phase = std::fmod(frame.railDistance * (0.045f + seed * 0.020f) + seed, 1.0f);
-        // 奥行きの逆数で投影。手前ほど速く広がり、実際の前進が止まれば流れも止まる。
+        // 奥行きの逆数で投影　手前ほど速く広がり、実際の前進が止まれば流れも止まる
         const float depth = 1.0f - phase * 0.88f;
         const float front = 0.18f / depth;
         const float back = 0.18f / (depth + exposureTravel);
@@ -290,7 +290,7 @@ void FlightSpeedEffects::DrawScreenStreaks(const Frame& frame, const ScreenStrea
             intensity * visibility * clearOf(streaks.reticleScreen, 0.08f, 0.11f) *
             clearOf(playerScreen, 0.10f, 0.14f)));
         const float width = pixelScale * (1.2f + fever * 1.1f + kick * 1.25f);
-        // 両端が細く消える風の帯。光点を付けず、敵弾と見分けられる形にする。
+        // 両端が細く消える風の帯　光点を付けず、敵弾と見分けられる形にする
         constexpr float sections[] = { 0.0f, 0.32f, 0.76f, 1.0f };
         constexpr float opacity[] = { 0.22f, 0.85f, 0.38f };
         for (int section = 0; section < 3; ++section) {
@@ -302,7 +302,7 @@ void FlightSpeedEffects::DrawScreenStreaks(const Frame& frame, const ScreenStrea
             drawList.AddLine(a, b, IM_COL32(225, 246, 252, segmentAlpha), thickness);
         }
     }
-    // 発動時だけ左右へ風圧が抜ける。中央を白く覆わず、前進の立ち上がりを見せる。
+    // 発動時だけ左右へ風圧が抜ける　中央を白く覆わず、前進の立ち上がりを見せる
     const float onset = static_cast<float>(FeverState::kActivationFlashFrames - streaks.feverFlashFrames) / 24.0f;
     if (streaks.feverFlashFrames > 0 && onset > 0.0f && onset < 1.0f) {
         const float radiusX = viewportSize.x * (0.22f + onset * 0.90f);

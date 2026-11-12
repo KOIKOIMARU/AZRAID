@@ -1,4 +1,4 @@
-// タイトルの機体とロゴの動き、画面上の切断位置を時刻から求める。
+// タイトルの機体とロゴの動き、画面上の切断位置を時刻から求める
 
 #pragma once
 
@@ -11,7 +11,7 @@ class Camera;
 
 namespace TitleMotion {
 
-// ロゴ・機体・背景が同じタイミングで切り替わるための時刻と座標。
+// ロゴ・機体・背景が同じタイミングで切り替わるための時刻と座標
 inline constexpr float kIdleShipScale = 2.65f;
 inline constexpr float kDepartureDuration = StageEntryTiming::kTitleEntryDuration;
 inline constexpr float kDepartureCutTime = 0.24f;

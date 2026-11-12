@@ -6,13 +6,13 @@ class Camera;
 class Model;
 class Object3dCommon;
 
-// 命中・撃破・発射・被弾の見た目を担当する。再生と枠の管理はCombatEffectPlaybackに渡す。
+// 命中・撃破・発射・被弾の見た目を担当する　再生と枠の管理はCombatEffectPlaybackに渡す
 class CombatEffects {
 public:
     static constexpr size_t kVisualCapacity = CombatEffectPlayback::kVisualCapacity;
     static constexpr size_t kEffectCapacity = CombatEffectPlayback::kEffectCapacity;
 
-    // いずれも借りる参照。モデルはModelManager、カメラと共通描画設定はGameRuntimeが所有する。
+    // いずれも借りる参照　モデルはModelManager、カメラと共通描画設定はGameRuntimeが所有する
     struct Assets {
         Model* glowCore = nullptr;
         Model* glowRing = nullptr;
@@ -27,13 +27,13 @@ public:
         Model* disc = nullptr;
         Model* magicShard = nullptr;
     };
-    // 戦闘ルールから渡す演出用の値。スコア計算クラスを直接参照しない。
+    // 戦闘ルールから渡す演出用の値　スコア計算クラスを直接参照しない
     struct ChainStyle { int count = 0; int tier = 0; };
 
     void Initialize(Object3dCommon* common, Camera* camera, const Assets& assets);
-    void PrepareOne() { playback_.PrepareOne(); } // 起動時の分割読み込みから呼ぶ。プレイ中には描画物体を生成しない。
-    void Clear();      // 所有する描画物体を破棄し、借りた参照を解除する。
-    void Reset() { playback_.Reset(); } // デモ周回・検証用。描画物体を保持したまま再利用枠へ戻す。
+    void PrepareOne() { playback_.PrepareOne(); } // 起動時の分割読み込みから呼ぶ　プレイ中には描画物体を生成しない
+    void Clear();      // 所有する描画物体を破棄し、借りた参照を解除する
+    void Reset() { playback_.Reset(); } // デモ周回・検証用　描画物体を保持したまま再利用枠へ戻す
     void Update(float deltaSeconds) { playback_.Update(deltaSeconds); }
     void Draw() { playback_.Draw(); }
 

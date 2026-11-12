@@ -1,4 +1,4 @@
-// DirectX 12のデバイス、描画コマンド、画面用バッファ、ポストエフェクトを管理する。
+// DirectX 12のデバイス、描画コマンド、画面用バッファ、ポストエフェクトを管理する
 
 #pragma once
 #include <d3d12.h>
@@ -54,7 +54,7 @@ public:
     const D3D12_RECT& GetScissorRect() const { return scissorRect_; }
     const D3D12_VIEWPORT& GetPresentationViewport() const { return presentationViewport_; }
     float GetPresentationAspectRatio() const { return presentationViewport_.Width / presentationViewport_.Height; }
-    void ResizePresentation(); // GPU完了後、表示先だけを実ウィンドウ寸法へ作り直す。
+    void ResizePresentation(); // GPU完了後、表示先だけを実ウィンドウ寸法へ作り直す
 
     ID3D12Fence* GetFence() const { return fence_.Get(); }          // これも const でOK
     UINT64& GetFenceValue() { return fenceValue_; }            // ここだけ非constで良い
@@ -98,7 +98,7 @@ public:
 	void PreDraw();
     void DrawRenderTextureToSwapChain(int postEffectMode);
     void SetPostEffectProjectionMatrix(const Math::Matrix4x4& projectionMatrix);
-    // UV座標で消失点と保護領域を指定。HUDはこの処理より後に描画される。
+    // UV座標で消失点と保護領域を指定　HUDはこの処理より後に描画される
     void SetFlightBlur(float strength = 0.0f, Math::Vector2 center = { 0.5f, 0.45f },
         Math::Vector2 player = { 0.5f, 0.7f }, Math::Vector2 reticle = { 0.5f, 0.5f }, float aspect = 1.777778f);
     void SetCameraMotionBlur(const Math::Matrix4x4& clipToPreviousClip, float exposureScale, int mode);
@@ -125,7 +125,7 @@ public:
     float GetDeltaTime() const { return deltaTime_; }
 
     struct FrameTiming {
-        uint32_t bufferCreates = 0; // このフレームで新規確保したGPUバッファ数。
+        uint32_t bufferCreates = 0; // このフレームで新規確保したGPUバッファ数
         float updateMs = 0.0f;
         float preDrawMs = 0.0f;
         float sceneDrawMs = 0.0f;
@@ -183,11 +183,11 @@ private:
         float blackPoint;
         float highlightCompression;
         float colorTemperature;
-        Math::Vector2 flightBlurCenter; // 前進方向の消失点（UV）。
-        float flightBlurStrength; // 0で追加サンプリングを省略。
-        float flightBlurAspect; // 保護領域を画面比率に合わせる。
-        Math::Vector2 flightBlurPlayer; // 自機と噴射を保護する楕円の中心。
-        Math::Vector2 flightBlurReticle; // 照準付近の敵・弾を保護する中心。
+        Math::Vector2 flightBlurCenter; // 前進方向の消失点（UV）
+        float flightBlurStrength; // 0で追加サンプリングを省略
+        float flightBlurAspect; // 保護領域を画面比率に合わせる
+        Math::Vector2 flightBlurPlayer; // 自機と噴射を保護する楕円の中心
+        Math::Vector2 flightBlurReticle; // 照準付近の敵・弾を保護する中心
         Math::Matrix4x4 cameraClipToPreviousClip;
         float cameraBlurExposureScale;
         int flightBlurMode;
@@ -228,6 +228,7 @@ private:
     void CheckDeviceOperation(
         HRESULT result,
         std::string_view operation);
+    // GPU処理の失敗とデバイス消失理由を記録し、取得できる場合はDREDの履歴と障害アドレスも出力する
     void ReportDeviceRemovedDiagnostics(
         std::string_view operation,
         HRESULT failureResult);
@@ -400,7 +401,7 @@ private:
 
     float deltaTime_ = 1.0f / 60.0f;
     FrameTiming frameTiming_{};
-    // 比較起動だけで確保。既存の毎フレームのfence待機後に読み戻す。
+    // 比較起動だけで確保　既存の毎フレームのfence待機後に読み戻す
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> blurTimestampHeap_;
     Microsoft::WRL::ComPtr<ID3D12Resource> blurTimestampReadback_;
     UINT64 blurTimestampFrequency_ = 0;

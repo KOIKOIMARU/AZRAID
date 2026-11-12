@@ -1,5 +1,5 @@
 // ===== CombatOverlay.cpp =====
-// 敵の攻撃予告とフィーバー中の画面演出を、プレイ画面に重ねて描く。
+// 敵の攻撃予告とフィーバー中の画面演出を、プレイ画面に重ねて描く
 
 #include "app/combat/CombatOverlay.h"
 
@@ -22,7 +22,7 @@ bool Project(const TelegraphView& view, const Math::Vector3& worldPosition, Math
     return ScreenProjection::ToViewport(worldPosition, view.viewProjection, view.viewportMin, view.viewportSize, screenPosition);
 }
 
-// ボスの銃口を画面座標へ写し、予告中の発光を対応する位置に描く。
+// ボスの銃口を画面座標へ写し、予告中の発光を対応する位置に描く
 void DrawBossMuzzles(ImDrawList& drawList, const TelegraphView& view, const Enemy& enemy,
     const BossAttackController& bossAttack)
 {
@@ -32,7 +32,7 @@ void DrawBossMuzzles(ImDrawList& drawList, const TelegraphView& view, const Enem
             static_cast<float>((std::max)(chargeDuration, 1)),
         0.0f,
         1.0f);
-    // 実際の発射位置を投影する。自機を囲む照準線・追尾マーカーは付けない。
+    // 実際の発射位置を投影する　自機を囲む照準線・追尾マーカーは付けない
     const bool charge = bossAttack.CurrentPattern() == BossAttackController::Pattern::Charge;
     const bool aimLocked = bossAttack.IsAimLocked();
     const int muzzleCount = charge ? 1 : 2;
@@ -40,7 +40,7 @@ void DrawBossMuzzles(ImDrawList& drawList, const TelegraphView& view, const Enem
         if (bossAttack.CurrentPattern() == BossAttackController::Pattern::Sweep &&
             index != bossAttack.ShotIndex() % 2) { continue; }
         auto position = enemy.GetBossMuzzlePosition(charge ? 0.0f : index == 0 ? -1.0f : 1.0f);
-        position.z -= 1.0f; // FireEnemyBulletと同じ発射位置。
+        position.z -= 1.0f; // FireEnemyBulletと同じ発射位置
         Math::Vector2 screen{};
         Math::Vector2 rim{};
         if (!Project(view, position, screen) ||
@@ -56,7 +56,7 @@ void DrawBossMuzzles(ImDrawList& drawList, const TelegraphView& view, const Enem
     }
 }
 
-// シールドを持つ敵の周囲に防御状態を示す輪や光を重ねる。
+// シールドを持つ敵の周囲に防御状態を示す輪や光を重ねる
 void DrawShield(ImDrawList& drawList, const Enemy& enemy, const Math::Vector2& enemyScreen, float clock)
 {
     const float shieldRate = std::clamp(
@@ -89,7 +89,7 @@ void DrawShield(ImDrawList& drawList, const Enemy& enemy, const Math::Vector2& e
         1.0f);
 }
 
-// 支援機と支援対象を画面へ写し、つながっていることが分かる線を描く。
+// 支援機と支援対象を画面へ写し、つながっていることが分かる線を描く
 void DrawSupportLinks(ImDrawList& drawList, const TelegraphView& view, const Enemy& enemy,
     const Math::Vector2& enemyScreen, const std::list<std::unique_ptr<Enemy>>& enemies)
 {
@@ -132,7 +132,7 @@ void DrawSupportLinks(ImDrawList& drawList, const TelegraphView& view, const Ene
     }
 }
 
-// 狙撃機の構え・発射・反撃可能時間を画面上の線や光で示す。
+// 狙撃機の構え・発射・反撃可能時間を画面上の線や光で示す
 void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& enemy,
     const Math::Vector2& enemyScreen)
 {
@@ -140,21 +140,21 @@ void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& en
     const float charge = fire.ChargeRate();
     const float flash = fire.ShotFlash();
     const bool aimLocked = fire.IsBraced() && !fire.IsTracking();
-    // 危険な終盤だけ射線を出す。固定後の終点は横・縦へ追尾しない。
-    // レール前進による深度の変化は実際の射撃計算と揃える。
+    // 危険な終盤だけ射線を出す　固定後の終点は横・縦へ追尾しない
+    // レール前進による深度の変化は実際の射撃計算と揃える
     if (enemy.CanShoot() && fire.IsBraced() && (charge >= 0.55f || aimLocked)) {
         Math::Vector2 muzzleScreen{}, aimScreen{};
         Math::Vector3 muzzleWorld = enemy.GetAimPosition();
         muzzleWorld.z -= 1.0f;
         Math::Vector3 aimWorld = fire.aimPoint;
         aimWorld.z = view.playerRailZ;
-        aimWorld.y += 0.08f; // FireEnemyBulletの照準補正と一致させる。
+        aimWorld.y += 0.08f; // FireEnemyBulletの照準補正と一致させる
         if (Project(view, muzzleWorld, muzzleScreen) && Project(view, aimWorld, aimScreen)) {
             const ImVec2 muzzle(muzzleScreen.x, muzzleScreen.y), aim(aimScreen.x, aimScreen.y);
             const int alpha = aimLocked ? 205 : 95;
             drawList.AddLine(muzzle, aim, IM_COL32(35, 9, 21, alpha), aimLocked ? 3.0f : 2.5f);
             drawList.AddLine(muzzle, aim, IM_COL32(255, aimLocked ? 120 : 58, 92, alpha), 1.0f);
-            // 自機の輪郭を覆わず、被弾位置の左右だけを短く示す。
+            // 自機の輪郭を覆わず、被弾位置の左右だけを短く示す
             const float radius = aimLocked ? 18.0f : 23.0f;
             for (const float side : { -1.0f, 1.0f }) {
                 drawList.AddLine({ aim.x + side * radius, aim.y - 7.0f },
@@ -171,7 +171,7 @@ void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& en
             const float radius = std::clamp(std::abs(rim.x - enemyScreen.x) + 8.0f, 16.0f, 42.0f);
             const float fade = std::clamp((66.0f - fire.RecoveryElapsed()) / 12.0f, 0.0f, 1.0f);
             const int alpha = static_cast<int>(240.0f * fade);
-            // 赤い射線から金の開いた括弧へ。撃ち終わりのチャージ反撃だけを知らせる。
+            // 赤い射線から金の開いた括弧へ　撃ち終わりのチャージ反撃だけを知らせる
             for (const float side : { -1.0f, 1.0f }) {
                 const ImVec2 corner(enemyScreen.x + side * radius, enemyScreen.y);
                 drawList.AddLine({ corner.x - side * 6.0f, corner.y - 9.0f }, corner,
@@ -183,7 +183,7 @@ void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& en
     }
     if ((charge > 0.0f || flash > 0.0f) && enemy.CanShoot()) {
         Math::Vector3 muzzleWorld = enemy.GetAimPosition();
-        muzzleWorld.z -= 1.0f; // FireEnemyBulletと同じ発射位置に付ける。照準上には描かない。
+        muzzleWorld.z -= 1.0f; // FireEnemyBulletと同じ発射位置に付ける　照準上には描かない
         Math::Vector2 muzzleScreen{}, edgeScreen{};
         const Math::Vector3 edgeWorld{ muzzleWorld.x + 0.32f, muzzleWorld.y, muzzleWorld.z };
         if (Project(view, muzzleWorld, muzzleScreen) && Project(view, edgeWorld, edgeScreen)) {
@@ -194,7 +194,7 @@ void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& en
             drawList.AddCircleFilled(muzzle, radius * 2.5f, IM_COL32(255, 76, 40, alpha / 6), 20);
             drawList.AddCircleFilled(muzzle, radius, IM_COL32(255, 130, 70, alpha), 16);
             drawList.AddCircleFilled(muzzle, radius * 0.42f, IM_COL32(255, 246, 220, alpha), 12);
-            // 照準固定を銃口の白い閃光でも知らせる。
+            // 照準固定を銃口の白い閃光でも知らせる
             if (aimLocked || flash > 0.0f) {
                 const float width = radius * (2.8f + flash * 1.8f);
                 drawList.AddLine({ muzzle.x - width, muzzle.y }, { muzzle.x + width, muzzle.y },
@@ -204,7 +204,7 @@ void DrawSniper(ImDrawList& drawList, const TelegraphView& view, const Enemy& en
     }
 }
 
-// 練習弾の発射前に、狙撃機の位置を基準とした予告を表示する。
+// 練習弾の発射前に、狙撃機の位置を基準とした予告を表示する
 void DrawTutorialSniper(ImDrawList& drawList, const Math::Vector2& enemyScreen, float chargeRate, float clock)
 {
     const float pulse = 0.5f + 0.5f * std::sin(clock * 0.48f);
@@ -249,7 +249,7 @@ void DrawTutorialSniper(ImDrawList& drawList, const Math::Vector2& enemyScreen, 
 
 }
 
-// フィーバー中に画面の周辺へ光と流れを重ね、戦闘画面中央の視認性を保つ。
+// フィーバー中に画面の周辺へ光と流れを重ね、戦闘画面中央の視認性を保つ
 void CombatOverlay::DrawFeverBackdrop(ImDrawList& drawList, const Math::Vector2& hudMin,
     const Math::Vector2& hudSize, float speedEffectRate, float clock)
 {
@@ -331,7 +331,7 @@ void CombatOverlay::DrawFeverBackdrop(ImDrawList& drawList, const Math::Vector2&
         IM_COL32(0, 1, 8, vignetteAlpha),
         IM_COL32(0, 1, 8, 0));
 
-    // 風の帯は通常飛行と共通で描き、発動時のカメラ・噴射とタイミングをそろえる。
+    // 風の帯は通常飛行と共通で描き、発動時のカメラ・噴射とタイミングをそろえる
     constexpr int kBackdropHorizontalSegments = 20;
     constexpr int kBackdropVerticalSegments = 12;
     for (int layer = 0; layer < 4; ++layer) {
@@ -447,7 +447,7 @@ void CombatOverlay::DrawFeverBackdrop(ImDrawList& drawList, const Math::Vector2&
     }
 }
 
-// 画面に映る敵を見て、攻撃の予告・シールド・支援リンクなどを画面座標に重ねる。
+// 画面に映る敵を見て、攻撃の予告・シールド・支援リンクなどを画面座標に重ねる
 void CombatOverlay::DrawEnemyTelegraphs(ImDrawList& drawList, const TelegraphView& view,
     const std::list<std::unique_ptr<Enemy>>& enemies, const BossAttackController& bossAttack)
 {

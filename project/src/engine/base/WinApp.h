@@ -1,4 +1,4 @@
-// Windowsのウィンドウとメッセージ処理を担当する。通常表示と全画面の切り替えもここで扱う。
+// Windowsのウィンドウとメッセージ処理を担当する　通常表示と全画面の切り替えもここで扱う
 
 #pragma once
 #include <Windows.h>
@@ -28,7 +28,7 @@ public: // メンバ関数
 	// メッセージの処理
 	bool ProcessMessage();
 
-    // 排他的モードは使わず、現在のモニターを覆う枠なし全画面へ切り替える。
+    // 排他的モードは使わず、現在のモニターを覆う枠なし全画面へ切り替える
     void ToggleFullscreen();
     bool IsFullscreen() const { return isFullscreen_; }
     void MarkFramePresented() { hasPresentedFrame_ = true; }
@@ -42,6 +42,6 @@ private:
 	WNDCLASS wc = {};
     bool isFullscreen_ = false;
     bool hasPresentedFrame_ = false;
-    bool toggleFullscreenRequested_ = false; // ウィンドウ処理を抜けたフレーム境界で適用する。
-    WINDOWPLACEMENT windowedPlacement_{ sizeof(WINDOWPLACEMENT) }; // 元の位置・最大化状態。
+    bool toggleFullscreenRequested_ = false; // ウィンドウ処理を抜けたフレーム境界で適用する
+    WINDOWPLACEMENT windowedPlacement_{ sizeof(WINDOWPLACEMENT) }; // 元の位置・最大化状態
 };

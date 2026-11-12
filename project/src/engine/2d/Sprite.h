@@ -1,4 +1,4 @@
-// 2D画像1枚の位置、大きさ、色、テクスチャの切り出し範囲を持つ。
+// 2D画像1枚の位置、大きさ、色、テクスチャの切り出し範囲を持つ
 
 #pragma once
 #include <d3d12.h>
@@ -12,7 +12,7 @@ class SpriteCommon;
 
 class Sprite {
 public:
-    // 表示する画像を読み込み、スプライトの描画に必要なデータを準備する。
+    // 表示する画像を読み込み、スプライトの描画に必要なデータを準備する
     void Initialize(SpriteCommon* spriteCommon, const std::string& filePath);
 
     void Update();

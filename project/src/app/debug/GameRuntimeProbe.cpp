@@ -1,5 +1,5 @@
 // ===== GameRuntimeProbe.cpp =====
-// 明示的に起動したDebug版の検証で、操作入力を再現し、戦闘や通しプレイの結果を確かめる。
+// 明示的に起動したDebug版の検証で、操作入力を再現し、戦闘や通しプレイの結果を確かめる
 
 #ifdef _DEBUG
 #include "app/runtime/GameRuntime.h"
@@ -25,7 +25,7 @@ using GameRuntimeTuning::kChargeSplashRadius;
 using GameRuntimeTuning::kFeverDurationFrames;
 using GameRuntimeTuning::kRiftPassScore;
 
-// 配置ファイルの保存と再読込を試し、読込失敗時に元の配置が保たれるか確認する。
+// 配置ファイルの保存と再読込を試し、読込失敗時に元の配置が保たれるか確認する
 void CheckSceneObjectRoundTrip(Object3dCommon& common, const std::string& logPath)
 {
     namespace fs = std::filesystem;
@@ -35,6 +35,7 @@ void CheckSceneObjectRoundTrip(Object3dCommon& common, const std::string& logPat
     }
     struct FixtureFiles {
         fs::path directory;
+        // テスト用の状態ファイル一覧を破棄するときの後片づけを行う
         ~FixtureFiles() {
             std::error_code error;
             fs::remove(directory / "scene.json", error);
@@ -79,7 +80,7 @@ void CheckSceneObjectRoundTrip(Object3dCommon& common, const std::string& logPat
     }
 }
 
-// 弾の進行方向やカメラの向きが変わっても、弾本体と光の軌跡が正しく置かれるか確認する。
+// 弾の進行方向やカメラの向きが変わっても、弾本体と光の軌跡が正しく置かれるか確認する
 void CheckProjectileVisualProjection()
 {
     const auto require = [](bool ok, const char* message) {
@@ -100,7 +101,7 @@ void CheckProjectileVisualProjection()
         require(body.m[2][0] * direction.x + body.m[2][1] * direction.y + body.m[2][2] * direction.z > 0.9999f,
             "Projectile body did not follow its flight direction");
     }
-    // 俯角・旋回・バンク・カメラ移動を含め、軌跡の両端が本当の弾道へ重なるか検証。
+    // 俯角・旋回・バンク・カメラ移動を含め、軌跡の両端が本当の弾道へ重なるか検証
     const auto camera = Math::MakeAffineMatrix({ 1, 1, 1 }, Math::Vector3{ 0.16f, -0.12f, 0.11f }, { 3, -1, -5 });
     const auto toWorld = [&](const Math::Vector3& p, float w) {
         return Math::Vector3{ p.x * camera.m[0][0] + p.y * camera.m[1][0] + p.z * camera.m[2][0] + w * camera.m[3][0],
@@ -130,7 +131,7 @@ void CheckProjectileVisualProjection()
         "Billboard trail detached from projectile under camera pitch/bank");
 }
 
-// 命中・被弾などの状態をHUDに渡し、描画の追加と表示終了を確認する。
+// 命中・被弾などの状態をHUDに渡し、描画の追加と表示終了を確認する
 void CheckGameplayHudRendering(const GameplayHud::Frame& gameplay)
 {
     const auto require = [](bool ok, const char* message) {
@@ -168,8 +169,8 @@ void CheckGameplayHudRendering(const GameplayHud::Frame& gameplay)
     hud.RecordHit({ 300, 200 }, true, true, true);
     snapshot = hud.Inspect();
 
-    // 画面へは送らない描画リストで、各状態と表示領域を確認する。
-    // 描画を繰り返しても、表示時間・ゲーム状態・フォントの積み方を変えない。
+    // 画面へは送らない描画リストで、各状態と表示領域を確認する
+    // 描画を繰り返しても、表示時間・ゲーム状態・フォントの積み方を変えない
     for (const Math::Vector2 size : { Math::Vector2{ 640, 360 }, Math::Vector2{ 1280, 720 },
         Math::Vector2{ 1920, 1080 }, Math::Vector2{ 1000, 720 } }) {
         for (int state = 0; state < 12; ++state) {
@@ -212,7 +213,7 @@ void CheckGameplayHudRendering(const GameplayHud::Frame& gameplay)
         "Retry retained HUD feedback");
 }
 
-// 自機の噴射・チャージ光・残像が準備され、リセットや状態変化に追従するか確認する。
+// 自機の噴射・チャージ光・残像が準備され、リセットや状態変化に追従するか確認する
 void CheckPlayerFlightEffects(PlayerFlightEffects& effects, Math::Vector3 position)
 {
     const auto require = [](bool ok, const char* message) {
@@ -232,7 +233,7 @@ void CheckPlayerFlightEffects(PlayerFlightEffects& effects, Math::Vector3 positi
     effects.UpdateFlight(flight);
     require(effects.Inspect().chargeLights == 0 && effects.Inspect().thrust > 0.0f,
         "Fever retained ordinary charge lights or lost engine thrust");
-    // 寿命は実時間に合わせる。停止・低fps・早い更新でも残像を保持し続けない。
+    // 寿命は実時間に合わせる　停止・低fps・早い更新でも残像を保持し続けない
     for (const float step : { 0.5f, 1.0f, 4.0f }) {
         effects.Reset();
         effects.FlashDodgeTrail(position, -1);
@@ -261,13 +262,13 @@ void CheckPlayerFlightEffects(PlayerFlightEffects& effects, Math::Vector3 positi
         "Death/retry reset retained flight effects or destroyed prepared objects");
 }
 
-// 狙撃機の構え中の位置、発射後の反動、反撃の受付を確認する。
+// 狙撃機の構え中の位置、発射後の反動、反撃の受付を確認する
 void CheckSniperPosture(Object3dCommon* common, Model* model)
 {
     const auto require = [](bool ok, const char* message) {
         if (!ok) { throw std::runtime_error(message); }
     };
-    // 実際のEnemy::Updateで構えの静止とレール追従を検証。ゲームの敵HPや無敵時間は変えない。
+    // 実際のEnemy::Updateで構えの静止とレール追従を検証　ゲームの敵HPや無敵時間は変えない
     Enemy sniper;
     sniper.Initialize(common, model, { 5.3f, 2.0f, 48.0f }, Enemy::Behavior::Sniper);
     float rail = 0.0f;
@@ -305,13 +306,13 @@ void CheckSniperPosture(Object3dCommon* common, Model* model)
     require(!fire.IsBraced() && fire.ShotFlash() == 0.0f, "destroyed sniper kept charging/firing");
 }
 
-// 迎撃方向と射撃周期を確認する。構え中の照準固定とスロー時の連射も試す。
+// 迎撃方向と射撃周期を確認する　構え中の照準固定とスロー時の連射も試す
 void CheckEnemyFireControl()
 {
     const auto require = [](bool condition, const char* message) {
         if (!condition) { throw std::runtime_error(message); }
     };
-    // 通常速度・フィーバー速度・弾速とレール速度が同じ場合も、左右からの狙いがずれない。
+    // 通常速度・フィーバー速度・弾速とレール速度が同じ場合も、左右からの狙いがずれない
     for (const float rail : { 0.16f, 0.235f, 0.45f, 0.65f }) {
         for (const float x : { -10.0f, 0.0f, 10.0f }) {
             const Math::Vector3 origin{ x, 4.0f, 40.0f };
@@ -322,7 +323,7 @@ void CheckEnemyFireControl()
             const float dy = origin.y + velocity.y * t - target.y;
             require(std::isfinite(t) && t > 0 && std::abs(dx) < 0.001f && std::abs(dy) < 0.001f,
                 "enemy shot misses stationary lateral target during rail movement");
-            // 発射後に横へ3m移動すれば、この固定照準弾の当たり判定から抜ける。
+            // 発射後に横へ3m移動すれば、この固定照準弾の当たり判定から抜ける
             require(std::abs(dx - 3.0f) > 1.5f, "enemy shot followed an evasive movement");
         }
     }
@@ -350,7 +351,7 @@ void CheckEnemyFireControl()
             control.Advance(step, true, pattern) == EnemyFireControl::Event::Aim,
             "offscreen enemy retained an immediate shot");
     }
-    // 狙撃だけは22フレームの固定予告。スロー中も同じ世界時間で二射する。
+    // 狙撃だけは22フレームの固定予告　スロー中も同じ世界時間で二射する
     for (const float step : { 0.25f, 0.5f, 1.0f }) {
         EnemyFireControl::Cycle sniper;
         const EnemyFireControl::Pattern pattern{ 60.0f, 18.0f, 128.0f, 2, 22.0f };
@@ -368,7 +369,7 @@ void CheckEnemyFireControl()
     }
 }
 
-// 実際のPlayerと入力経路を使う回避回帰試験。描画しない独立自機なので本編へ影響しない。
+// 実際のPlayerと入力経路を使う回避回帰試験　描画しない独立自機なので本編へ影響しない
 void CheckDodgeControls(Object3dCommon* common, Model* model)
 {
     const auto require = [](bool condition, const char* message) {
@@ -438,7 +439,7 @@ void CheckDodgeControls(Object3dCommon* common, Model* model)
             std::array<BYTE, 256> keys{};
             if (frame == 1) { keys[DIK_D] = keys[DIK_LSHIFT] = 0x80; }
             if (frame == (nearReady ? 25 : 19)) { keys[DIK_A] = keys[DIK_LSHIFT] = 0x80; }
-            if (frame == 26) { keys[DIK_D] = 0x80; } // 方向を変えても予約した左回避は維持。
+            if (frame == 26) { keys[DIK_D] = 0x80; } // 方向を変えても予約した左回避は維持
             input.SetTestFrame(keys, {});
             update(probe, input);
         }
@@ -469,7 +470,7 @@ void CheckDodgeControls(Object3dCommon* common, Model* model)
 }
 } // namespace
 
-// 自動操作で出撃からクリア・再挑戦までを検証する。本編と同じ衝突・ダメージ処理を通る。
+// 自動操作で出撃からクリア・再挑戦までを検証する　本編と同じ衝突・ダメージ処理を通る
 bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialPreview, bool tutorialDeparture)
 {
     static bool wasTutorial = false;
@@ -515,7 +516,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     static float minimumCameraBank = 0.0f;
     static float maximumCameraBank = 0.0f;
     static float maximumFlightBlur = 0.0f;
-    // 同じ敵・ダメージ・入力経路で、連射のみとリングを狙う攻略を比較する。製品版には含めない。
+    // 同じ敵・ダメージ・入力経路で、連射のみとリングを狙う攻略を比較する　製品版には含めない
     static const int balanceProfile = [] {
         char value[16]{};
         GetEnvironmentVariableA("AZRAID_BALANCE_PROFILE", value, sizeof(value));
@@ -547,7 +548,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     std::array<BYTE, 256> keys{};
     Math::Vector2 mouse = input_->GetMousePosition();
     if (phase == 1 && !isGameClear_) {
-        // ワイプと短い再出撃中は戦闘を進めず、機体とカメラの前進だけを許可する。
+        // ワイプと短い再出撃中は戦闘を進めず、機体とカメラの前進だけを許可する
         if (stageFlight_.Schedule().HandoffFrames() == 0.0f) {
             if (stageEntryPresentation_.RetryTimeForProbe() > 0.0f) { retryFlightSeen = true; }
             const float flightTime = stageEntryPresentation_.IsRetryActive() ?
@@ -570,14 +571,14 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             stageFlight_.ReleaseKick() != 0.0f || stageFlight_.PreviousWorldScaleForProbe() != 1.0f || audio_.AccentEndForProbe() != 0.0f ||
             bossPresentation_.WasRadioRequestedForProbe() ||
             bossPresentation_.RadioRemaining() != 0.0f ||
-            stageFlight_.Schedule().HandoffFrames() != 1.0f || // 再入場後の最初の通常Updateで開始カウントが一フレーム進む。
-            // 最初から巡航速度で再開するため、その速度の通常ブラーだけを許容する。
+            stageFlight_.Schedule().HandoffFrames() != 1.0f || // 再入場後の最初の通常Updateで開始カウントが一フレーム進む
+            // 最初から巡航速度で再開するため、その速度の通常ブラーだけを許容する
             gameplayCamera_.MotionState().blurStrength > stageFlight_.SpeedRate() * 0.22f + 0.01f ||
             std::abs(gameplayCamera_.MotionState().acceleration) > 0.03f ||
             (stageFlight_.Schedule().EmittedEnemyCount() > 0)) {
             throw std::runtime_error("Retry did not reset gameplay state");
         }
-        // 再入場の最初のUpdateは既に通っているので、新しい通常曲が一つだけ再生される。
+        // 再入場の最初のUpdateは既に通っているので、新しい通常曲が一つだけ再生される
         if (!audio_.SoundForProbe() || audio_.SoundForProbe()->GetVoiceCount() != 29 || audio_.SoundForProbe()->GetPlayCount() != 0 ||
             audio_.SoundForProbe()->GetLoopCount() != 1 || audio_.TrackForProbe() != GameplayAudio::Track::Stage) {
             throw std::runtime_error("Retry did not recreate the bounded audio bank");
@@ -594,7 +595,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     if (phase == 2) {
         return true;
     }
-    // 通常プレイを最後まで通し、街区の到達と、表示中の建物が変形しないことを検証する。
+    // 通常プレイを最後まで通し、街区の到達と、表示中の建物が変形しないことを検証する
     const auto district = railScenery_.DistrictWeights(stageFlight_.Distance() + 48.0f);
     const unsigned int districtBit = district.y > 0.98f ? 4u :
         (district.x > 0.98f && district.y < 0.02f ? 2u : (district.x < 0.02f ? 1u : 0u));
@@ -611,7 +612,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         [](const auto& object) { return object.isTrackside; }) != 18) {
         throw std::runtime_error("Flight trackside pool must contain exactly eighteen shared modules");
     }
-    // 地表の実際の表示範囲を毎フレーム検証する。街区到達やビルド成功では穴を検出できない。
+    // 地表の実際の表示範囲を毎フレーム検証する　街区到達やビルド成功では穴を検出できない
     constexpr float kTerrainSurfaceY = -3.5f;
     std::array<Math::Vector2, 4> terrainIntervals{};
     size_t terrainCount = 0;
@@ -643,8 +644,8 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     if (coveredUntil < stageFlight_.Distance() + 500.0f) {
         throw std::runtime_error("Terrain ended before the camera's visible distance");
     }
-    // 実カメラの左右端・上下端・中央から地面へ向かう視線も確認する。
-    // カメラの傾き/FOVが変わっても、画面の下や横に空が抜ける場所を作らない。
+    // 実カメラの左右端・上下端・中央から地面へ向かう視線も確認する
+    // カメラの傾き/FOVが変わっても、画面の下や横に空が抜ける場所を作らない
     const auto inverseViewProjection = Math::Inverse(camera_->GetViewProjectionMatrix());
     const auto unproject = [&](float x, float y, float z) {
         const auto& m = inverseViewProjection.m;
@@ -737,7 +738,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
                 std::abs(current.scale.z - previous.scale.z) > 0.01f)) {
             throw std::runtime_error("Visible scenery moved sideways or changed scale");
         }
-        // 6mの元モデルを18mにして進行方向へ接続する。街区の幅変更で長さを変えない。
+        // 6mの元モデルを18mにして進行方向へ接続する　街区の幅変更で長さを変えない
         if (scenery.isRoad && (std::abs(current.scale.x * 6.0f - 18.0f) > 0.01f ||
             std::abs(scenery.object->GetRotate().y - 1.57079632679f) > 0.001f)) {
             throw std::runtime_error("Road orientation or segment connection length changed");
@@ -747,11 +748,11 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         }
         previousScenery[i] = current;
     }
-    // 明示指定されたDebug試験だけ、各街区で画面確認用に停止する。通常起動/Releaseには入らない。
-    // モード2は新施設の接近・通過・退出を同じ通常プレイ経路で確認する。
-    // モード3は左右・下降・フィーバーのカメラを通常入力で確認する専用プレビュー。
-    // モード4は中盤の敷地への進入・中央・退出を通常プレイの同じ経路で確認する。
-    // モード5は広場への進入・広場内・実際のボス戦を通常経路で確認する。
+    // 明示指定されたDebug試験だけ、各街区で画面確認用に停止する　通常起動/Releaseには入らない
+    // モード2は新施設の接近・通過・退出を同じ通常プレイ経路で確認する
+    // モード3は左右・下降・フィーバーのカメラを通常入力で確認する専用プレビュー
+    // モード4は中盤の敷地への進入・中央・退出を通常プレイの同じ経路で確認する
+    // モード5は広場への進入・広場内・実際のボス戦を通常経路で確認する
     const float defenseStartZ = railScenery_.DefenseStartZ() >= 0.0f ?
         (std::max)(railScenery_.DefenseStartZ(), 450.0f) : railScenery_.DefenseStartZ();
     const float bossApronStartZ = railScenery_.BossApronStartZ();
@@ -767,7 +768,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             bossApronStartZ != -1.0f && stageFlight_.Distance() >= bossApronStartZ + 90.0f ? 2u :
             bossApronStartZ != -1.0f && stageFlight_.Distance() >= bossApronStartZ - 40.0f ? 1u : 0u) : districtBit;
     if (sceneryPreviewMode == 6) {
-        // 全区間の細部を一度の通常プレイで確認。停止点は既存の画面確認専用の経路だけで使う。
+        // 全区間の細部を一度の通常プレイで確認　停止点は既存の画面確認専用の経路だけで使う
         previewBit = 0;
         if (stageFlight_.Distance() >= 180.0f && !(sceneryPreviewSeen & 1u)) { previewBit = 1u; }
         else if (railScenery_.DefenseStartZ() != -1.0f && stageFlight_.Distance() >= defenseStartZ + 40.0f &&
@@ -781,7 +782,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             !(sceneryPreviewSeen & 32u)) { previewBit = 32u; }
     }
     if (sceneryPreviewMode == 7) {
-        // 接続部の直前・境界・直後を見比べ、点の静止画で隙間を見落とさない。
+        // 接続部の直前・境界・直後を見比べ、点の静止画で隙間を見落とさない
         previewBit = 0;
         const std::array<float, 8> stops{ 20.0f, defenseStartZ - 15.0f, defenseStartZ,
             defenseStartZ + 15.0f, bossApronStartZ - 15.0f, bossApronStartZ,
@@ -826,7 +827,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     if (frame == 0) {
         CheckSceneObjectRoundTrip(*object3dCommon_, logPath);
         log("SCENE_OBJECTS_ROUND_TRIP_OK valid_models=1 failed_load_preserved=1 save_updated_transform=1");
-        // 本編の四機編隊が分断されず、一機残しから入場できることを実アクターで検証。
+        // 本編の四機編隊が分断されず、一機残しから入場できることを実アクターで検証
         StageEnemies admission;
         admission.Prepare(*object3dCommon_, *ModelManager::GetInstance());
         const auto addFixture = [&](Enemy::Behavior behavior) {
@@ -851,7 +852,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         }
         if (!canAdmit(0)) { throw std::runtime_error("Primary threat prevented light reinforcements"); }
 
-        // 一機の撤退が一度だけ集計され、出現枠が空くことを通常更新で確認する。
+        // 一機の撤退が一度だけ集計され、出現枠が空くことを通常更新で確認する
         admission.Reset(EnemyTargetReferences());
         addFixture(Enemy::Behavior::Formation);
         const StageEnemies::Frame enemyFrame{ stageFlight_.Distance(), 1.0f, false, false, 0.0f, bossAttack_ };
@@ -876,7 +877,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         log("START normal_damage=1 normal_collisions=1 audio_voices=29");
     }
     ++frame;
-    // 実際のESC経路で停止し、各フレームの進行値と全アクター位置が不変であることを検証する。
+    // 実際のESC経路で停止し、各フレームの進行値と全アクター位置が不変であることを検証する
     const auto snapshot = [&]() {
         std::vector<float> values{ gameplayElapsedSeconds_, stageFlight_.Schedule().Progress(), stageFlight_.Distance(), gameplayCamera_.Clock(),
             stageFlight_.Schedule().HandoffFrames(), stageFlight_.Schedule().EmptyFrames(), stageFlight_.Schedule().TimelineSpeed(),
@@ -919,7 +920,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
         }
     }
     if ((frame >= 720 && frame <= 750) || (frame >= 840 && frame <= 860)) { keys[DIK_ESCAPE] = 0x80; }
-    // 物理キーとUIイベントが別フレームに届く状況を再現。旧OR判定はここでポーズを再度切り替える。
+    // 物理キーとUIイベントが別フレームに届く状況を再現　旧OR判定はここでポーズを再度切り替える
     if (frame == 722 || frame == 780) { ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, true); }
     if (frame == 725 || frame == 782) { ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false); }
     if (frame > 720 && frame < 840 && ImGui::IsKeyPressed(ImGuiKey_Escape, false)) { ++delayedEscapeEvents; }
@@ -997,12 +998,12 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     }
     if (frame >= 720 && frame < 840) {
         input_->SetTestFrame(keys, mouse);
-        return false; // この区間はメニュー試験のキーだけを入力する。
+        return false; // この区間はメニュー試験のキーだけを入力する
     }
     if (isGameClear_) {
         if (balanceProfile == 3) { throw std::runtime_error("Stationary continuous fire still cleared the entire stage"); }
         if (!stageResults_.IsWaiting()) {
-            // この区間はキーの立ち上がりを試す。実際のマウス移動によるホバー選択を混ぜない。
+            // この区間はキーの立ち上がりを試す　実際のマウス移動によるホバー選択を混ぜない
             ImGui::GetIO().MouseDelta = { 0, 0 };
             if (resultFrames == 0) { stageResults_.ResetSelection(); }
             if (resultFrames == 5) {
@@ -1112,7 +1113,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
                 " max_bullets_e=" + std::to_string(projectiles_.EnemyPool().PeakActiveCount()) +
                 " sounds=" + std::to_string(audio_.SoundForProbe()->GetPlayCount()) +
                 " voices=" + std::to_string(audio_.SoundForProbe()->GetVoiceCount()));
-            keys[DIK_RETURN] = 0x80; // 選択中の「再挑戦」をEnterで決定する。
+            keys[DIK_RETURN] = 0x80; // 選択中の「再挑戦」をEnterで決定する
             phase = 1;
         }
         input_->SetTestFrame(keys, mouse);
@@ -1146,14 +1147,14 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
             if (balanceProfile != 2) { break; }
         }
     }
-    // 撃破速度に依存せず最後の街区とボス敷地も検査する。そこへ通常に飛行してから反撃。
-    // フィーバーを持ち込んでも、試験ではボスの初撃と回避を観察してから反撃する。
-    // 通常プレイのHP・ダメージ・ボスの被弾条件には手を加えない。
+    // 撃破速度に依存せず最後の街区とボス敷地も検査する　そこへ通常に飛行してから反撃
+    // フィーバーを持ち込んでも、試験ではボスの初撃と回避を観察してから反撃する
+    // 通常プレイのHP・ダメージ・ボスの被弾条件には手を加えない
     if (target && target->IsBoss() && (bossShotsFired_ == 0 || sceneryCoverage != 7u || !bossApronSeen)) {
         target = nullptr;
     }
     if (target) {
-        // 硬い敵へはチャージ、それ以外には連射。性能・弾・敵HPは通常値のまま。
+        // 硬い敵へはチャージ、それ以外には連射　性能・弾・敵HPは通常値のまま
         bool chargeGroup = false;
         if (balanceProfile == 2 && !target->IsBoss()) {
             int neighbors = 0;
@@ -1214,7 +1215,7 @@ bool GameRuntime::RunPlaythroughProbe(const std::string& logPath, bool tutorialP
     return false;
 }
 
-// スキルの発動条件から連撃・撃破・再使用までを、戦闘中の状態と照合する。
+// スキルの発動条件から連撃・撃破・再使用までを、戦闘中の状態と照合する
 bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
@@ -1306,13 +1307,13 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
             static unsigned int heldSample = 0;
             static double heldSince = 0.0;
             if (heldSample != visualSample) { heldSample = visualSample; heldSince = ImGui::GetTime(); }
-            // 明示した自動映像試験だけ、確認停止を8秒で解除する。
+            // 明示した自動映像試験だけ、確認停止を8秒で解除する
             next |= ImGui::GetTime() - heldSince >= 8.0;
         }
         ImGui::End();
         if (!next) {
-            // 表示確認中も長押し試験の入力を保つ。ここで離すと再開時に
-            // 新しいSHIFT押下が生まれ、通常プレイにはない再回避を起こしてしまう。
+            // 表示確認中も長押し試験の入力を保つ　ここで離すと再開時に
+            // 新しいSHIFT押下が生まれ、通常プレイにはない再回避を起こしてしまう
             if (frame >= 31 && frame <= 65) { keys[DIK_LSHIFT] = 0x80; }
             input_->SetTestFrame(keys, mouse);
             return false;
@@ -1331,8 +1332,8 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
     ++frame;
     require(!isGameOver_, "fixture player died");
     if (frame < 620) {
-        // 検証用に全編隊を消化済みにしているため、空の時間を短縮する本編進行は区切る。
-        // レール・敵・射撃・回避は通常更新のまま。ボス試験から本編進行へ戻す。
+        // 検証用に全編隊を消化済みにしているため、空の時間を短縮する本編進行は区切る
+        // レール・敵・射撃・回避は通常更新のまま　ボス試験から本編進行へ戻す
         stageFlight_.HoldProgressForProbe(0.0f);
     }
     if (frame == 1) {
@@ -1355,7 +1356,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         }
         log(std::string("AUDIO_BANK mode=") + (audio_.UsesLocalSkillAudioForProbe() ? "local_cinematic" : "original_cc0") +
             " voices=29");
-        // 実際の連撃を最後まで進め、HP6の狙撃機を一押しで消せないことを確認。
+        // 実際の連撃を最後まで進め、HP6の狙撃機を一押しで消せないことを確認
         for (const bool empowered : { false, true }) {
             DebugJumpToStagePhase(0);
             rewards_.Fever().SetGauge(0);
@@ -1388,23 +1389,23 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         log("STARTUP_READY_WITHOUT_DODGE_OK empty_target_no_consumption=1");
     }
     if (frame == 30) {
-        playerSkill_.SetRechargeForDebug(300.0f); // 回避でスキルが再充填されないことを独立検証。
-        // 実際の当たり判定を通る近接弾を置き、SHIFTでジャスト回避させる。
+        playerSkill_.SetRechargeForDebug(300.0f); // 回避でスキルが再充填されないことを独立検証
+        // 実際の当たり判定を通る近接弾を置き、SHIFTでジャスト回避させる
         const auto p = player_->GetTranslate();
         dodgeStartX = p.x;
-        // 初動の横移動量に左右されないよう、上側のかすり領域へ置く。
-        // 機体に直撃する配置では「無敵で弾消去」になり、ジャスト回避試験にならない。
+        // 初動の横移動量に左右されないよう、上側のかすり領域へ置く
+        // 機体に直撃する配置では「無敵で弾消去」になり、ジャスト回避試験にならない
         FireEnemyBullet({ p.x + 0.5f, p.y + 2.2f, p.z + 1.0f });
         keys[DIK_D] = keys[DIK_LSHIFT] = 0x80;
     }
-    // 実フレーム間でSHIFTを押し続けても、再使用可能時に勝手に2回目が出ない。
+    // 実フレーム間でSHIFTを押し続けても、再使用可能時に勝手に2回目が出ない
     if (frame >= 31 && frame <= 65) { keys[DIK_LSHIFT] = 0x80; }
     if (frame == 31) {
         require(rewards_.JustDodgeCount() > 0 && !playerSkill_.IsReady() && playerSkill_.CooldownFrames() > 290.0f,
             "just dodge unexpectedly recharged the independent skill");
         for (auto& bullet : projectiles_.EnemyPool().Active()) { bullet->Kill(); }
         playerSkill_.ClearCooldownForDebug();
-        GrantPhantomRaid(); // 後続の連撃試験を初期の使用可能状態へ戻す。
+        GrantPhantomRaid(); // 後続の連撃試験を初期の使用可能状態へ戻す
         log("DODGE_INDEPENDENT_OK");
     }
     if (frame == 40) { keys[DIK_Q] = 0x80; }
@@ -1426,7 +1427,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         }
     };
     if (frame == 70) {
-        // 本編「Sniper wing」と同じ位置・HP・編隊動作で、スキル対象の選択を検証する。
+        // 本編「Sniper wing」と同じ位置・HP・編隊動作で、スキル対象の選択を検証する
         SpawnStageEnemyForProbe(-4.6f, -0.6f, 44.0f, Enemy::Behavior::Formation,
             Enemy::EntryStyle::TightFormation, 3, 1.0f);
         SpawnStageEnemyForProbe(-2.0f, 0.5f, 44.0f, Enemy::Behavior::Formation,
@@ -1437,7 +1438,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
             Enemy::EntryStyle::PopShooter, 6, 1.18f);
     }
     if (frame == 149) {
-        // 狙撃機を指した場合も実際の選択処理を通す。時間は進めず、ダメージ前に試験状態を戻す。
+        // 狙撃機を指した場合も実際の選択処理を通す　時間は進めず、ダメージ前に試験状態を戻す
         Math::Vector2 screen{};
         require(stageEnemies_.Active().size() == 4 && stageEnemies_.Active().back()->IsSniper() &&
             TryProjectToScreen(stageEnemies_.Active().back()->GetAimPosition(), screen), "sniper selection fixture missing");
@@ -1455,12 +1456,12 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
             "formation/sniper fixture missing");
         const ImVec2 origin = ImGui::GetMainViewport()->Pos;
         mouse = { screen.x - origin.x, screen.y - origin.y };
-        // UpdateLockOnTargetはUpdateの末尾なので、照準を置く1フレームと発動を分ける。
+        // UpdateLockOnTargetはUpdateの末尾なので、照準を置く1フレームと発動を分ける
         activationMouse = mouse;
     }
     if (frame == 151) {
         audioBefore = audio_.SkillPlayCountsForProbe();
-        // Input::Updateが毎フレームOSカーソルを取得するため、試験の照準を明示的に維持する。
+        // Input::Updateが毎フレームOSカーソルを取得するため、試験の照準を明示的に維持する
         mouse = activationMouse;
         keys[DIK_Q] = 0x80;
         log("NORMAL_ACTIVATE");
@@ -1487,7 +1488,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         require(stageEnemies_.Active().size() == 1 && stageEnemies_.Active().front()->IsSniper() && !stageEnemies_.Active().front()->IsDead(),
             "formation clear should leave the independently positioned sniper alive");
         log("FORMATION_CHOICE_OK triple_clear=1 sniper_remains=1");
-        stageEnemies_.Active().front()->Kill(); // 次の独立ケースへ持ち越さない。報酬には加算しない。
+        stageEnemies_.Active().front()->Kill(); // 次の独立ケースへ持ち越さない　報酬には加算しない
         require(!playerSkill_.IsReady() && playerSkill_.CooldownFrames() > 0.0f, "normal consumption or cooldown");
         GrantPhantomRaid();
         require(!playerSkill_.IsReady(), "cooldown allowed immediate recharge");
@@ -1506,7 +1507,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         log("HIT_RECOVERY_OK normal=1.5 charged_kill=9 clamped=0 notification_once=1");
     }
     if (frame == 221) {
-        playerSkill_.SetRechargeForDebug(3.0f); // 最後の短区間を無入力で進め、満了時の自動回復を検証。
+        playerSkill_.SetRechargeForDebug(3.0f); // 最後の短区間を無入力で進め、満了時の自動回復を検証
     }
     if (frame == 230) {
         require(playerSkill_.IsReady() && playerSkill_.CooldownFrames() == 0.0f, "time expiry did not auto recharge skill");
@@ -1520,7 +1521,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
     if (frame == 233) {
         require(rewards_.Fever().RemainingFrames() == 0 && rewards_.Fever().ActivationCount() == feverCountBeforeAutoTest,
             "fever activated below full gauge");
-        AddFeverGauge(1); // 本番のゲージ加算経路で満タンにする。Eキーは送らない。
+        AddFeverGauge(1); // 本番のゲージ加算経路で満タンにする　Eキーは送らない
     }
     if (frame == 234) {
         require(rewards_.Fever().IsActive() && rewards_.Fever().Gauge() == 0 &&
@@ -1534,7 +1535,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         log("FEVER_AUTO_OK threshold=100 gauge_consumed=1 no_key=1 no_double_activation=1");
     }
     if (frame == 240) {
-        playerSkill_.ClearCooldownForDebug(); // 次の独立ケース用の試験リセット。
+        playerSkill_.ClearCooldownForDebug(); // 次の独立ケース用の試験リセット
         GrantPhantomRaid();
         spawn(5);
     }
@@ -1554,7 +1555,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         log("OVERDRIVE_5_KILLS_OK");
     }
     if (frame == 430) {
-        rewards_.Fever().SetRemainingFramesForDebug(1); // 終了境界も通常のUpdateFever経路で検証する。
+        rewards_.Fever().SetRemainingFramesForDebug(1); // 終了境界も通常のUpdateFever経路で検証する
         playerSkill_.ClearCooldownForDebug();
         GrantPhantomRaid();
         spawn(3);
@@ -1576,7 +1577,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         projectiles_.SetHomingTargetForDebug(*removalBullet, removed);
         require(removalBullet->TryRegisterHitTarget(removed), "target removal fixture did not record a hit");
         playerControl_.Aim().SetTargetForProbe(*removed);
-        stageEnemies_.KillAll(); // 演出途中の外部消滅を模擬。
+        stageEnemies_.KillAll(); // 演出途中の外部消滅を模擬
     }
     if (frame == 527) {
         require(stageEnemies_.Active().empty() && !playerControl_.Aim().Target() &&
@@ -1600,7 +1601,7 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
         Enemy* boss = nullptr;
         for (auto& enemy : stageEnemies_.Active()) { if (enemy->IsBoss()) { boss = enemy.get(); break; } }
         require(boss != nullptr, "boss fixture missing");
-        boss->Damage((std::max)(0, boss->GetHp() - 7)); // クリア経路を調べる低HP試験配置。
+        boss->Damage((std::max)(0, boss->GetHp() - 7)); // クリア経路を調べる低HP試験配置
         GrantPhantomRaid();
         ActivateFever();
     }
@@ -1616,11 +1617,11 @@ bool GameRuntime::RunPhantomProbe(const std::string& logPath, bool preview)
     input_->SetTestFrame(keys, mouse);
     return false;
 }
-// 確認用にボス戦を用意し、各攻撃、形態変化、撃破後の進行を順番に検証する。
+// 確認用にボス戦を用意し、各攻撃、形態変化、撃破後の進行を順番に検証する
 bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
-    // リザルトを詰める際は、戦闘の確認停止を省いて勝敗の三画面だけを確認できる。
+    // リザルトを詰める際は、戦闘の確認停止を省いて勝敗の三画面だけを確認できる
     static const bool resultOnlyPreview = [] {
         char value[2]{};
         return GetEnvironmentVariableA("AZRAID_RESULT_PREVIEW", value, 2) > 0 && value[0] == '1';
@@ -1636,14 +1637,14 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         (resultOnlyPreview && (frame == 890 || frame == 897)) ||
         frame == 880 || frame == 901 || frame == 931)) {
         phantomPreviewPaused_ = true;
-        // 同じHUDを背後に残したポーズ・操作方法も、通常起動を変えずに実画面で確認する。
+        // 同じHUDを背後に残したポーズ・操作方法も、通常起動を変えずに実画面で確認する
         gameplayMenu_.SetPausedForDebug(frame == 30 || frame == 31, frame == 31);
         bool next = ImGui::IsKeyPressed(ImGuiKey_F8, false);
         if (resultOnlyPreview) {
             static int heldFrame = -1;
             static double heldSince = 0.0;
             if (heldFrame != frame) { heldFrame = frame; heldSince = ImGui::GetTime(); }
-            // 記録のために停止してもテストを放置しない。通常の手動映像試験には適用しない。
+            // 記録のために停止してもテストを放置しない　通常の手動映像試験には適用しない
             next |= ImGui::GetTime() - heldSince >= (frame == 931 ? 3.0 : 15.0);
         }
         if (frame < 880) {
@@ -1653,7 +1654,7 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
             ImGui::TextUnformatted("TEST ONLY: pause / controls / boss / results");
             ImGui::Text("Frame %d   Pattern %d   Counter %d", frame,
                 static_cast<int>(bossAttack_.CurrentPattern()), bossAttack_.CounterFrames());
-            // 全画面の操作説明ウィンドウがマウスを覆っていても、映像試験を進められる。
+            // 全画面の操作説明ウィンドウがマウスを覆っていても、映像試験を進められる
             next |= ImGui::Button("NEXT / F8", { 220.0f, 36.0f });
             ImGui::End();
         }
@@ -1714,7 +1715,7 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
                 const auto playerPosition = player_->GetTranslate();
                 player_->SetCinematicPose({ 3.75f, playerPosition.y, playerPosition.z }, player_->GetVisualRotate());
                 while (bossAttack_.RemainingFrames() > BossAttackController::kAimLockFrames) { tick(); }
-                // 固定後に実際の自機を戻す。内部の照準値を書き換えず、追尾停止を確認する。
+                // 固定後に実際の自機を戻す　内部の照準値を書き換えず、追尾停止を確認する
                 player_->SetCinematicPose(playerPosition, player_->GetVisualRotate());
                 while (bossAttack_.RemainingFrames() > 0) { tick(); }
                 require(projectiles_.EnemyPool().Active().empty() && bossAttack_.AimPoint().x == 3.75f, "boss tracked after aim lock");
@@ -1797,13 +1798,13 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         log("BOSS_MUSIC_OK one_loop=1");
     }
     if (frame == 660) {
-        // 第2段階の警告も、実際のHP条件と通常Updateから表示する映像試験。
+        // 第2段階の警告も、実際のHP条件と通常Updateから表示する映像試験
         auto* boss = stageEnemies_.Active().front().get();
         boss->Damage(boss->GetMaxHp() / 2);
     }
     if (frame == 750) {
         auto* boss = stageEnemies_.Active().front().get();
-        boss->Damage(999); // 撃破映像の固定サンプル。通常通し試験ではこの操作を使わない。
+        boss->Damage(999); // 撃破映像の固定サンプル　通常通し試験ではこの操作を使わない
         combatResolver_.RegisterEnemyDefeat(BuildCombatContext(), *boss, true, false);
     }
     if (frame == 840) {
@@ -1821,7 +1822,7 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
         combatResolver_.SetPlayerDamageForProbe(frame == 880 ? 2 : (frame == 890 ? 0 : 3));
         log(std::string("RESULT_GRADE_SAMPLE rank=") + (frame == 880 ? "A" : (frame == 890 ? "S" : "B")));
     }
-    // リザルトの分岐は映像検証時だけ切り替える。通常プレイ・通常の通し試験は実際の勝敗を使う。
+    // リザルトの分岐は映像検証時だけ切り替える　通常プレイ・通常の通し試験は実際の勝敗を使う
     if (preview && frame == 900) {
         if (resultOnlyPreview) { combatResolver_.SetPlayerDamageForProbe(2); }
         isGameClear_ = false; isGameOver_ = true;
@@ -1838,7 +1839,7 @@ bool GameRuntime::RunBossProbe(const std::string& logPath, bool preview)
     return false;
 }
 
-// 確認用の敵弾を用意し、横回避とジャスト回避が成立する場面を検証する。
+// 確認用の敵弾を用意し、横回避とジャスト回避が成立する場面を検証する
 bool GameRuntime::RunJustDodgeProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
@@ -1916,7 +1917,7 @@ bool GameRuntime::RunJustDodgeProbe(const std::string& logPath, bool preview)
             "Pause advanced just dodge feedback");
     }
     if (frame == 73) {
-        // 再開メニューの0.2秒の演出中も世界は停止する。完了後の更新まで待つ。
+        // 再開メニューの0.2秒の演出中も世界は停止する　完了後の更新まで待つ
         if (gameplayMenu_.IsPaused() || playerCombatFeedback_.DodgeSlowFrames() == pausedSlow) {
             require(playerCombatFeedback_.DodgeFlashFrames() == pausedFlash && playerCombatFeedback_.DodgeSlowFrames() == pausedSlow,
                 "Resume menu advanced just dodge feedback before gameplay resumed");
@@ -1949,7 +1950,7 @@ bool GameRuntime::RunJustDodgeProbe(const std::string& logPath, bool preview)
     return false;
 }
 
-// チャージの蓄積と発射、爆風の巻き込みを、実際の射撃・衝突処理で検証する。
+// チャージの蓄積と発射、爆風の巻き込みを、実際の射撃・衝突処理で検証する
 bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
 {
     static const bool dodgeReview = [] {
@@ -2129,7 +2130,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
             playerCombatFeedback_.ClearImpactSlowForDebug();
             gameplayCamera_.ClearShake();
         };
-        // 編隊同時撃破＋着弾＋連射を重ねても、固定枠だけで全演出が出て返却されるか。
+        // 編隊同時撃破＋着弾＋連射を重ねても、固定枠だけで全演出が出て返却されるか
         for (const bool fever : { false, true }) {
             reset();
             combatProgress_.SetChainForDebug(12);
@@ -2239,7 +2240,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
 
         reset();
         center = spawn(0, 0, 6);
-        neighbor = spawn(4.0f, 0, 6); // 貫通弾そのものには触れない隣機。
+        neighbor = spawn(4.0f, 0, 6); // 貫通弾そのものには触れない隣機
         playerSkill_.SetRechargeForDebug(360.0f);
         hit(*center, true, true);
         combatResolver_.ResolvePlayerShots(BuildCombatContext());
@@ -2263,7 +2264,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         require(center->GetHp() == 34, "boss counter damage changed");
         log("DEFENSE_OK shield_absorbs=3 overflow_to_hull=1 boss_direct=6 boss_counter=12");
 
-        // 狙撃の反撃倍率は、指定の隙へ当てた通常チャージ直撃だけ。
+        // 狙撃の反撃倍率は、指定の隙へ当てた通常チャージ直撃だけ
         for (int mode = 0; mode < 6; ++mode) {
             reset();
             auto* sniper = spawn(0, 0, 6, Enemy::Behavior::Sniper);
@@ -2303,7 +2304,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         log("LIFETIME_OK entry_ignored=1 destroyed_ignored=1");
 
         reset();
-        // ここからは手動の命中配置ではなく、本編と同じ動く編隊へ実際に一発撃つ。
+        // ここからは手動の命中配置ではなく、本編と同じ動く編隊へ実際に一発撃つ
         SpawnStageEnemyForProbe(-4.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1.0f);
         SpawnStageEnemyForProbe(-2.0f, 0.5f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1.0f);
         SpawnStageEnemyForProbe(0.6f, -0.6f, 44.0f, Enemy::Behavior::Formation, Enemy::EntryStyle::TightFormation, 3, 1.0f);
@@ -2311,7 +2312,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
         log("LIVE_FORMATION_BEGIN normal_input=1");
     }
     if (preview && frame == 99) {
-        // 映像確認だけで全種類の本物の敵弾を並べる。次の射撃試験へ危険弾を持ち越さない。
+        // 映像確認だけで全種類の本物の敵弾を並べる　次の射撃試験へ危険弾を持ち越さない
         const std::array<EnemyBulletStyle, 6> styles{ EnemyBulletStyle::Standard, EnemyBulletStyle::Crossfire,
             EnemyBulletStyle::Sniper, EnemyBulletStyle::ShieldOrb, EnemyBulletStyle::BossCannon, EnemyBulletStyle::BossCharge };
         for (size_t i = 0; i < styles.size(); ++i) {
@@ -2357,7 +2358,7 @@ bool GameRuntime::RunChargeShotProbe(const std::string& logPath, bool preview)
     input_->SetTestFrame(keys, mouse);
     return false;
 }
-// リングを通過したときの判定、得点、加速、チャージ補充を検証する。
+// リングを通過したときの判定、得点、加速、チャージ補充を検証する
 bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
 {
     static int frame = 0;
@@ -2382,7 +2383,7 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
         DebugJumpToStagePhase(0);
         stageFlight_.DisableSpawnsForProbe();
         combatEffects_.Reset();
-        combatProgress_.Reset(); // フェーズ移動は本来得点を保持する。独立した報酬試験では毎回初期化する。
+        combatProgress_.Reset(); // フェーズ移動は本来得点を保持する　独立した報酬試験では毎回初期化する
         rewards_.Fever().SetGauge(0);
         rewards_.Fever().SetRemainingFramesForDebug(0);
         playerCombatFeedback_.ClearImpactSlowForDebug();
@@ -2418,7 +2419,7 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
     }
     ++frame;
     ++phaseFrame;
-    // 固定配置の射撃・通過試験に、本編の増援やボスを混ぜない。
+    // 固定配置の射撃・通過試験に、本編の増援やボスを混ぜない
     stageFlight_.HoldProgressForProbe(0.0f);
     if (frame == 1) {
         reset();
@@ -2608,7 +2609,7 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
         log("FEVER_AIM_OK unselected_enemy_not_acquired=1");
         reset();
 
-        // 外れ弾が寿命まで残る最悪条件で、10秒以上の実際の射撃・弾更新を検証する。
+        // 外れ弾が寿命まで残る最悪条件で、10秒以上の実際の射撃・弾更新を検証する
         rewards_.Fever().SetRemainingFramesForDebug(600);
         for (int step = 0; step < 620; ++step) {
             playerControl_.Shooting().FillCharge();
@@ -2657,7 +2658,7 @@ bool GameRuntime::RunRiftProbe(const std::string& logPath, bool preview)
         if ((!preview && ringGates_.BoostAge() >= 8.0f) || previewStep > 3) {
             reset();
             ActivateFever();
-            rewards_.Fever().SetRemainingFramesForDebug(300); // 上限とは別に1.5秒の実回復を検証する。
+            rewards_.Fever().SetRemainingFramesForDebug(300); // 上限とは別に1.5秒の実回復を検証する
             phase = 1;
             phaseFrame = 0;
             fired = false;

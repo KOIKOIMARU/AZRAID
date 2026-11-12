@@ -1,5 +1,5 @@
 // ===== WinApp.cpp =====
-// Windowsのウィンドウを作成し、メッセージ処理と全画面の切り替えを扱う。
+// Windowsのウィンドウを作成し、メッセージ処理と全画面の切り替えを扱う
 
 #include "engine/base/WinApp.h"
 
@@ -9,7 +9,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #endif
 
 // ウィンドウプロシージャ
-// Windowsから届く入力・リサイズ・終了などのメッセージを処理する。
+// Windowsから届く入力・リサイズ・終了などのメッセージを処理する
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
     auto* app = reinterpret_cast<WinApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
@@ -29,7 +29,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
         return 0;
     }
     if (app && msg == WM_PAINT && !app->hasPresentedFrame_) {
-        // DirectXとフォントの初期化前にも、白いウィンドウを見せない。
+        // DirectXとフォントの初期化前にも、白いウィンドウを見せない
         PAINTSTRUCT paint{};
         const HDC dc = BeginPaint(hwnd, &paint);
         RECT client{};
@@ -63,7 +63,7 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 }
 
 
-// COMを初期化し、ウィンドウクラスを登録してゲームのウィンドウを開く。
+// COMを初期化し、ウィンドウクラスを登録してゲームのウィンドウを開く
 void WinApp::Initialize()
 {
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -120,7 +120,7 @@ void WinApp::Finalize()
 	CoUninitialize();
 }
 
-// 待っているウィンドウメッセージを処理する。終了通知を受けた場合はtrueを返す。
+// 待っているウィンドウメッセージを処理する　終了通知を受けた場合はtrueを返す
 bool WinApp::ProcessMessage()
 {
 	MSG msg{};
@@ -139,7 +139,7 @@ bool WinApp::ProcessMessage()
 	return false;
 }
 
-// 通常表示の位置と状態を控え、ボーダーレス全画面へ切り替える。通常表示へ戻る際は控えを復元する。
+// 通常表示の位置と状態を控え、ボーダーレス全画面へ切り替える　通常表示へ戻る際は控えを復元する
 void WinApp::ToggleFullscreen()
 {
     if (!hwnd) { return; }

@@ -1,4 +1,4 @@
-// DirectInputから取得したキーとマウスの状態を保存する。前回との差分で押した瞬間を判定する。
+// DirectInputから取得したキーとマウスの状態を保存する　前回との差分で押した瞬間を判定する
 
 #pragma once
 #include <Windows.h>
@@ -35,7 +35,7 @@ public:
 	bool TriggerKey(BYTE keyNumber);
 
 	const Math::Vector2& GetMousePosition() const { return playbackActive_ ? playbackMouse_ : mousePosition_; }
-    // デモの操作をゲーム内だけで再生する。OSの入力とその前フレームは変更しない。
+    // デモの操作をゲーム内だけで再生する　OSの入力とその前フレームは変更しない
     void SetPlaybackFrame(const std::array<BYTE, 256>& keys, const Math::Vector2& mouse) {
         playbackPrevious_ = playbackKeys_;
         playbackKeys_ = keys;
@@ -43,7 +43,7 @@ public:
         playbackActive_ = true;
     }
 #ifdef _DEBUG
-    // 通しテスト専用。OSへ入力は送らず、通常のPushKey/TriggerKey経路を検証する。
+    // 通しテスト専用　OSへ入力は送らず、通常のPushKey/TriggerKey経路を検証する
     void SetTestFrame(const std::array<BYTE, 256>& keys, const Math::Vector2& mouse) {
         memcpy(key, keys.data(), sizeof(key));
         mousePosition_ = mouse;

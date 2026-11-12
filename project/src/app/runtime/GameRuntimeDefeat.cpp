@@ -1,5 +1,5 @@
 // ===== GameRuntimeDefeat.cpp =====
-// 撃墜後の戦闘を止め、墜落演出を進めて敗北リザルトにつなぐ。
+// 撃墜後の戦闘を止め、墜落演出を進めて敗北リザルトにつなぐ
 
 #include "app/runtime/GameRuntime.h"
 
@@ -16,7 +16,7 @@
 #include <stdexcept>
 #endif
 
-// HPが尽きた直後に敗北状態へ切り替え、戦闘を閉じて墜落演出を始める。
+// HPが尽きた直後に敗北状態へ切り替え、戦闘を閉じて墜落演出を始める
 void GameRuntime::BeginPlayerDefeat(const Math::Vector3& incomingVelocity)
 {
     if (!player_ || !camera_ || IsTutorial() || isGameOver_) { return; }
@@ -38,12 +38,12 @@ void GameRuntime::BeginPlayerDefeat(const Math::Vector3& incomingVelocity)
     AddEnemyHitEffect(player_->GetTranslate(), 0.55f);
 }
 
-// 墜落中の自機、破片、敵の離脱を進める。リザルトは墜落演出の完了を待つ。
+// 墜落中の自機、破片、敵の離脱を進める　リザルトは墜落演出の完了を待つ
 void GameRuntime::UpdatePlayerDefeat()
 {
     if (!camera_ || !player_ || !playerDefeatPresentation_.IsActive()) { return; }
     const float dt = dxCommon_ ? std::clamp(dxCommon_->GetDeltaTime(), 0.0f, 0.10f) : 1.0f / 60.0f;
-    // 衝突判定を終えてから残弾をプールへ返す。退場する敵は演出中も保持する。
+    // 衝突判定を終えてから残弾をプールへ返す　退場する敵は演出中も保持する
     projectiles_.RecycleAll();
     stageEnemies_.UpdateDeparture(dt);
     const auto frame = playerDefeatPresentation_.Update(*player_, dt);
@@ -62,7 +62,7 @@ void GameRuntime::UpdatePlayerDefeat()
     }
 }
 
-// 敗北演出中に限って、現在の表示領域に画面の暗転を重ねる。
+// 敗北演出中に限って、現在の表示領域に画面の暗転を重ねる
 void GameRuntime::DrawPlayerDefeatOverlay()
 {
     if (!isGameOver_ || !playerDefeatPresentation_.IsActive()) { return; }
@@ -72,7 +72,7 @@ void GameRuntime::DrawPlayerDefeatOverlay()
 }
 
 #ifdef _DEBUG
-// 敗北の開始、墜落中の挙動、破片、リザルト表示までを実際の戦闘処理で確認する。
+// 敗北の開始、墜落中の挙動、破片、リザルト表示までを実際の戦闘処理で確認する
 bool GameRuntime::RunDefeatProbe(const std::string& logPath, bool preview)
 {
     static int phase = 0, sample = 0, menuFrames = 0, resumedFrames = 0;
@@ -98,12 +98,12 @@ bool GameRuntime::RunDefeatProbe(const std::string& logPath, bool preview)
         rewards_.Fever().SetRemainingFramesForDebug(0);
         ResetPhantomRaid();
         for (auto& bullet : projectiles_.EnemyPool().Active()) { bullet->Kill(); }
-        // 無敵時間を通常の更新で消化してから、実際の衝突経路で死亡させる。
+        // 無敵時間を通常の更新で消化してから、実際の衝突経路で死亡させる
         player_->Damage(player_->GetHp() - 1);
         input_->SetTestFrame({}, { 1200, 100 });
         for (int frame = 0; frame < 24; ++frame) { player_->Update({}, 1.0f, 1.0f); }
         require(!player_->IsInvincible() && player_->GetHp() == 1, "fatal fixture retained damage protection");
-        // 敵がいる最中に死亡する条件を再現。小型・射撃型・ボスの退場を確認する。
+        // 敵がいる最中に死亡する条件を再現　小型・射撃型・ボスの退場を確認する
         departureEnemies[0] = SpawnStageEnemyForProbe(-4.0f, 2.0f, 52.0f,
             Enemy::Behavior::Formation, Enemy::EntryStyle::Direct, 4);
         departureEnemies[1] = SpawnStageEnemyForProbe(4.0f, 3.0f, 60.0f,

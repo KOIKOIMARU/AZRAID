@@ -1,5 +1,5 @@
 // ===== PlayerFlightEffects.cpp =====
-// 自機の排気、回避時の残像、チャージ中の光などを更新して描く。
+// 自機の排気、回避時の残像、チャージ中の光などを更新して描く
 
 #include "app/player/PlayerFlightEffects.h"
 #include "app/runtime/GameRuntimeMath.h"
@@ -19,11 +19,11 @@ constexpr float kPlayerExhaustRiseResponse = 0.24f;
 constexpr float kPlayerExhaustFallResponse = 0.075f;
 constexpr float kAfterimageDuration = 22.0f;
 constexpr float kHullAfterimageDuration = 15.0f;
-// Omenの機体中心から右ノズルまでの座標。左はXを反転。ワールド換算済み。
+// Omenの機体中心から右ノズルまでの座標　左はXを反転　ワールド換算済み
 constexpr Math::Vector3 kPlayerExhaustNozzle{ 0.48f, -0.28f, -1.70f };
 }
 
-// 描画に必要な共通機能、カメラ、機体モデルを受け取る。
+// 描画に必要な共通機能、カメラ、機体モデルを受け取る
 void PlayerFlightEffects::Initialize(Object3dCommon* common, Camera* camera, const Assets& assets)
 {
     Clear();
@@ -32,7 +32,7 @@ void PlayerFlightEffects::Initialize(Object3dCommon* common, Camera* camera, con
     assets_ = assets;
 }
 
-// 噴射やチャージの表示状態と、前の飛行で残った残像の寿命を戻す。
+// 噴射やチャージの表示状態と、前の飛行で残った残像の寿命を戻す
 void PlayerFlightEffects::Reset()
 {
     for (auto& afterimage : afterimages_) { afterimage.active = false; afterimage.age = 0.0f; }
@@ -43,7 +43,7 @@ void PlayerFlightEffects::Reset()
     thrust_ = 0.0f;
 }
 
-// 描画の枠と素材への参照を解放し、シーンの終了に備える。
+// 描画の枠と素材への参照を解放し、シーンの終了に備える
 void PlayerFlightEffects::Clear()
 {
     Reset();
@@ -55,7 +55,7 @@ void PlayerFlightEffects::Clear()
     common_ = nullptr;
 }
 
-// 機体モデルを使う残像の描画枠を用意し、通常描画と違う材質に設定する。
+// 機体モデルを使う残像の描画枠を用意し、通常描画と違う材質に設定する
 void PlayerFlightEffects::PrepareAfterimages()
 {
     if (!common_) { return; }
@@ -74,7 +74,7 @@ void PlayerFlightEffects::PrepareAfterimages()
     }
 }
 
-// 噴射を構成する複数の描画部品を事前に用意し、飛行中に使い回す。
+// 噴射を構成する複数の描画部品を事前に用意し、飛行中に使い回す
 void PlayerFlightEffects::PrepareExhaust()
 {
     if (!common_ || !assets_.glow) { return; }
@@ -84,7 +84,7 @@ void PlayerFlightEffects::PrepareExhaust()
         { 0.08f, 0.48f, 1.0f, 0.46f }, { 0.55f, 0.85f, 1.0f, 0.66f }, { 0.65f, 0.90f, 1.0f, 0.70f }
     }};
     constexpr std::array<float, 6> phases{ 0.0f, 1.8f, 3.6f, 5.4f, 2.7f, 4.5f };
-    // 左右それぞれに外炎・内炎・ノズルの光。使われていなかった位置や回転の設定は持たない。
+    // 左右それぞれに外炎・内炎・ノズルの光　使われていなかった位置や回転の設定は持たない
     for (size_t index = 0; index < plumes_.size(); ++index) {
         auto& plume = plumes_[index];
         plume = {};
@@ -104,7 +104,7 @@ void PlayerFlightEffects::PrepareExhaust()
     }
 }
 
-// チャージ中の発光を描くオブジェクトを事前に用意する。
+// チャージ中の発光を描くオブジェクトを事前に用意する
 void PlayerFlightEffects::PrepareCharge()
 {
     if (!common_ || !assets_.glow) { return; }
@@ -124,7 +124,7 @@ void PlayerFlightEffects::PrepareCharge()
     }
 }
 
-// 現在の機体姿勢を残像用の空き枠へ写し、短い寿命を設定する。
+// 現在の機体姿勢を残像用の空き枠へ写し、短い寿命を設定する
 void PlayerFlightEffects::SpawnAfterimage(Math::Vector3 position, int direction)
 {
     if (!(assets_.trail || assets_.glow)) { return; }
@@ -144,7 +144,7 @@ void PlayerFlightEffects::FlashDodgeTrail(Math::Vector3 position, int direction)
     afterimageTimer_ = 0;
 }
 
-// 自機の見た目を写した残像を発生させ、表示の種類に応じて色と寿命を決める。
+// 自機の見た目を写した残像を発生させ、表示の種類に応じて色と寿命を決める
 void PlayerFlightEffects::SpawnHullAfterimage(const DodgeFrame& frame)
 {
     if (!assets_.hull) { SpawnAfterimage(frame.position, frame.direction); return; }
@@ -165,7 +165,7 @@ void PlayerFlightEffects::FlashJustDodge(const DodgeFrame& frame)
     afterimageTimer_ = 3;
 }
 
-// 新しい残像の発生と、すでに出ている残像の色や消える時刻を更新する。
+// 新しい残像の発生と、すでに出ている残像の色や消える時刻を更新する
 bool PlayerFlightEffects::UpdateAfterimages(const DodgeFrame& frame)
 {
     const float step = std::clamp(frame.deltaSeconds * 60.0f, 0.5f, 4.0f);
@@ -188,7 +188,7 @@ bool PlayerFlightEffects::UpdateAfterimages(const DodgeFrame& frame)
     return began;
 }
 
-// 自機の姿勢と速度に合わせて、噴射の向き・強さとチャージの光を更新する。
+// 自機の姿勢と速度に合わせて、噴射の向き・強さとチャージの光を更新する
 void PlayerFlightEffects::UpdateFlight(const FlightFrame& frame)
 {
     if (!common_ || !camera_) {
@@ -236,7 +236,7 @@ void PlayerFlightEffects::UpdateFlight(const FlightFrame& frame)
         1.0f - std::pow(1.0f - thrustResponse, effectFrameStep);
     thrust_ +=
         (targetThrust - thrust_) * thrustBlend;
-    // 球状の粒を連ねず、ノズルから後方へ伸びる炎と根元の発光だけを描く。
+    // 球状の粒を連ねず、ノズルから後方へ伸びる炎と根元の発光だけを描く
     const auto tail = RotateLocalOffset({0,0,-1},playerRotate);
     const auto& view = camera_->GetViewMatrix();
     const auto& cameraWorld = camera_->GetWorldMatrix();
@@ -277,7 +277,7 @@ void PlayerFlightEffects::UpdateFlight(const FlightFrame& frame)
             const Math::Vector3 axis{x*cameraWorld.m[0][0]+y*cameraWorld.m[1][0],
                 x*cameraWorld.m[0][1]+y*cameraWorld.m[1][1],x*cameraWorld.m[0][2]+y*cameraWorld.m[1][2]};
             rotate=StageFlightRotation({cameraWorld.m[2][0],cameraWorld.m[2][1],cameraWorld.m[2][2]},axis,0.0f);
-            // UV下端の根元をノズルへ固定。背面では短く、側面では長く見える。
+            // UV下端の根元をノズルへ固定　背面では短く、側面では長く見える
             translate={translate.x+axis.x*visibleLength*0.48f,
                 translate.y+axis.y*visibleLength*0.48f,translate.z+axis.z*visibleLength*0.48f};
             scale={(isOuterFlame ? 0.42f : 0.22f)*(1.0f+thrust_*0.12f)*pulse,
@@ -306,7 +306,7 @@ void PlayerFlightEffects::UpdateFlight(const FlightFrame& frame)
         aura.visible = true;
     }
 
-    // 機首へ収束する半円と芯。完了後は大きく点滅させず、小さな金色の光を保つ。
+    // 機首へ収束する半円と芯　完了後は大きく点滅させず、小さな金色の光を保つ
     const float charge = frame.charge;
     const bool chargeReady = charge >= 1.0f;
     chargeVisible_ = !frame.feverActive && charge > 0.08f;
@@ -331,7 +331,7 @@ void PlayerFlightEffects::UpdateFlight(const FlightFrame& frame)
 
 }
 
-// 現在の噴射とチャージの状態から、描画する光の部品を選ぶ。
+// 現在の噴射とチャージの状態から、描画する光の部品を選ぶ
 void PlayerFlightEffects::DrawFlight()
 {
     if (!common_ || !camera_) { return; }
@@ -349,12 +349,12 @@ void PlayerFlightEffects::DrawFlight()
     common_->SetDepthDrawMode(depth);
     common_->CommonDrawSetting();
 #ifdef _DEBUG
-    assert(Inspect() == beforeDraw); // 描画回数で噴射や残像の時計を進めない。
+    assert(Inspect() == beforeDraw); // 描画回数で噴射や残像の時計を進めない
     assert(common_->GetBlendMode() == blend && common_->GetDepthDrawMode() == depth);
 #endif
 }
 
-// 生きている残像を寿命に合わせた透明度で描き、回避の光を画面へ重ねる。
+// 生きている残像を寿命に合わせた透明度で描き、回避の光を画面へ重ねる
 void PlayerFlightEffects::DrawAfterimages()
 {
     Model* afterimageModel =
@@ -393,7 +393,7 @@ void PlayerFlightEffects::DrawAfterimages()
             1.0f);
         const float fade = 1.0f - rate;
         if (afterimage.precise && assets_.hull) {
-            // 成功した姿勢と位置を固定して残し、現在の機体だけがそこから抜ける。
+            // 成功した姿勢と位置を固定して残し、現在の機体だけがそこから抜ける
             afterimage.object->SetModel(assets_.hull);
             afterimage.object->SetTranslate(afterimage.position);
             afterimage.object->SetRotate(afterimage.rotation);
@@ -436,7 +436,7 @@ void PlayerFlightEffects::DrawAfterimages()
 }
 
 #ifdef _DEBUG
-// 開発確認で、準備した描画枠の数や現在の噴射状態を取得する。
+// 開発確認で、準備した描画枠の数や現在の噴射状態を取得する
 PlayerFlightEffects::Snapshot PlayerFlightEffects::Inspect() const
 {
     Snapshot snapshot{};

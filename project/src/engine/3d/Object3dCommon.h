@@ -1,4 +1,4 @@
-// 3D物体が共有する描画設定と、影を作るための深度画像を管理する。
+// 3D物体が共有する描画設定と、影を作るための深度画像を管理する
 
 #pragma once
 #include <array>
@@ -33,7 +33,7 @@ enum class DepthDrawMode : uint32_t {
 
 class Object3dCommon {
 public:
-    // 通常のライティングと影カメラで共有する太陽の向き。
+    // 通常のライティングと影カメラで共有する太陽の向き
     static constexpr Math::Vector3 kSunDirection{ 0.52f, -0.72f, 0.46f };
     void Initialize(
         DirectXCommon* dxCommon,

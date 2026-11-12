@@ -14,7 +14,7 @@ class Object3dCommon;
 class PlayerSkill;
 class ProjectileSystem;
 
-// ステージ内の敵機を所有し、生成・毎フレームの更新・退場時の参照解除を行う。
+// ステージ内の敵機を所有し、生成・毎フレームの更新・退場時の参照解除を行う
 class StageEnemies {
 public:
     using Actors = std::list<std::unique_ptr<Enemy>>;
@@ -43,8 +43,9 @@ public:
     bool SpawnBoss(float railDistance);
     void SpawnTrainingTargets(float railDistance, int count, int hp, float spacing);
     void KillAll();
-    // 撤退があったフレームだけtrueを返す。自機撃墜時の演出退場はここに含めない。
+    // 撤退があったフレームだけtrueを返す　自機撃墜時の演出退場はここに含めない
     bool Update(const Frame& frame, const TargetReferences& targets);
+    // 自機撃墜時は全機の射撃を止めて飛び去らせる　リザルトまでは所有を保つ
     void UpdateDeparture(float deltaSeconds);
     void Draw() const;
 
@@ -54,6 +55,7 @@ public:
     bool HasTargetableNormal() const;
     bool HasSupport() const;
     Enemy* FindTargetable(const Enemy* target) const;
+    // 現在生存しているボスを返す　登場前や撃破後はnullptr
     const Enemy* Boss() const;
     bool BossSpawned() const { return bossSpawned_; }
     bool BossDefeated() const { return bossDefeated_; }
@@ -68,13 +70,14 @@ public:
 #endif
 
 private:
+    // 指定した機種を現在の敵リストへ登録する　準備不足などで生成できなければnullptrを返す
     Enemy* Spawn(const Math::Vector3& position, EnemyBehavior behavior, EnemyEntryStyle entryStyle,
         int hp, float scale);
     static void InvalidateTargets(const Enemy* enemy, const TargetReferences& targets);
 
     Object3dCommon* common_ = nullptr;
     StageEnemyFactory factory_;
-    Actors enemies_;
+    Actors enemies_; // このクラスが所有する敵の一覧　削除前に照準・弾・スキルの参照を外す
     int escapedCount_ = 0;
     bool bossSpawned_ = false;
     bool bossDefeated_ = false;

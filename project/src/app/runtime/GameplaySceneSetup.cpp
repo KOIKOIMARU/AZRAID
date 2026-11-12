@@ -1,5 +1,5 @@
 // ===== GameplaySceneSetup.cpp =====
-// ゲームシーンの描画や配置物を段階的に準備し、終了時に解放する。
+// ゲームシーンの描画や配置物を段階的に準備し、終了時に解放する
 
 #include "app/runtime/GameplaySceneSetup.h"
 
@@ -43,12 +43,12 @@ struct StepTimer {
     const char* label;
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-    // GPUリソースは作成途中で止められない。物体を一つ準備した時点で次の作業を判断する。
+    // GPUリソースは作成途中で止められない　物体を一つ準備した時点で次の作業を判断する
     bool BudgetUsed() const {
         return std::chrono::steady_clock::now() - start >= std::chrono::milliseconds(6);
     }
 
-    // 工程の開始時に時刻を控え、工程終了時の計測に使う。
+    // 工程の開始時に時刻を控え、工程終了時の計測に使う
     ~StepTimer() {
         const float elapsed = std::chrono::duration<float, std::milli>(
             std::chrono::steady_clock::now() - start).count();
@@ -77,7 +77,7 @@ void GameplaySceneSetup::Reset()
 void GameplaySceneSetup::ResetTiming() { gTiming = {}; }
 GameplaySceneSetup::Timing GameplaySceneSetup::GetTiming() { return gTiming; }
 
-// 現在工程と、弾・エフェクト・音声など工程内の準備状況をロード進捗に換算する。
+// 現在工程と、弾・エフェクト・音声など工程内の準備状況をロード進捗に換算する
 float GameplaySceneSetup::Progress(const ProjectileSystem& projectiles,
     const CombatEffects& effects, const GameplayAudio& audio) const
 {
@@ -94,7 +94,7 @@ float GameplaySceneSetup::Progress(const ProjectileSystem& projectiles,
         static_cast<float>(Step::Complete), 0.0f, 1.0f);
 }
 
-// 準備を段階ごとに進める。共通描画、ステージ、弾やエフェクトの再利用枠、音声がそろうと出撃できる。
+// 準備を段階ごとに進める　共通描画、ステージ、弾やエフェクトの再利用枠、音声がそろうと出撃できる
 bool GameplaySceneSetup::Advance(const Targets& targets, bool tutorial, float railDistance, float enemyBulletSpeed)
 {
     if (IsReady()) { return true; }
@@ -110,7 +110,7 @@ bool GameplaySceneSetup::Advance(const Targets& targets, bool tutorial, float ra
         if (!PrepareRenderer(targets, tutorial, railDistance)) { return false; }
         break;
     case Step::Bullets:
-        // 出撃直後に大量のGPUリソースを作らないよう、通常の予備数まで先に確保する。
+        // 出撃直後に大量のGPUリソースを作らないよう、通常の予備数まで先に確保する
         for (int index = 0; index < 8; ++index) {
             if (targets.projectiles.PlayerPool().AvailableCount() < kTargetPlayerBulletPoolCount) {
                 targets.projectiles.PreparePlayerBullet(targets.controls.GetShotTuning().normalSpeed);
@@ -198,7 +198,7 @@ bool GameplaySceneSetup::Advance(const Targets& targets, bool tutorial, float ra
     return IsReady();
 }
 
-// カメラ、3D描画の共通設定、自機を用意し、ステージを描ける状態にする。
+// カメラ、3D描画の共通設定、自機を用意し、ステージを描ける状態にする
 bool GameplaySceneSetup::PrepareRenderer(const Targets& targets, bool tutorial, float railDistance)
 {
     if (!PreloadStep(targets.dx, targets.srv)) { return false; }
@@ -274,7 +274,7 @@ bool GameplaySceneSetup::PrepareRenderer(const Targets& targets, bool tutorial, 
     return true;
 }
 
-// 配置ファイルを読み込み、使う場面に応じて結果と表示用の状態を反映する。
+// 配置ファイルを読み込み、使う場面に応じて結果と表示用の状態を反映する
 bool GameplaySceneSetup::LoadSceneObjects(const Targets& targets, const char* path, bool tutorial)
 {
     SceneSerializer::SceneSettings settings{};
@@ -290,13 +290,13 @@ bool GameplaySceneSetup::LoadSceneObjects(const Targets& targets, const char* pa
         targets.camera->SetRotate(settings.cameraRotate);
         targets.camera->SetFovY(targets.cameraMotion.FollowPose().fov);
     }
-    // 読み込んだカメラの位置を反映してから描画用の行列を更新する。
+    // 読み込んだカメラの位置を反映してから描画用の行列を更新する
     targets.sceneObjects.Update();
     targets.sceneObjectStatus = "読み込みました: " + targets.sceneObjects.Path();
     return true;
 }
 
-// シーン終了時に、描画オブジェクトと各システムのシーン用リソースを解放する。
+// シーン終了時に、描画オブジェクトと各システムのシーン用リソースを解放する
 void GameplaySceneSetup::Release(const Targets& targets)
 {
     targets.rings.Clear();
@@ -318,7 +318,7 @@ void GameplaySceneSetup::Release(const Targets& targets)
     targets.clearPresentation.Clear();
     targets.camera.reset();
     targets.skybox.reset();
-    // 共通描画オブジェクトの破棄前に、シーンが確保したシャドウのSRVを返す。
+    // 共通描画オブジェクトの破棄前に、シーンが確保したシャドウのSRVを返す
     if (targets.common && targets.srv && targets.common->GetShadowMapSrvIndex() != UINT32_MAX) {
         targets.srv->Free(targets.common->GetShadowMapSrvIndex());
     }

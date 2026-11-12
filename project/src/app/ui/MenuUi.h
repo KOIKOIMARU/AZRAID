@@ -3,7 +3,7 @@
 #include "engine/io/Input.h"
 #include <initializer_list>
 
-// タイトル・操作説明・リザルトの共通部品。戦闘HUDと同じ書体で組む。
+// タイトル・操作説明・リザルトの共通部品　戦闘HUDと同じ書体で組む
 namespace MenuUi {
 inline constexpr ImU32 Ink = IM_COL32(17, 22, 30, 255);
 inline constexpr ImU32 Paper = CombatHud::White;
@@ -17,8 +17,8 @@ struct InputBlock {
     ~InputBlock() { ImGui::EndDisabled(); InputBlocked = previous; }
 };
 
-// メニュー入力はDirectInputの立ち上がりだけを使う。
-// ImGui側のイベントをORすると、配送タイミングのずれで一押しを二度処理してしまう。
+// メニュー入力はDirectInputの立ち上がりだけを使う
+// ImGui側のイベントをORすると、配送タイミングのずれで一押しを二度処理してしまう
 inline bool Pressed(Input* input, BYTE key)
 {
     if (!input || InputBlocked) { return false; }
@@ -31,7 +31,7 @@ inline bool ConfirmPressed(Input* input)
     return Pressed(input, DIK_RETURN) || Pressed(input, DIK_SPACE);
 }
 
-// マウスが動いて項目に重なったときだけ、選択中の項目を切り替える。
+// マウスが動いて項目に重なったときだけ、選択中の項目を切り替える
 inline void SelectHovered(int& selected, int item)
 {
     if (!InputBlocked && ImGui::IsItemHovered() && (ImGui::GetIO().MouseDelta.x != 0 || ImGui::GetIO().MouseDelta.y != 0)) {
@@ -41,7 +41,7 @@ inline void SelectHovered(int& selected, int item)
 
 inline float Width(const char* text, float size, bool heading = false) { return CombatHud::ReadoutWidth(text, size, heading); }
 
-// 右揃えの場合は文字幅の分だけ描画位置を左へ寄せ、画面用の色へ変換して描く。
+// 右揃えの場合は文字幅の分だけ描画位置を左へ寄せ、画面用の色へ変換して描く
 inline void Text(ImDrawList* draw, ImVec2 at, float size, ImU32 color, const char* text, bool right = false,
     bool heading = false)
 {
@@ -55,7 +55,7 @@ inline void Heading(ImDrawList* draw, ImVec2 at, float size, ImU32 color, const 
     Text(draw, at, size, color, text, right, true);
 }
 
-// 指定した頂点以降に透明度の倍率を適用し、既に作った表示をまとめてフェードさせる。
+// 指定した頂点以降に透明度の倍率を適用し、既に作った表示をまとめてフェードさせる
 inline void Opacity(ImDrawList* draw, int first, float opacity)
 {
     for (int index = first; index < draw->VtxBuffer.Size; ++index) {
@@ -66,7 +66,7 @@ inline void Opacity(ImDrawList* draw, int first, float opacity)
     }
 }
 
-// 同じ斜面で閉じて開く。読み込み中も完全に覆えるので、初期化途中の画面は見せない。
+// 同じ斜面で閉じて開く　読み込み中も完全に覆えるので、初期化途中の画面は見せない
 inline void Wipe(ImVec2 min, ImVec2 size, float coverage)
 {
     coverage = std::clamp(coverage, 0.0f, 1.0f);
@@ -90,7 +90,7 @@ inline void Number(ImDrawList* draw, ImVec2 at, float size, ImU32 color, const c
     CombatHud::Number(draw, at, size * 1.25f, color, text, right);
 }
 
-// メニューは選択中の一項目だけを翼の面に載せる。未選択の四角いボタンを並べない。
+// メニューは選択中の一項目だけを翼の面に載せる　未選択の四角いボタンを並べない
 inline bool FlightAction(ImDrawList* draw, const char* id, const char* label, ImVec2 min,
     ImVec2 size, float scale, bool selected, bool lightCanvas = false)
 {
@@ -108,7 +108,7 @@ inline bool FlightAction(ImDrawList* draw, const char* id, const char* label, Im
     return clicked;
 }
 
-// タイトルで使うAZRAIDの字形と切断角を、小さな署名にも使う。
+// タイトルで使うAZRAIDの字形と切断角を、小さな署名にも使う
 inline void Brand(ImDrawList* draw, ImVec2 at, float height, ImU32 color)
 {
     float pen = 0;
@@ -163,7 +163,7 @@ inline void Brand(ImDrawList* draw, ImVec2 at, float height, ImU32 color)
     }
 }
 
-// パネルの背景と縁を描き、設定に応じてアクセントの線を重ねる。
+// パネルの背景と縁を描き、設定に応じてアクセントの線を重ねる
 inline void Surface(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale, ImU32 top, ImU32 bottom)
 {
     const int firstVertex = draw->VtxBuffer.Size;
@@ -183,7 +183,7 @@ inline void Sheet(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale)
     Surface(draw, min, max, scale, IM_COL32(31, 36, 44, 252), IM_COL32(15, 19, 25, 252));
 }
 
-// 選択矢印や下線は付けず、面の明暗で押せる場所を示す。
+// 選択矢印や下線は付けず、面の明暗で押せる場所を示す
 inline bool Button(ImDrawList* draw, const char* id, const char* label, ImVec2 min, ImVec2 size,
     float scale, bool selected = false, bool trackHover = true)
 {
@@ -200,7 +200,7 @@ inline bool Button(ImDrawList* draw, const char* id, const char* label, ImVec2 m
     return clicked;
 }
 
-// 操作に使うキーを、キー名付きの小さなバッジで表示する。
+// 操作に使うキーを、キー名付きの小さなバッジで表示する
 inline void Key(ImDrawList* draw, ImVec2 min, float width, float scale, const char* label)
 {
     const ImVec2 max{ min.x + width * scale, min.y + 36 * scale };
@@ -212,7 +212,7 @@ inline void Key(ImDrawList* draw, ImVec2 min, float width, float scale, const ch
         min.y + 6 * scale }, 21 * scale, Paper, label);
 }
 
-// 同じ説明をタイトルと本編で共有。キーと動作の対応を一画面に置く。
+// 同じ説明をタイトルと本編で共有　キーと動作の対応を一画面に置く
 inline bool Controls(ImVec2 viewportMin, ImVec2 viewportSize)
 {
     const float scale = CombatHud::Scale({ viewportSize.x, viewportSize.y });

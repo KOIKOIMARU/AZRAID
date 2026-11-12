@@ -10,5 +10,5 @@ public:
     std::unique_ptr<BaseScene> CreateScene(SceneType sceneType) override;
 
 private:
-    StageRecords* records_; // MyGameが所有。シーン生成時に同じ記録を渡す。
+    StageRecords* records_; // MyGameが所有　シーン生成時に同じ記録を渡す
 };

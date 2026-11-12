@@ -1,5 +1,5 @@
 // ===== CombatRewards.cpp =====
-// リング通過やジャスト回避の報酬を反映し、フィーバーの発動と終了を扱う。
+// リング通過やジャスト回避の報酬を反映し、フィーバーの発動と終了を扱う
 
 #include "app/combat/CombatRewards.h"
 
@@ -7,7 +7,7 @@
 #include "app/runtime/GameRuntimeTuning.h"
 #include "app/player/PlayerShooting.h"
 
-// 今回のフィーバー、リング報酬の通知、ジャスト回避の回数を初期化する。
+// 今回のフィーバー、リング報酬の通知、ジャスト回避の回数を初期化する
 void CombatRewards::Reset()
 {
     fever_.Reset();
@@ -15,7 +15,7 @@ void CombatRewards::Reset()
     ResetRingNotice();
 }
 
-// 発動中はチャージを補充し続ける。通常時は発動条件を確認し、新たに発動したフレームだけtrueを返す。
+// 発動中はチャージを補充し続ける　通常時は発動条件を確認し、新たに発動したフレームだけtrueを返す
 bool CombatRewards::UpdateFever(PlayerShooting& shooting, bool canActivate)
 {
     if (fever_.Tick()) {
@@ -33,7 +33,7 @@ void CombatRewards::ActivateFever(PlayerShooting& shooting)
     shooting.FillCharge();
 }
 
-// リングで得点とチャージを補充する。通常時は条件に応じてゲージ、発動中はフィーバー時間を増やす。
+// リングで得点とチャージを補充する　通常時は条件に応じてゲージ、発動中はフィーバー時間を増やす
 void CombatRewards::ApplyRingPass(CombatProgress& progress, PlayerShooting& shooting, bool canEarnFever)
 {
     ringRecoveredFrames_ = 0;
@@ -43,13 +43,13 @@ void CombatRewards::ApplyRingPass(CombatProgress& progress, PlayerShooting& shoo
         fever_.AddGauge(kRingGaugeReward);
     }
     shooting.FillCharge();
-    shooting.CapCooldown(4); // 通過直後の攻撃へつなげる。
+    shooting.CapCooldown(4); // 通過直後の攻撃へつなげる
     progress.RefreshChain();
     progress.AddScore(GameRuntimeTuning::kRiftPassScore, fever_.ScoreMultiplier());
     ringNoticeFrames_ = 54;
 }
 
-// ジャスト回避に対して得点、チャージ、チェイン猶予を与える。ゲージが許可された場面ではそれも加える。
+// ジャスト回避に対して得点、チャージ、チェイン猶予を与える　ゲージが許可された場面ではそれも加える
 void CombatRewards::ApplyJustDodge(CombatProgress& progress, PlayerShooting& shooting, bool canEarnFever)
 {
     ++justDodgeCount_;
@@ -59,7 +59,7 @@ void CombatRewards::ApplyJustDodge(CombatProgress& progress, PlayerShooting& sho
     shooting.AddCharge(24);
 }
 
-// リング通過の通知が表示中なら、残り表示フレームを1つ減らす。
+// リング通過の通知が表示中なら、残り表示フレームを1つ減らす
 void CombatRewards::TickRingNotice()
 {
     if (ringNoticeFrames_ > 0) { --ringNoticeFrames_; }

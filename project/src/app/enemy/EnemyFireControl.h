@@ -5,21 +5,21 @@
 #include <cmath>
 #include <limits>
 
-// 敵射撃の時間と照準計算。描画・弾生成から分け、実際に使う処理を独立検証できるようにする。
+// 敵射撃の時間と照準計算　描画・弾生成から分け、実際に使う処理を独立検証できるようにする
 namespace EnemyFireControl {
 struct Pattern {
-    float windup = 28.0f; // 構えてから初弾まで。60fps換算。
-    float interval = 12.0f; // 同じ連射内の弾間隔。
-    float recovery = 86.0f; // 撃ち終わってから次に構えるまで。
-    int shots = 3; // 一回の構えから撃つ回数。扇状弾の本数とは別。
-    float aimLockLead = 8.0f; // 初弾の何フレーム前に横・縦の照準を固定するか。
+    float windup = 28.0f; // 構えてから初弾まで　60fps換算
+    float interval = 12.0f; // 同じ連射内の弾間隔
+    float recovery = 86.0f; // 撃ち終わってから次に構えるまで
+    int shots = 3; // 一回の構えから撃つ回数　扇状弾の本数とは別
+    float aimLockLead = 8.0f; // 初弾の何フレーム前に横・縦の照準を固定するか
 };
 
 enum class Event { None, Aim, Fire };
 
 class Cycle {
 public:
-    // 射撃の時計を進め、構え開始または発射の通知を返す。射撃できなくなった機体は、残りの予約弾を取り消す。
+    // 射撃の時計を進め、構え開始または発射の通知を返す　射撃できなくなった機体は、残りの予約弾を取り消す
     Event Advance(float step, bool canShoot, const Pattern& pattern, float recoveryScale = 1.0f)
     {
         const float elapsed = std::clamp(step, 0.0f, 2.0f);
@@ -31,7 +31,7 @@ public:
             shotIndex_ = 0;
             shotFlash_ = 0.0f;
             recoveryElapsed_ = 0.0f;
-            return Event::None; // 撃破・撤退した敵の予約弾を出さない。
+            return Event::None; // 撃破・撤退した敵の予約弾を出さない
         }
         if (phase_ == Phase::Idle) {
             phase_ = Phase::Windup;
@@ -71,7 +71,7 @@ public:
     float RecoveryElapsed() const { return phase_ == Phase::Recovery ? recoveryElapsed_ : -1.0f; }
     int ShotIndex() const { return shotIndex_; }
     int VolleyIndex() const { return volleyIndex_; }
-    Math::Vector3 aimPoint{}; // 構え中だけ更新し、発射直前から連射終了までは固定。
+    Math::Vector3 aimPoint{}; // 構え中だけ更新し、発射直前から連射終了までは固定
 
 private:
     enum class Phase { Idle, Windup, Burst, Recovery };
@@ -79,13 +79,13 @@ private:
     float remaining_ = 0.0f;
     float windup_ = 1.0f;
     float aimLockLead_ = 8.0f;
-    float shotFlash_ = 0.0f; // 発射直後の反動と銃口光を同じ時計で動かす。
-    float recoveryElapsed_ = 0.0f; // 撃ち終わりの隙の経過時間。
+    float shotFlash_ = 0.0f; // 発射直後の反動と銃口光を同じ時計で動かす
+    float recoveryElapsed_ = 0.0f; // 撃ち終わりの隙の経過時間
     int shotIndex_ = 0;
     int volleyIndex_ = 0;
 };
 
-// 自機のレール前進を含む迎撃方向。横移動は呼び出し側の固定照準で扱い、弾自体は追尾しない。
+// 自機のレール前進を含む迎撃方向　横移動は呼び出し側の固定照準で扱い、弾自体は追尾しない
 inline Math::Vector3 SolveShotDirection(const Math::Vector3& origin,
     const Math::Vector3& target, float railSpeed, float bulletSpeed)
 {

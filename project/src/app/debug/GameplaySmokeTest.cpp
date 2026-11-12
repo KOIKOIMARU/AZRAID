@@ -1,5 +1,5 @@
 // ===== GameplaySmokeTest.cpp =====
-// 自動検証で画面遷移とプレイ中の状態を監視し、結果をログに残して終了する。
+// 自動検証で画面遷移とプレイ中の状態を監視し、結果をログに残して終了する
 
 #include "app/debug/GameplaySmokeTest.h"
 
@@ -24,7 +24,7 @@ GameplaySmokeTest::GameplaySmokeTest(SmokeTestOptions options)
     }
 }
 
-// 自動確認の開始時刻と出力先を準備し、検証条件をログに書く。
+// 自動確認の開始時刻と出力先を準備し、検証条件をログに書く
 void GameplaySmokeTest::Begin()
 {
     if (options_.enabled) {
@@ -50,7 +50,7 @@ void GameplaySmokeTest::Begin()
     }
 }
 
-// テスト完了前にウィンドウが閉じられた場合、早期終了として失敗を記録する。
+// テスト完了前にウィンドウが閉じられた場合、早期終了として失敗を記録する
 void GameplaySmokeTest::OnWindowClosed()
 {
     if (options_.enabled && !smokeTestFinished_) {
@@ -64,7 +64,7 @@ bool GameplaySmokeTest::HasGameplayProbe() const
         options_.boss || options_.rift || options_.defeat;
 }
 
-// 起動時に指定した確認内容に応じて、自動プレイや個別機能の検証を進める。
+// 起動時に指定した確認内容に応じて、自動プレイや個別機能の検証を進める
 void GameplaySmokeTest::UpdateProbe(SceneManager& scenes)
 {
 #ifdef _DEBUG
@@ -84,7 +84,7 @@ void GameplaySmokeTest::UpdateProbe(SceneManager& scenes)
                     game->RunPlaythroughProbe(options_.logPath.string(), options_.tutorialPreview,
                         options_.tutorialDeparture);
             } catch (const std::exception& error) {
-                // 通し試験の失敗理由を保存する。デバッガ未接続でも終了理由を追えるようにする。
+                // 通し試験の失敗理由を保存する　デバッガ未接続でも終了理由を追えるようにする
                 WriteLog(std::string("PROBE_EXCEPTION ") + error.what());
                 throw;
             }
@@ -95,7 +95,7 @@ void GameplaySmokeTest::UpdateProbe(SceneManager& scenes)
 #endif
 }
 
-// 本編開始前のロード進捗と作業時間を記録し、準備の順番も確認する。
+// 本編開始前のロード進捗と作業時間を記録し、準備の順番も確認する
 void GameplaySmokeTest::ObservePreparation(bool startupLoading)
 {
     if (options_.enabled && !smokeGameplayStarted_) {
@@ -132,7 +132,7 @@ void GameplaySmokeTest::ObservePreparation(bool startupLoading)
     }
 }
 
-// 起動時とプレイ中のフレームを記録し、ロード進捗や描画時間を検証ログに残す。
+// 起動時とプレイ中のフレームを記録し、ロード進捗や描画時間を検証ログに残す
 void GameplaySmokeTest::ObserveFrame(const DirectXCommon& renderer)
 {
     const auto& timing = renderer.GetFrameTiming();
@@ -162,7 +162,7 @@ void GameplaySmokeTest::ObserveFrame(const DirectXCommon& renderer)
     }
 }
 
-// テストの終了コードをログに書く。完了の記録がないまま終了した場合は失敗を残す。
+// テストの終了コードをログに書く　完了の記録がないまま終了した場合は失敗を残す
 void GameplaySmokeTest::End()
 {
     if (options_.enabled) {
@@ -174,7 +174,7 @@ void GameplaySmokeTest::End()
     }
 }
 
-// タイトル、ステージ選択、本編の順に自動操作を進め、起動タイムアウトと終了条件を確認する。
+// タイトル、ステージ選択、本編の順に自動操作を進め、起動タイムアウトと終了条件を確認する
 void GameplaySmokeTest::Update(SceneManager& scenes)
 {
     if (!options_.enabled || smokeTestFinished_) {
@@ -290,7 +290,7 @@ void GameplaySmokeTest::Update(SceneManager& scenes)
     }
 }
 
-// ロードの工程別時間とフレーム時間の集計をログへ出す。
+// ロードの工程別時間とフレーム時間の集計をログへ出す
 void GameplaySmokeTest::WritePerformanceSummary() const
 {
     if (options_.enabled) {
@@ -359,7 +359,7 @@ void GameplaySmokeTest::WritePerformanceSummary() const
     }
 }
 
-// 最初に起きた失敗の理由と終了コードを記録して自動確認を止める。
+// 最初に起きた失敗の理由と終了コードを記録して自動確認を止める
 void GameplaySmokeTest::Fail(std::string_view reason, int exitCode)
 {
     if (smokeTestFinished_) {
@@ -374,7 +374,7 @@ void GameplaySmokeTest::Fail(std::string_view reason, int exitCode)
     exitCode_ = exitCode;
 }
 
-// 検証開始からの経過時間を付けて、メッセージをログに追記する。
+// 検証開始からの経過時間を付けて、メッセージをログに追記する
 void GameplaySmokeTest::WriteLog(std::string_view message) const
 {
     if (!options_.enabled || options_.logPath.empty()) {

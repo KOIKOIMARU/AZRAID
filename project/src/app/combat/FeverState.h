@@ -1,22 +1,23 @@
 #pragma once
 
-// フィーバーのゲージ・制限時間・発動回数。音や画面演出は呼び出し側が扱う。
+// フィーバーのゲージ・制限時間・発動回数　音や画面演出は呼び出し側が扱う
 class FeverState {
 public:
     static constexpr int kGaugeMax = 100;
-    static constexpr int kDurationFrames = 360; // 基本6秒。常時維持ではなく、攻める区間を作る。
+    static constexpr int kDurationFrames = 360; // 基本6秒　常時維持ではなく、攻める区間を作る
     static constexpr int kActivationFlashFrames = 90;
     static constexpr int kScoreMultiplier = 3;
 
     void Reset();
-    // 時間は60fps換算のフレーム数で、1回のTickで1減らす。
-    // 更新開始時に発動中だったかを返し、終了フレームもチャージを満タンにする。
+    // 時間は60fps換算のフレーム数で、1回のTickで1減らす
+    // 更新開始時に発動中だったかを返し、終了フレームもチャージを満タンにする
     bool Tick();
     void Activate();
-    void Stop(bool resetSpeedEffect = false); // 停止後は加速演出をなだらかに戻し、死亡時は即座に消す。
+    void Stop(bool resetSpeedEffect = false); // 停止後は加速演出をなだらかに戻し、死亡時は即座に消す
     void SetGauge(int amount);
     void AddGauge(int amount);
     void RemoveGauge(int amount);
+    // 発動中の残り時間を通常の最大時間まで伸ばし、実際に増えたフレーム数を返す
     int Extend(int frames);
 
     bool IsActive() const { return remainingFrames_ > 0; }

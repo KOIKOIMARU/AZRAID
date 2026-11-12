@@ -1,5 +1,5 @@
 // ===== Enemy.cpp =====
-// 敵1体のHPと生存状態を持ち、飛行計算の結果を機体の姿勢と表示に反映する。
+// 敵1体のHPと生存状態を持ち、飛行計算の結果を機体の姿勢と表示に反映する
 
 #include "app/enemy/Enemy.h"
 
@@ -34,7 +34,7 @@ struct ModelAimBounds {
     bool isValid = false;
 };
 
-// モデルの頂点から中心と範囲を計算し、照準と弾の判定に使う大きさを求める。
+// モデルの頂点から中心と範囲を計算し、照準と弾の判定に使う大きさを求める
 ModelAimBounds CalculateModelAimBounds(const Model* model)
 {
     if (!model || model->GetVertices().empty()) {
@@ -80,7 +80,7 @@ ModelAimBounds CalculateModelAimBounds(const Model* model)
 
 } // namespace
 
-// 機種と入場方法から機体の描画、HP、シールド、当たり判定の初期値を決める。
+// 機種と入場方法から機体の描画、HP、シールド、当たり判定の初期値を決める
 void Enemy::Initialize(
     Object3dCommon* object3dCommon,
     Model* model,
@@ -190,7 +190,7 @@ void Enemy::Initialize(
     translate_ = position;
     object_->SetScale(baseScale_);
     object_->SetColor(baseColor_);
-    // 遠くの機体は陰側を潰さず、白い反射を抑えて赤・紫などの識別色を残す。
+    // 遠くの機体は陰側を潰さず、白い反射を抑えて赤・紫などの識別色を残す
     object_->SetLightingMode(2);
     if (behavior == Behavior::Boss) {
         object_->SetEnvironmentCoefficient(0.030f);
@@ -213,7 +213,7 @@ void Enemy::Initialize(
     object_->Update();
 }
 
-// 現在のレール位置と時間倍率で飛行を進め、取得した姿勢を機体の描画に反映する。
+// 現在のレール位置と時間倍率で飛行を進め、取得した姿勢を機体の描画に反映する
 void Enemy::Update(float railDistance, float timeScale)
 {
     if (lifeState_ != LifeState::Alive || !object_) {
@@ -230,7 +230,7 @@ void Enemy::Update(float railDistance, float timeScale)
     UpdateAppearance(pose);
 }
 
-// 飛行姿勢に攻撃予告と被弾の色・大きさの変化を重ね、描画オブジェクトに渡す。
+// 飛行姿勢に攻撃予告と被弾の色・大きさの変化を重ね、描画オブジェクトに渡す
 void Enemy::UpdateAppearance(EnemyFlight::Pose pose)
 {
     const float motionClock = flight_.MotionClock();
@@ -312,7 +312,7 @@ void Enemy::UpdateAppearance(EnemyFlight::Pose pose)
     object_->Update();
 }
 
-// 自機の敗北後に使う離脱飛行。通常攻撃を終わらせ、実時間で画面の奥へ飛び去らせる。
+// 自機の敗北後に使う離脱飛行　通常攻撃を終わらせ、実時間で画面の奥へ飛び去らせる
 void Enemy::UpdateDeparture(float deltaSeconds)
 {
     if (!object_ || IsDead()) { return; }
@@ -347,7 +347,7 @@ void Enemy::UpdateDeparture(float deltaSeconds)
     if (departureElapsed_ >= duration) { lifeState_ = LifeState::Departed; }
 }
 
-// 有効な描画オブジェクトがあれば機体を描く。離脱中は飛び去る姿を表示し、撃破・逃走後は描画を止める。
+// 有効な描画オブジェクトがあれば機体を描く　離脱中は飛び去る姿を表示し、撃破・逃走後は描画を止める
 void Enemy::Draw()
 {
     if (!IsDead() && object_) {
@@ -355,7 +355,7 @@ void Enemy::Draw()
     }
 }
 
-// 光源の行列で機体を描き、影用の深度を書き込む。描画対象の条件は通常描画と同じ。
+// 光源の行列で機体を描き、影用の深度を書き込む　描画対象の条件は通常描画と同じ
 void Enemy::DrawShadow(const Math::Matrix4x4& lightViewProjection)
 {
     if (!IsDead() && object_) {
@@ -363,7 +363,7 @@ void Enemy::DrawShadow(const Math::Matrix4x4& lightViewProjection)
     }
 }
 
-// 生存中の敵を撃破済みにする。次の敵更新で参照を解除して一覧から外せる状態になる。
+// 生存中の敵を撃破済みにする　次の敵更新で参照を解除して一覧から外せる状態になる
 void Enemy::Kill()
 {
     if (lifeState_ != LifeState::Alive) {
@@ -373,7 +373,7 @@ void Enemy::Kill()
     lifeState_ = LifeState::Destroyed;
 }
 
-// シールドがあれば先に消費し、残りをHPから引く。HPが尽きたときに撃破を返す。
+// シールドがあれば先に消費し、残りをHPから引く　HPが尽きたときに撃破を返す
 bool Enemy::Damage(int damage)
 {
     if (lifeState_ != LifeState::Alive) {
@@ -402,16 +402,16 @@ bool Enemy::Damage(int damage)
     return false;
 }
 
-// 生存中で、入場時の見た目が十分な大きさになっていれば狙える。ボスには登場中の猶予もある。
+// 生存中で、入場時の見た目が十分な大きさになっていれば狙える　ボスには登場中の猶予もある
 bool Enemy::IsTargetable() const
 {
-    // 大型機が遠方から拡大表示されている途中はロック・被弾対象にしない。
-    // 戦闘位置へ到着してから攻防を開始する。戦闘中の無敵やHP増加は追加しない。
+    // 大型機が遠方から拡大表示されている途中はロック・被弾対象にしない
+    // 戦闘位置へ到着してから攻防を開始する　戦闘中の無敵やHP増加は追加しない
     return lifeState_ == LifeState::Alive && visualScaleRate_ >= 0.46f &&
         (GetBehavior() != Behavior::Boss || flight_.Age() >= 96);
 }
 
-// モデルから求めた中心を現在の拡大率で調整し、射撃や衝突判定の基準になる位置を返す。
+// モデルから求めた中心を現在の拡大率で調整し、射撃や衝突判定の基準になる位置を返す
 Math::Vector3 Enemy::GetAimPosition() const
 {
     const float scaleRate = (std::max)(visualScaleRate_, 0.30f);
@@ -422,7 +422,7 @@ Math::Vector3 Enemy::GetAimPosition() const
     };
 }
 
-// ボスのローカルな銃口位置を機体の姿勢に合わせて変換し、ワールド上の発射位置を得る。
+// ボスのローカルな銃口位置を機体の姿勢に合わせて変換し、ワールド上の発射位置を得る
 Math::Vector3 Enemy::GetBossMuzzlePosition(float side) const
 {
     const auto center = GetAimPosition();
@@ -434,13 +434,13 @@ Math::Vector3 Enemy::GetBossMuzzlePosition(float side) const
         center.z + local.x * rotation.m[0][2] + local.y * rotation.m[1][2] };
 }
 
-// モデルに合わせて決めた半径に、入場などで変化する現在の表示スケールを反映する。
+// モデルに合わせて決めた半径に、入場などで変化する現在の表示スケールを反映する
 float Enemy::GetAimRadius() const
 {
     return aimRadius_ * (std::max)(visualScaleRate_, 0.48f);
 }
 
-// 狙える状態の敵に対し、出現からの経過と機種ごとの射撃可能な区間を調べる。
+// 狙える状態の敵に対し、出現からの経過と機種ごとの射撃可能な区間を調べる
 bool Enemy::CanShoot() const
 {
     if (!IsTargetable()) {
@@ -471,7 +471,7 @@ bool Enemy::CanShoot() const
     }
 }
 
-// 攻撃予告の進み具合を0〜1に収め、機体を光らせる強さとして保持する。
+// 攻撃予告の進み具合を0〜1に収め、機体を光らせる強さとして保持する
 void Enemy::SetAttackTelegraphRate(float rate)
 {
     attackTelegraphRate_ = std::clamp(rate, 0.0f, 1.0f);

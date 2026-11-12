@@ -1,5 +1,5 @@
 // ===== GameRuntimePhantom.cpp =====
-// スキルの発動時に対象を決め、連撃のタイミングに合わせてダメージと演出を反映する。
+// スキルの発動時に対象を決め、連撃のタイミングに合わせてダメージと演出を反映する
 
 #include "app/runtime/GameRuntime.h"
 
@@ -7,20 +7,20 @@
 #include "engine/io/Input.h"
 #include <algorithm>
 
-// スキル本体と表示を一緒にリセットし、新しい戦闘に前回の状態を残さない。
+// スキル本体と表示を一緒にリセットし、新しい戦闘に前回の状態を残さない
 void GameRuntime::ResetPhantomRaid()
 {
     playerSkill_.Reset();
     playerSkillPresentation_.Reset();
 }
 
-// 練習課題でスキルをすぐ試せる状態へ切り替える。
+// 練習課題でスキルをすぐ試せる状態へ切り替える
 void GameRuntime::GrantPhantomRaid()
 {
     if (!isGameOver_ && !isGameClear_ && playerSkill_.TryRecover()) { PlaySfx("skill_ready"); }
 }
 
-// 発動できるときに対象を決め、スキルの進行と最初の演出を始める。
+// 発動できるときに対象を決め、スキルの進行と最初の演出を始める
 bool GameRuntime::TryActivatePhantomRaid()
 {
     if (IsTutorial() && !tutorial_.AllowsSkill()) { return false; }
@@ -30,7 +30,7 @@ bool GameRuntime::TryActivatePhantomRaid()
     PlayerSkill::Selection selection(rewards_.Fever().IsActive());
     Math::Vector2 min{}, size{};
     GetEffectiveHudViewportRect(min, size);
-    // 照準に近い敵を最初に選び、画面内・前方75m以内だけへ連鎖する。
+    // 照準に近い敵を最初に選び、画面内・前方75m以内だけへ連鎖する
     for (const auto& enemy : stageEnemies_.Active()) {
         if (!enemy || enemy->IsDead() || !enemy->IsTargetable()) { continue; }
         const auto position = enemy->GetAimPosition();
@@ -50,7 +50,7 @@ bool GameRuntime::TryActivatePhantomRaid()
     return true;
 }
 
-// スキル側から届く連撃・最後の一撃の通知に合わせて、実際のダメージと演出を適用する。
+// スキル側から届く連撃・最後の一撃の通知に合わせて、実際のダメージと演出を適用する
 void GameRuntime::UpdatePhantomRaid()
 {
     const float step = dxCommon_ ? std::clamp(dxCommon_->GetDeltaTime() * 60.0f, 0.0f, 4.0f) : 1.0f;
@@ -61,7 +61,7 @@ void GameRuntime::UpdatePhantomRaid()
         return;
     }
     if (!IsPhantomRaidActive()) {
-        // 回避や命中がなくても時間経過だけで回復し、使いどころを自由に選べる。
+        // 回避や命中がなくても時間経過だけで回復し、使いどころを自由に選べる
         GrantPhantomRaid();
         if (input_ && input_->TriggerKey(DIK_Q)) {
             TryActivatePhantomRaid();
@@ -81,7 +81,7 @@ void GameRuntime::UpdatePhantomRaid()
         if (enemy) {
             playerSkill_.MarkStrike(strike, enemy->GetAimPosition());
             playerSkillPresentation_.ShowStrike(strike, player_->GetTranslate(), target.position);
-            // 連撃の段階が耳でも分かるよう、2打目以降だけ少しずつ上げる。
+            // 連撃の段階が耳でも分かるよう、2打目以降だけ少しずつ上げる
             PlaySfx("slash", 0.98f + 0.035f * static_cast<float>(strike));
             AddCameraShake(0.032f, 3);
             if (enemy->IsBoss()) {
@@ -94,13 +94,13 @@ void GameRuntime::UpdatePhantomRaid()
             if (Enemy* enemy = stageEnemies_.FindTargetable(target.enemy)) {
                 playerSkill_.UpdateTargetPosition(target.enemy, enemy->GetAimPosition());
                 if (target.marks > 0) {
-                    // 通常時は小型編隊を削り、フィーバー中なら一掃できる。硬い敵には追撃が必要。
+                    // 通常時は小型編隊を削り、フィーバー中なら一掃できる　硬い敵には追撃が必要
                     combatResolver_.ApplySkillDamage(battle, *enemy, playerSkill_.FinisherDamage());
                 }
             }
         }
         playerSkillPresentation_.ShowFinisher(playerSkill_);
-        // 斬った場所の近くの弾だけを払う。画面全体を無条件に消さない。
+        // 斬った場所の近くの弾だけを払う　画面全体を無条件に消さない
         for (auto& bullet : projectiles_.EnemyPool().Active()) {
             for (int index = 0; index < playerSkill_.TargetCount(); ++index) {
                 const auto& p = playerSkill_.Targets()[index].position;

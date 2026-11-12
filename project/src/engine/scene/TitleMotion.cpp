@@ -1,5 +1,5 @@
 // ===== TitleMotion.cpp =====
-// タイトルの自機の飛行軌道と、ロゴや背景を切り裂く位置・タイミングを計算する。
+// タイトルの自機の飛行軌道と、ロゴや背景を切り裂く位置・タイミングを計算する
 
 #include "engine/scene/TitleMotion.h"
 
@@ -31,7 +31,7 @@ float Smooth(float value)
     return t * t * (3.0f - 2.0f * t);
 }
 
-// 待機中の周回と切断時刻から、開口部の閉じ方と次に開くタイミングを求める。
+// 待機中の周回と切断時刻から、開口部の閉じ方と次に開くタイミングを求める
 StagePortalIdleState StagePortalIdle(float elapsed)
 {
     constexpr auto cuts=StageEntryTiming::kStagePatrolCutTimes;
@@ -40,7 +40,7 @@ StagePortalIdleState StagePortalIdle(float elapsed)
     const float previous=phase < cuts[0] ? cuts[1]-duration : (phase < cuts[1] ? cuts[0] : cuts[1]);
     const float next=phase < cuts[0] ? cuts[0] : (phase < cuts[1] ? cuts[1] : cuts[0]+duration);
     const float age=phase-previous, interval=next-previous;
-    // 最初はタイトルで開いた幅を維持。以後は切断パスの機首が通ってから開く。
+    // 最初はタイトルで開いた幅を維持　以後は切断パスの機首が通ってから開く
     constexpr float handoff=kDepartureDuration-kDepartureOpenTime;
     if (time < cuts[0]) { return {12.0f+148.0f*(1.0f-Smooth((time-handoff)/(cuts[0]-0.20f-handoff))),100.0f}; }
     const float aperture=12.0f+148.0f*Smooth(age/0.45f)*(1.0f-Smooth((age-0.70f)/(interval-0.90f)));
@@ -63,7 +63,7 @@ static ImVec2 LogoSeparationAxis(int pattern)
     return pattern == 2 ? ImVec2{-0.08f,-0.70f} : ImVec2{pattern == 1 ? -0.62f : 0.55f,-0.38f};
 }
 
-// 待機中の飛行パターンと斬撃時刻から、刃の位置や衝撃の強さを求める。
+// 待機中の飛行パターンと斬撃時刻から、刃の位置や衝撃の強さを求める
 TitleStrike GetTitleStrike(const TitleFlyby& flyby)
 {
     const float time = flyby.phase - TitleStrikeTime(flyby.pattern);
@@ -90,10 +90,10 @@ float DepartureResistance(float departure)
         (1.0f - Smooth((departure - kDepartureBreakTime) / 0.025f));
 }
 
-// 出撃時の斬撃位置を求める。裂け目に食い込む区間と抜ける区間で進み方を変える。
+// 出撃時の斬撃位置を求める　裂け目に食い込む区間と抜ける区間で進み方を変える
 static float DepartureBladeX(float departure)
 {
-    // 接触までは速く、AZRへ食い込む200msは抵抗し、残りを一気に断ち切る。
+    // 接触までは速く、AZRへ食い込む200msは抵抗し、残りを一気に断ち切る
     if (departure < kDepartureBiteTime) {
         return -120.0f + 450.0f * Smooth((departure - kDepartureCutTime) /
             (kDepartureBiteTime - kDepartureCutTime));
@@ -108,12 +108,12 @@ static float DepartureBladeX(float departure)
 
 float DepartureFade(float departure)
 {
-    // 食い込みを覆わず、断ち切った衝撃だけ白へ。戻ってから赤熱を見せて開く。
+    // 食い込みを覆わず、断ち切った衝撃だけ白へ　戻ってから赤熱を見せて開く
     return Smooth((departure - 0.56f) / 0.038f) *
         (1.0f - Smooth((departure - 0.62f) / 0.070f));
 }
 
-// 出撃時刻から斬撃の位置・溜め・衝撃の値を作り、飛行と画面演出で共有する。
+// 出撃時刻から斬撃の位置・溜め・衝撃の値を作り、飛行と画面演出で共有する
 TitleStrike GetDepartureStrike(float departure)
 {
     const float time = departure - kDepartureCutTime;
@@ -133,10 +133,10 @@ TitleStrike GetDepartureStrike(float departure)
     return strike;
 }
 
-// 刃の補間を逆算し、画面上の指定した横位置に斬撃が届く時刻を求める。
+// 刃の補間を逆算し、画面上の指定した横位置に斬撃が届く時刻を求める
 float DepartureContactTime(float canvasX)
 {
-    // 自機と同じ3段階の軌道を逆算。火花・加熱だけ先走らせない。
+    // 自機と同じ3段階の軌道を逆算　火花・加熱だけ先走らせない
     const auto inverse = [](float progress) {
         progress = std::clamp(progress,0.0f,1.0f);
         return 0.5f - std::sin(std::asin(1.0f - 2.0f * progress) / 3.0f);
@@ -156,11 +156,11 @@ float DepartureImpact(float departure)
     return time >= 0.0f ? Smooth(time / 0.012f) * std::exp(-time / 0.080f) : 0.0f;
 }
 
-// 切断後の経過時間から、左右の断片がずれて離れていく距離を求める。
+// 切断後の経過時間から、左右の断片がずれて離れていく距離を求める
 ImVec2 DepartureOffset(float departure, int half)
 {
     if (half < 0) { return {}; }
-    // 断ち切った面を160ms受け止め、赤熱が読めてから重い上下の面を放つ。
+    // 断ち切った面を160ms受け止め、赤熱が読めてから重い上下の面を放つ
     const float time = (std::max)(0.0f, departure - kDepartureOpenTime - kDepartureCutHold);
     const float travel = 740.0f * std::pow(std::clamp(time / 0.90f, 0.0f, 1.0f), 1.40f);
     const float recoil = Smooth(time / 0.025f) * std::exp(-time / 0.12f) * 26.0f;
@@ -169,8 +169,8 @@ ImVec2 DepartureOffset(float departure, int half)
     return {side * (travel + recoil + release) * 0.30f, -side * (travel + recoil + release)};
 }
 
-// 文字に機首が届いてから反応する。飛行と切断は同じ位置・速度を使う。
-// TitleRift.PS.hlslも同じ時計・係数で背景の断面を動かす。
+// 文字に機首が届いてから反応する　飛行と切断は同じ位置・速度を使う
+// TitleRift.PS.hlslも同じ時計・係数で背景の断面を動かす
 static float LogoImpulse(const TitleFlyby& flyby)
 {
     const float time = (std::max)(0.0f, flyby.phase - TitleStrikeTime(flyby.pattern));
@@ -184,13 +184,13 @@ float LogoCutPresence(const TitleFlyby& flyby, float canvasX)
     return Smooth(time / 0.012f) * (1.0f - Smooth((time - 0.85f) / 0.70f));
 }
 
-// 待機中の斬撃が終わった後、ロゴが一時的に上下へ離れる量を求める。
+// 待機中の斬撃が終わった後、ロゴが一時的に上下へ離れる量を求める
 float LogoSeparation(const TitleFlyby& flyby)
 {
     const float time = (std::max)(0.0f, flyby.phase - TitleCutCompleteTime(flyby.pattern));
     const float strength = flyby.pattern == 2 ? 88.0f : flyby.pattern == 1 ? 70.0f : 49.0f;
-    // 斬り終えてから面全体を放つ。文字ごとに先に移動すると隣へ食い込む。
-    // 面が押されるまでの抵抗と、開き切った重さを短く保ってから戻す。
+    // 斬り終えてから面全体を放つ　文字ごとに先に移動すると隣へ食い込む
+    // 面が押されるまでの抵抗と、開き切った重さを短く保ってから戻す
     return Smooth(time / 0.060f) * std::exp(-(std::max)(0.0f,time - 0.115f) /
         (flyby.pattern == 2 ? 0.72f : 0.60f)) * strength *
         LogoCutPresence(flyby,flyby.pattern == 1 ? 1110.0f : kTitleStrikeX);
@@ -202,7 +202,7 @@ static float LogoZoom(float elapsed, const TitleFlyby& flyby)
         (std::sin(elapsed * 0.58f) * 0.012f + GetTitleStrike(flyby).charge * 0.016f + LogoImpulse(flyby) * 0.026f);
 }
 
-// 各頂点で三角関数・指数を再計算せず、ロゴ全体で同じ姿勢を共有する。
+// 各頂点で三角関数・指数を再計算せず、ロゴ全体で同じ姿勢を共有する
 LogoMotion GetLogoMotion(float elapsed, const TitleFlyby& flyby, float departure)
 {
     const float ready = Smooth((elapsed - 0.35f) / 1.20f);
@@ -226,7 +226,7 @@ LogoMotion GetLogoMotion(float elapsed, const TitleFlyby& flyby, float departure
     return {std::cos(angle),std::sin(angle),zoom,drift};
 }
 
-// ロゴの中心を基準に拡縮・回転・移動を適用する。逆変換では元の座標へ戻す。
+// ロゴの中心を基準に拡縮・回転・移動を適用する　逆変換では元の座標へ戻す
 ImVec2 MoveLogoCanvas(ImVec2 point, const LogoMotion& motion, bool inverse)
 {
     const float x = point.x - 641.25f - (inverse ? motion.drift.x : 0.0f);
@@ -237,10 +237,10 @@ ImVec2 MoveLogoCanvas(ImVec2 point, const LogoMotion& motion, bool inverse)
         334.5f + (x * sine + y * motion.cosine) * zoom + (inverse ? 0.0f : motion.drift.y)};
 }
 
-// ロゴ内の切断線をタイトル画面の座標へ変換し、指定した横位置での高さを求める。
+// ロゴ内の切断線をタイトル画面の座標へ変換し、指定した横位置での高さを求める
 float TitleCutY(float screenX, int pattern)
 {
-    // ProjectLogoCanvasの切断線を逆算する。飛行と反射は同じ傾き・透視を使う。
+    // ProjectLogoCanvasの切断線を逆算する　飛行と反射は同じ傾き・透視を使う
     constexpr float cosine = 0.9950042f, sine = 0.0998334f;
     const auto cut = GetTitleCut(pattern);
     const float intercept = cut.base + cut.slope * 255.0f - 50.0f;
@@ -256,10 +256,10 @@ static ImVec2 TitleCruisePosition(float phase)
     return {916.0f + std::sin(cycle) * 18.0f,143.0f + std::sin(cycle + 0.80f) * 10.0f};
 }
 
-// 巡航時の機首方向を求める。急接近の前後は、ゆっくりした揺れを弱める。
+// 巡航時の機首方向を求める　急接近の前後は、ゆっくりした揺れを弱める
 static Math::Vector3 TitleCruiseDirection(float phase)
 {
-    // 待機中も翼をゆっくり見せる。加速・帰還の接続点では基準姿勢へ戻す。
+    // 待機中も翼をゆっくり見せる　加速・帰還の接続点では基準姿勢へ戻す
     const float idle = phase < kApproachStart ? 1.0f - Smooth((phase - 1.10f) / 0.60f) :
         Smooth((phase - kReturnEnd) / 0.55f);
     const float sway = std::sin(phase * 6.2831853f / kFlybyLoop) * idle;
@@ -284,10 +284,10 @@ Math::Vector3 FlightCurve(Math::Vector3 start, Math::Vector3 controlA, Math::Vec
         3.0f * u * t * t * controlB.z + t * t * t * end.z};
 }
 
-// 機体が旋回する軌道の位置を求める。接近パターンによって旋回の縦横幅を変える。
+// 機体が旋回する軌道の位置を求める　接近パターンによって旋回の縦横幅を変える
 static Math::Vector3 TitleOrbitPosition(float angle, int pattern = 0)
 {
-    // 手前の機体から数百単位離れた軌道。点になる距離で一周し、再び切断線へ戻る。
+    // 手前の機体から数百単位離れた軌道　点になる距離で一周し、再び切断線へ戻る
     if (pattern == 2) {
         return {130.0f * std::cos(angle),20.0f + 260.0f * std::sin(angle),520.0f + 160.0f * std::cos(angle)};
     }
@@ -300,7 +300,7 @@ Math::Vector3 FlightControlPoint(Math::Vector3 position, Math::Vector3 velocity,
     return {position.x + velocity.x * time,position.y + velocity.y * time,position.z + velocity.z * time};
 }
 
-// 巡航軌道上の前後2点から、カメラ空間での速度を近似する。
+// 巡航軌道上の前後2点から、カメラ空間での速度を近似する
 static Math::Vector3 TitleCruiseVelocity(float phase)
 {
     const auto before = TitleViewPoint(TitleCruisePosition(phase - 0.004f),22.0f);
@@ -308,7 +308,7 @@ static Math::Vector3 TitleCruiseVelocity(float phase)
     return {(after.x - before.x) / 0.008f,(after.y - before.y) / 0.008f,0.0f};
 }
 
-// 巡航軌道に戻る機体が少し行き過ぎてから定位置へ収まるよう、位置の補正を求める。
+// 巡航軌道に戻る機体が少し行き過ぎてから定位置へ収まるよう、位置の補正を求める
 static Math::Vector3 TitleReturnSettleOffset(float time)
 {
     const auto cruise = TitleCruisePosition(kReturnSettleTime);
@@ -317,21 +317,21 @@ static Math::Vector3 TitleReturnSettleOffset(float time)
     const Math::Vector3 offset{overshoot.x - target.x,overshoot.y - target.y,overshoot.z - target.z};
     constexpr Math::Vector3 velocity{-1.40f,-0.10f,-1.30f};
     constexpr float damping = 5.50f;
-    // 戻りの速度を引き継いで少し行き過ぎ、余韻を減衰させて巡航へ繋ぐ。
+    // 戻りの速度を引き継いで少し行き過ぎ、余韻を減衰させて巡航へ繋ぐ
     const float fade = std::exp(-damping * time) * (1.0f - Smooth((time - 0.65f) / 0.35f));
     return {(offset.x + (velocity.x + damping * offset.x) * time) * fade,
         (offset.y + (velocity.y + damping * offset.y) * time) * fade,
         (offset.z + (velocity.z + damping * offset.z) * time) * fade};
 }
 
-// 時刻を巡航・接近・周回・離脱の区間に分け、ロゴを基準にした自機の位置を求める。
+// 時刻を巡航・接近・周回・離脱の区間に分け、ロゴを基準にした自機の位置を求める
 static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
 {
     const bool closePass = pattern == 2;
     const float dashDirection = TitleDashDirection(pattern);
     const float dashOrigin = TitleDashOrigin(pattern);
     if (closePass && phase >= kClosePassStart && phase < kOrbitStart) {
-        // 大きく翼を見せて宙返りし、縦の軌道を経て別角度の一閃へ。
+        // 大きく翼を見せて宙返りし、縦の軌道を経て別角度の一閃へ
         const auto nearPosition = TitleViewPoint({570.0f,105.0f},15.5f);
         constexpr Math::Vector3 nearVelocity{-20.0f,8.0f,0.0f};
         if (phase < kClosePassTime) {
@@ -361,7 +361,7 @@ static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
         return TitleViewPoint(TitleCruisePosition(phase),22.0f);
     }
     if (phase < kOrbitStart) {
-        // 画面内でUターンせず、右奥へ加速して小さな光になる。
+        // 画面内でUターンせず、右奥へ加速して小さな光になる
         return FlightCurve(TitleViewPoint(TitleCruisePosition(kApproachStart),22.0f),
             {90.0f,22.0f,82.0f},{-dashDirection * 340.0f,175.0f,740.0f},TitleOrbitPosition(3.1415927f,pattern),
             (phase - kApproachStart) / (kOrbitStart - kApproachStart));
@@ -371,7 +371,7 @@ static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
         return TitleOrbitPosition(3.1415927f + orbit * 6.2831853f,pattern);
     }
     if (phase < kFlybyStart) {
-        // 奥の軌道から手前へ突入。終端の速度を一閃と揃え、左端で止めない。
+        // 奥の軌道から手前へ突入　終端の速度を一閃と揃え、左端で止めない
         const float approach = kFlybyStart - kChargeStart;
         const float controlX = dashOrigin - dashDirection * kDashTravel / kFlybyDuration * approach / 3.0f;
         return FlightCurve(TitleOrbitPosition(3.1415927f,pattern),{-dashDirection * 450.0f,-90.0f,330.0f},
@@ -380,7 +380,7 @@ static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
             (phase - kChargeStart) / approach);
     }
     if (phase <= kFlybyStart + kFlybyDuration) {
-        // 切断中は等速。光の先端もこの機首に追従し、先に文字だけを切らない。
+        // 切断中は等速　光の先端もこの機首に追従し、先に文字だけを切らない
         const float x = dashOrigin + dashDirection * kDashTravel * (phase - kFlybyStart) / kFlybyDuration;
         return TitleViewPoint({x,TitleCutY(x,pattern)},22.0f);
     }
@@ -394,7 +394,7 @@ static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
         const float speed = dashDirection * kDashTravel / kFlybyDuration;
         const float slope = (TitleCutY(endX + 1.0f,pattern) - TitleCutY(endX - 1.0f,pattern)) * 0.5f;
         const auto velocity = TitleViewPoint({640.0f + speed,360.0f + slope * speed},22.0f);
-        // 一閃の速度のまま画面外へ抜けて奥で旋回。曲線の継ぎ目で停止しない。
+        // 一閃の速度のまま画面外へ抜けて奥で旋回　曲線の継ぎ目で停止しない
         return FlightCurve(start,FlightControlPoint(start,{velocity.x,velocity.y,0.0f},duration / 3.0f),
             FlightControlPoint(turnPosition,turnVelocity,-duration / 3.0f),turnPosition,
             (phase - startTime) / duration);
@@ -413,7 +413,7 @@ static Math::Vector3 GetTitleFlightLocalPosition(float phase, int pattern = 0)
         TitleReturnSettleOffset(phase - kReturnSettleTime),1.0f);
 }
 
-// 機体をいったん画面座標へ移し、ロゴと同じ揺れを加えて元の奥行きへ戻す。
+// 機体をいったん画面座標へ移し、ロゴと同じ揺れを加えて元の奥行きへ戻す
 Math::Vector3 MoveFlightWithLogo(Math::Vector3 local, float elapsed, float phase, int pattern)
 {
     TitleFlyby flyby;
@@ -431,7 +431,7 @@ Math::Vector3 GetTitleArrivalLocalPosition(float time)
         TitleViewPoint({690.0f,100.0f},22.0f),TitleViewPoint(TitleCruisePosition(0.0f),22.0f),t);
 }
 
-// 登場軌道の前後2点から進行方向を求め、登場時の機首の向きに使う。
+// 登場軌道の前後2点から進行方向を求め、登場時の機首の向きに使う
 Math::Vector3 TitleArrivalDirection(float time)
 {
     const auto before = GetTitleArrivalLocalPosition(time - 0.004f);
@@ -442,7 +442,7 @@ Math::Vector3 TitleArrivalDirection(float time)
         flight.z + (0.38f - flight.z) * settle};
 }
 
-// 急接近や斬撃に合わせて、機体後方に出す航跡の強さを変える。
+// 急接近や斬撃に合わせて、機体後方に出す航跡の強さを変える
 float TitleFlightWakeStrength(float phase, int pattern)
 {
     const bool closePass = pattern == 2;
@@ -464,7 +464,7 @@ float TitleFlightScale(float phase)
     return kIdleShipScale + (1.50f - kIdleShipScale) * attack;
 }
 
-// 巡航の揺れ、急接近時のロール、斬撃時の傾きから機体の横傾きを求める。
+// 巡航の揺れ、急接近時のロール、斬撃時の傾きから機体の横傾きを求める
 float TitleFlightBank(float phase, int pattern)
 {
     const float cruise = -0.70f + std::sin(phase * 6.2831853f / kFlybyLoop + 0.35f) * 0.24f;
@@ -474,7 +474,7 @@ float TitleFlightBank(float phase, int pattern)
     return cruise + (-0.06f - cruise) * cutting + roll;
 }
 
-// 接近・斬撃・離脱・巡航の各区間に合わせ、機首の向きをつなぐ。
+// 接近・斬撃・離脱・巡航の各区間に合わせ、機首の向きをつなぐ
 Math::Vector3 TitleFlightDirection(float phase, int pattern)
 {
     const bool closePass = pattern == 2;
@@ -487,7 +487,7 @@ Math::Vector3 TitleFlightDirection(float phase, int pattern)
     }
     const float alignStart = kReturnSettleTime - 0.70f;
     if (phase >= alignStart) {
-        // 小さく戻ってくる段階から機首を整え、着く瞬間だけで姿勢を戻さない。
+        // 小さく戻ってくる段階から機首を整え、着く瞬間だけで姿勢を戻さない
         const auto before = GetTitleFlightLocalPosition(alignStart - 0.004f,pattern);
         const auto after = GetTitleFlightLocalPosition(alignStart + 0.004f,pattern);
         const auto from = Math::Normalize({after.x - before.x,after.y - before.y,after.z - before.z});
@@ -520,14 +520,14 @@ Math::Vector3 GetTitleFlightPosition(float phase, float elapsed, int pattern)
     return MoveFlightWithLogo(GetTitleFlightLocalPosition(phase,pattern),elapsed,phase,pattern);
 }
 
-// ループ内の経過時間から、待機飛行の位相と今回使う斬撃パターンを選ぶ。
+// ループ内の経過時間から、待機飛行の位相と今回使う斬撃パターンを選ぶ
 TitleFlyby GetTitleFlyby(float clock, bool ready)
 {
     TitleFlyby motion;
     if (!ready) { return motion; }
     motion.phase = std::fmod(clock, kFlybyLoop);
     motion.pattern = static_cast<int>(std::fmod(clock,kFlightSequence) / kFlybyLoop);
-    // 角度の違う断面は実際に斬った瞬間から残す。ループ境界で勝手に切り直さない。
+    // 角度の違う断面は実際に斬った瞬間から残す　ループ境界で勝手に切り直さない
     motion.cutPattern = ((motion.pattern == 2 && motion.phase >= kFlybyStart) ||
         (clock >= kFlightSequence && motion.pattern == 0 && motion.phase < kFlybyStart)) ? 2 : 0;
     motion.flight = std::clamp((motion.phase - kFlybyStart) / kFlybyDuration, 0.0f, 1.0f);
@@ -537,7 +537,7 @@ TitleFlyby GetTitleFlyby(float clock, bool ready)
     return motion;
 }
 
-// 切断線に沿った分離と断片の奥行きを加えて、ロゴ上の点を画面へ投影する。
+// 切断線に沿った分離と断片の奥行きを加えて、ロゴ上の点を画面へ投影する
 ImVec2 ProjectLogoCanvas(ImVec2 local, float separation, int half, float depth, int pattern)
 {
     const float side = half < 0 ? 0.0f : half == 0 ? 1.0f : -1.0f;
@@ -558,7 +558,7 @@ Math::Vector3 RotateVector(const Math::Vector3& value, const Math::Matrix4x4& ma
         value.x * matrix.m[0][2] + value.y * matrix.m[1][2] + value.z * matrix.m[2][2] };
 }
 
-// 排気エフェクトの層ごとに色を選び、フェードに合わせて透明度を変える。
+// 排気エフェクトの層ごとに色を選び、フェードに合わせて透明度を変える
 Math::Vector4 TitleExhaustColor(int layer, float fade)
 {
     if (layer == 2) { return {0.86f,0.94f,1.0f,0.94f * fade}; }
@@ -572,7 +572,7 @@ Math::Vector3 TitleNozzleOffset(size_t nozzle, float shipScale, const Math::Matr
     return RotateVector({(nozzle == 0 ? -0.48f : 0.48f)*ratio,-0.28f*ratio,-1.70f*ratio},rotation);
 }
 
-// 飛行方向と上方向から機体の姿勢を作り、旋回中の傾きを重ねる。
+// 飛行方向と上方向から機体の姿勢を作り、旋回中の傾きを重ねる
 Math::Vector3 FlightRotation(const Math::Vector3& direction, const Math::Vector3& referenceUp, float bank)
 {
     const auto cross = [](const Math::Vector3& a, const Math::Vector3& b) {
@@ -586,7 +586,7 @@ Math::Vector3 FlightRotation(const Math::Vector3& direction, const Math::Vector3
         right.y * cosine + up.y * sine,right.z * cosine + up.z * sine};
     const Math::Vector3 bankedUp{up.x * cosine - right.x * sine,
         up.y * cosine - right.y * sine,up.z * cosine - right.z * sine};
-    // 機首を接線へ向けたまま、その軸を中心にバンクする。エンジンも同じ姿勢を使う。
+    // 機首を接線へ向けたまま、その軸を中心にバンクする　エンジンも同じ姿勢を使う
     const float yaw = std::asin(std::clamp(-bankedRight.z,-1.0f,1.0f));
     if (std::abs(std::cos(yaw)) < 0.0001f) {
         return {0.0f,yaw,std::atan2(-bankedUp.x,bankedUp.y)};
@@ -594,7 +594,7 @@ Math::Vector3 FlightRotation(const Math::Vector3& direction, const Math::Vector3
     return {std::atan2(bankedUp.z,forward.z),yaw,std::atan2(bankedRight.y,bankedRight.x)};
 }
 
-// ワールド上の位置を投影し、タイトルの基準画面で使う2D座標へ変換する。
+// ワールド上の位置を投影し、タイトルの基準画面で使う2D座標へ変換する
 ImVec2 ProjectTitleCanvas(const Math::Vector3& point, const Camera& camera)
 {
     const auto& matrix = camera.GetViewProjectionMatrix();

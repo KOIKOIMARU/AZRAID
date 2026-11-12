@@ -1,5 +1,5 @@
 // ===== PlayerControl.cpp =====
-// 操作入力を読み取り、自機の移動、照準、発射に必要な情報を作る。
+// 操作入力を読み取り、自機の移動、照準、発射に必要な情報を作る
 
 #include "app/player/PlayerControl.h"
 
@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-// プレイ開始時に照準、射撃状態、発射数を戻す。
+// プレイ開始時に照準、射撃状態、発射数を戻す
 void PlayerControl::Reset()
 {
     aim_.ClearTarget();
@@ -18,7 +18,7 @@ void PlayerControl::Reset()
     shotsFired_ = 0;
 }
 
-// 方向キーと回避入力をまとめ、自機へ移動を渡す。ステージの進行距離は前後位置の基準に使う。
+// 方向キーと回避入力をまとめ、自機へ移動を渡す　ステージの進行距離は前後位置の基準に使う
 void PlayerControl::UpdateMovement(Player& player, Input* input, float timeScale,
     float controlStep, float railDistance) const
 {
@@ -37,7 +37,7 @@ void PlayerControl::UpdateMovement(Player& player, Input* input, float timeScale
     player.SetRailZ(railDistance);
 }
 
-// マウス位置が取れれば照準へ反映し、取れなければ画面中央を使う。投影行列がある場合は照準に近い敵を探す。
+// マウス位置が取れれば照準へ反映し、取れなければ画面中央を使う　投影行列がある場合は照準に近い敵を探す
 void PlayerControl::UpdateAim(const AimView& view, const std::list<std::unique_ptr<Enemy>>& enemies,
     std::optional<Math::Vector2> cursor)
 {
@@ -50,7 +50,7 @@ void PlayerControl::UpdateAim(const AimView& view, const std::list<std::unique_p
     }
 }
 
-// 発射位置と現在の照準から、弾を飛ばす向きを求める。
+// 発射位置と現在の照準から、弾を飛ばす向きを求める
 Math::Vector3 PlayerControl::AimDirection(const Math::Vector3& origin, const AimView& view) const
 {
     if (!view.viewProjection) { return { 0.0f, 0.0f, 1.0f }; }
@@ -61,7 +61,7 @@ Math::Vector3 PlayerControl::AimDirection(const Math::Vector3& origin, const Aim
     return ProjectileSystem::AimDirection(origin, *view.viewProjection, aim_.Reticle(), view.min, view.size, depth);
 }
 
-// 発射間隔とチャージの状態を確かめ、撃てるときだけ弾の生成を依頼する。
+// 発射間隔とチャージの状態を確かめ、撃てるときだけ弾の生成を依頼する
 std::optional<PlayerControl::ShotResult> PlayerControl::UpdateShooting(Input* input,
     ProjectileSystem& projectiles, const ShotFrame& frame)
 {

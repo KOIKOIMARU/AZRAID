@@ -1,4 +1,4 @@
-// 敵1機のHP・シールド・描画・生存状態を持つ。飛行の計算はEnemyFlight、射撃の時計はEnemyFireControlが担当する。
+// 敵1機のHP・シールド・描画・生存状態を持つ　飛行の計算はEnemyFlight、射撃の時計はEnemyFireControlが担当する
 
 #pragma once
 
@@ -34,10 +34,10 @@ public:
         float scaleMultiplier = 1.0f,
         const char* textureOverride = nullptr);
     void Update(float railDistance, float timeScale = 1.0f);
-    // 自機の死亡演出中は射撃を止め、実時間で飛び去る。通常の逃走成績には加えない。
+    // 自機の死亡演出中は射撃を止め、実時間で飛び去る　通常の逃走成績には加えない
     void UpdateDeparture(float deltaSeconds);
     bool HasDeparted() const { return lifeState_ == LifeState::Departed; }
-    // 練習標的だけは入場後に滞在し、操作を試している間に退場しない。
+    // 練習標的だけは入場後に滞在し、操作を試している間に退場しない
     void SetTrainingTarget(bool enabled) { flight_.SetTrainingTarget(enabled); }
     void Draw();
     void DrawShadow(const Math::Matrix4x4& lightViewProjection);
@@ -47,7 +47,7 @@ public:
     bool CanShoot() const;
     Behavior GetBehavior() const { return flight_.Behavior(); }
     bool IsTightFormation() const { return GetBehavior() == Behavior::Formation && flight_.EntryStyle() == EntryStyle::TightFormation; }
-    float GetFormationShotDelay() const { return flight_.FormationShotDelay(); } // 編隊の外側ほど遅く撃つ。
+    float GetFormationShotDelay() const { return flight_.FormationShotDelay(); } // 編隊の外側ほど遅く撃つ
     EnemyFireControl::Cycle& GetFireControl() { return fireControl_; }
     const EnemyFireControl::Cycle& GetFireControl() const { return fireControl_; }
     void SetAttackTelegraphRate(float rate);
@@ -59,7 +59,7 @@ public:
     bool IsBoss() const { return GetBehavior() == Behavior::Boss; }
     bool IsCrossfire() const { return GetBehavior() == Behavior::Crossfire; }
     bool IsSniper() const { return GetBehavior() == Behavior::Sniper; }
-    // 二射後、反動が収まってから姿勢を戻すまでがチャージ直撃の反撃機会。
+    // 二射後、反動が収まってから姿勢を戻すまでがチャージ直撃の反撃機会
     bool IsChargeCounterOpen() const {
         const float recovery = fireControl_.RecoveryElapsed();
         return IsSniper() && CanShoot() && recovery >= 8.0f && recovery < 66.0f;
@@ -74,12 +74,12 @@ public:
     int GetMaxHp() const { return maxHp_; }
     const Math::Vector3& GetTranslate() const { return translate_; }
     Math::Vector3 GetAimPosition() const;
-    Math::Vector3 GetBossMuzzlePosition(float side) const; // -1:左、0:中央、1:右。機体の傾きに追従。
+    Math::Vector3 GetBossMuzzlePosition(float side) const; // -1:左、0:中央、1:右　機体の傾きに追従
     float GetRadius() const { return collisionRadius_; }
     float GetAimRadius() const;
 
 private:
-    // 飛行パターンの姿勢に攻撃予告と被弾の見た目を重ねる。
+    // 飛行パターンの姿勢に攻撃予告と被弾の見た目を重ねる
     void UpdateAppearance(EnemyFlight::Pose pose);
 
     EnemyFlight flight_;
@@ -103,6 +103,6 @@ private:
     float aimRadius_ = 0.8f;
     float visualScaleRate_ = 1.0f;
     float attackTelegraphRate_ = 0.0f;
-    EnemyFireControl::Cycle fireControl_{}; // 共通タイマーではなく、各機の構え・連射・休止を保持。
+    EnemyFireControl::Cycle fireControl_{}; // 共通タイマーではなく、各機の構え・連射・休止を保持
     LifeState lifeState_ = LifeState::Alive;
 };

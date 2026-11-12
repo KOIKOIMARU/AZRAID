@@ -1,5 +1,5 @@
 // ===== StageResultMenu.cpp =====
-// クリア・敗北・チュートリアルの結果画面を描き、項目の選択を受け付ける。
+// クリア・敗北・チュートリアルの結果画面を描き、項目の選択を受け付ける
 
 #include "app/ui/StageResultMenu.h"
 
@@ -42,7 +42,7 @@ void StageResultMenu::ResetDisplay()
     started_ = -1.0;
 }
 
-// リザルトの種類が変わった時点で表示の時計を始め、出現演出に使う経過秒数を返す。
+// リザルトの種類が変わった時点で表示の時計を始め、出現演出に使う経過秒数を返す
 float StageResultMenu::BeginDisplay(Kind kind)
 {
     const double now = ImGui::GetTime();
@@ -60,7 +60,7 @@ float StageResultMenu::UpdateClear()
     return BeginDisplay(Kind::Clear);
 }
 
-// クリアの得点、ランク、ベスト記録を描き、詳細表示と次に行う操作の入力を処理する。
+// クリアの得点、ランク、ベスト記録を描き、詳細表示と次に行う操作の入力を処理する
 void StageResultMenu::DrawClear(Input* input, const Math::Vector2& hudMin, const Math::Vector2& hudSize,
     const Stats& stats, float elapsed, GameplayMenu& menu)
 {
@@ -78,7 +78,7 @@ void StageResultMenu::DrawClear(Input* input, const Math::Vector2& hudMin, const
     const ImU32 quiet = IM_COL32(170, 181, 197, 255);
     const auto surface = [](ImU32 color) { return CombatHud::SurfaceColor(color); };
     const ImVec2 viewportMax{ origin.x + hudSize.x, origin.y + hudSize.y };
-    // 自機と空を残し、戦績の背後だけを暗くする。下の翼面は機体のバンク角につなぐ。
+    // 自機と空を残し、戦績の背後だけを暗くする　下の翼面は機体のバンク角につなぐ
     draw->AddRectFilledMultiColor(origin, viewportMax, surface(IM_COL32(8, 13, 25, 80)),
         surface(IM_COL32(8, 13, 25, 20)), surface(IM_COL32(8, 13, 25, 160)), surface(IM_COL32(8, 13, 25, 170)));
     draw->AddRectFilledMultiColor(origin, { p(780, 0).x, viewportMax.y }, surface(IM_COL32(8, 13, 25, 248)),
@@ -108,7 +108,7 @@ void StageResultMenu::DrawClear(Input* input, const Math::Vector2& hudMin, const
             const float stamp = std::clamp((elapsed - 0.52f) / 0.18f, 0.0f, 1.0f);
             const int alpha = static_cast<int>(255 * stamp);
             const ImU32 rankInk = (rank == 'S' ? IM_COL32(237, 208, 143, 255) : paper) & ~IM_COL32_A_MASK;
-            // ロゴと同じ切断角を持つ専用字形。汎用フォントの巨大な一文字にはしない。
+            // ロゴと同じ切断角を持つ専用字形　汎用フォントの巨大な一文字にはしない
             const auto glyph = [&](std::initializer_list<ImVec2> shape) {
                 std::array<ImVec2, 12> points{};
                 int count = 0;
@@ -212,7 +212,7 @@ void StageResultMenu::DrawClear(Input* input, const Math::Vector2& hudMin, const
     draw->PopClipRect();
 }
 
-// 敗北時の成績と選択肢を描き、再挑戦などの操作をメニュー遷移へ渡す。
+// 敗北時の成績と選択肢を描き、再挑戦などの操作をメニュー遷移へ渡す
 void StageResultMenu::DrawDefeat(Input* input, const Math::Vector2& min, const Math::Vector2& size,
     const Stats& stats, float deltaSeconds, GameplayMenu& menu)
 {
@@ -230,7 +230,7 @@ void StageResultMenu::DrawDefeat(Input* input, const Math::Vector2& min, const M
     const auto quiet = IM_COL32(173, 183, 198, 255);
     const auto danger = IM_COL32(235, 136, 120, 255);
 
-    // 読む場所だけを暗くし、中央の残骸と煙はゲーム画面の明るさで残す。
+    // 読む場所だけを暗くし、中央の残骸と煙はゲーム画面の明るさで残す
     const auto shade = CombatHud::SurfaceColor(IM_COL32(7, 12, 20, static_cast<int>(222.0f * reveal(0.0f, 0.24f))));
     const auto clear = IM_COL32(0, 0, 0, 0);
     const float bottom = min.y + size.y;
@@ -289,7 +289,7 @@ void StageResultMenu::DrawDefeat(Input* input, const Math::Vector2& min, const M
     const float dt = std::clamp(deltaSeconds, 0.0f, 0.10f);
     first = draw->VtxBuffer.Size;
     ImGui::BeginDisabled(!ready);
-    // 再挑戦の面を細くし、選択時の移動と決定時の押し込みで反応を伝える。
+    // 再挑戦の面を細くし、選択時の移動と決定時の押し込みで反応を伝える
     const auto action = [&](const char* id, const char* label, int item, ImVec2 at, ImVec2 hitSize, float font) {
         ImGui::SetCursorScreenPos(at);
         const bool clicked = ImGui::InvisibleButton(id, hitSize);
@@ -339,7 +339,7 @@ void StageResultMenu::DrawDefeat(Input* input, const Math::Vector2& min, const M
     draw->PopClipRect();
 }
 
-// 練習完了時の結果と次へ進む操作を描き、選んだ操作をメニューの切り替えに渡す。
+// 練習完了時の結果と次へ進む操作を描き、選んだ操作をメニューの切り替えに渡す
 void StageResultMenu::DrawTutorial(Input* input, const Math::Vector2& min, const Math::Vector2& size,
     std::span<const char* const> lessons, GameplayMenu& menu)
 {
@@ -352,7 +352,7 @@ void StageResultMenu::DrawTutorial(Input* input, const Math::Vector2& min, const
         CombatHud::SurfaceColor(MenuUi::Ink));
     MenuUi::Text(draw, p(64, 106), 22 * s, CombatHud::Blue, "チュートリアル");
     MenuUi::Heading(draw, p(64, 155), 42 * s, MenuUi::Paper, "練習終了");
-    // 練習に順位や失敗回数の採点は不要。体験できた操作だけを振り返る。
+    // 練習に順位や失敗回数の採点は不要　体験できた操作だけを振り返る
     for (int index = 0; index < static_cast<int>(lessons.size()); ++index) {
         const float x = 64.0f + static_cast<float>(index / 4) * 330.0f;
         const float y = 272.0f + static_cast<float>(index % 4) * 58.0f;

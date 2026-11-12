@@ -1,11 +1,11 @@
 // ===== BossAttackController.cpp =====
-// ボスの攻撃選択と溜め・発射・隙の進行を管理し、各段階の切り替わりを通知する。
+// ボスの攻撃選択と溜め・発射・隙の進行を管理し、各段階の切り替わりを通知する
 
 #include "app/enemy/BossAttackController.h"
 #include <algorithm>
 #include <cmath>
 
-// 新しいボス戦の開始時に、形態、次の攻撃、連射番号、反撃時間を初期状態へ戻す。
+// 新しいボス戦の開始時に、形態、次の攻撃、連射番号、反撃時間を初期状態へ戻す
 void BossAttackController::Reset()
 {
     phase_ = 1;
@@ -19,7 +19,7 @@ void BossAttackController::Reset()
     aimPoint_ = {};
 }
 
-// 攻撃パターンと現在の形態から、予告を見せるフレーム数を返す。
+// 攻撃パターンと現在の形態から、予告を見せるフレーム数を返す
 int BossAttackController::WindupFrames() const
 {
     constexpr std::array<int, 5> normal{ 48, 54, 78, 58, 60 };
@@ -28,7 +28,7 @@ int BossAttackController::WindupFrames() const
     return phase_ >= 2 ? enraged[index] : normal[index];
 }
 
-// 攻撃に合わせたボスの横・縦・前後の移動先を返し、EnemyFlightがそこへ補間する。
+// 攻撃に合わせたボスの横・縦・前後の移動先を返し、EnemyFlightがそこへ補間する
 Math::Vector3 BossAttackController::FlightOffset() const
 {
     const float side = attackCount_ % 2 == 0 ? -1.0f : 1.0f;
@@ -59,25 +59,25 @@ Math::Vector3 BossAttackController::FlightOffset() const
     return offset;
 }
 
-// 進行中の予告や連射を取り消し、構えと反撃時間をリセットする。
+// 進行中の予告や連射を取り消し、構えと反撃時間をリセットする
 void BossAttackController::CancelAttack()
 {
     action_ = Action::Waiting;
     remaining_ = cooldown_ = shotIndex_ = counterRemaining_ = 0;
 }
 
-// 攻撃終了後の反撃可能時間を設定する。攻撃の種類と形態で長さが変わる。
+// 攻撃終了後の反撃可能時間を設定する　攻撃の種類と形態で長さが変わる
 void BossAttackController::BeginRecovery()
 {
     action_ = Action::Recovery;
     shotIndex_ = 0;
-    // 大技の後だけ長めに止める。全攻撃に同じ長い休止を挟んで単調にしない。
+    // 大技の後だけ長めに止める　全攻撃に同じ長い休止を挟んで単調にしない
     const bool heavy = pattern_ == Pattern::Charge || pattern_ == Pattern::Rush;
     counterRemaining_ = counterDuration_ = (phase_ >= 2 ? 84 : 96) + (heavy ? 24 : 0);
     cooldown_ = counterDuration_ + 12;
 }
 
-// 待機、予告、連射、反撃の隙を順に進める。発射と形態変更はイベントで呼び出し元へ渡す。
+// 待機、予告、連射、反撃の隙を順に進める　発射と形態変更はイベントで呼び出し元へ渡す
 BossAttackController::Events BossAttackController::Update(const Input& input)
 {
     Events events;
@@ -89,7 +89,7 @@ BossAttackController::Events BossAttackController::Update(const Input& input)
     if (counterRemaining_ > 0) { --counterRemaining_; }
     if (action_ == Action::Recovery && counterRemaining_ == 0) { action_ = Action::Waiting; }
 
-    // 段階移行の演出は呼び出し側が扱う。HP条件は一度だけ判定して進行を切り替える。
+    // 段階移行の演出は呼び出し側が扱う　HP条件は一度だけ判定して進行を切り替える
     if (phase_ == 1 && input.hp * 2 <= input.maxHp) {
         phase_ = 2;
         CancelAttack();
@@ -120,18 +120,18 @@ BossAttackController::Events BossAttackController::Update(const Input& input)
     if (remaining_ > 0) {
         if (IsWindingUp() && remaining_ > kAimLockFrames) { aimPoint_ = input.playerPosition; }
         --remaining_;
-        return events; // 0に達した次の更新で発射する。従来の発射間隔を保つ。
+        return events; // 0に達した次の更新で発射する　従来の発射間隔を保つ
     }
 
     const bool enraged = phase_ >= 2;
-    // 弾の指示に銃口・弾種・固定照準からのずれを記録する。弾の生成はGameRuntimeが受け持つ。
+    // 弾の指示に銃口・弾種・固定照準からのずれを記録する　弾の生成はGameRuntimeが受け持つ
     const auto addShot = [&](Muzzle muzzle, bool charged, float x, float y) {
         events.shots[events.shotCount++] = { muzzle, charged, { x, y } };
     };
     switch (pattern_) {
     case Pattern::Fan: {
         const int count = enraged ? 7 : 5;
-        // 扇状攻撃は1フレームにまとめて放つ。第2形態では弾数と広がりを増やす。
+        // 扇状攻撃は1フレームにまとめて放つ　第2形態では弾数と広がりを増やす
         const float spread = enraged ? 5.4f : 4.4f;
         for (int index = 0; index < count; ++index) {
             const float rate = static_cast<float>(index) / static_cast<float>(count - 1);
@@ -167,7 +167,7 @@ BossAttackController::Events BossAttackController::Update(const Input& input)
         events.recoveryStarted = true;
         break;
     case Pattern::Crossfire: {
-        // 左右を交差させる三連射。上下に抜け道を残し、固定照準のまま撃つ。
+        // 左右を交差させる三連射　上下に抜け道を残し、固定照準のまま撃つ
         const float spread = 3.6f - static_cast<float>(shotIndex_) * 1.2f;
         addShot(Muzzle::Left, false, spread, -0.9f);
         addShot(Muzzle::Right, false, -spread, 0.9f);
@@ -192,7 +192,7 @@ BossAttackController::Events BossAttackController::Update(const Input& input)
 }
 
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_GUI)
-// 開発用のボス戦を指定形態から試せるよう、HP段階と攻撃状態をそろえる。
+// 開発用のボス戦を指定形態から試せるよう、HP段階と攻撃状態をそろえる
 void BossAttackController::PrepareForDebug(int phase, Pattern nextPattern)
 {
     Reset();
@@ -205,7 +205,7 @@ void BossAttackController::RequestNextForDebug()
     CancelAttack();
 }
 
-// 確認用に反撃の隙を開き、残り時間を指定してダメージ処理を試せるようにする。
+// 確認用に反撃の隙を開き、残り時間を指定してダメージ処理を試せるようにする
 void BossAttackController::OpenCounterForDebug(int frames)
 {
     CancelAttack();

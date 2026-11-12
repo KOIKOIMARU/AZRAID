@@ -1,5 +1,5 @@
 // ===== Model.cpp =====
-// モデルの頂点・材質・アニメーションを読み込み、描画用バッファを作ってメッシュを描く。
+// モデルの頂点・材質・アニメーションを読み込み、描画用バッファを作ってメッシュを描く
 
 #include "engine/3d/Model.h"
 
@@ -27,7 +27,7 @@ constexpr const char* kDefaultTextureFilePath = "resources/uvChecker.png";
 constexpr const char* kDefaultNormalTextureFilePath =
     "resources/default_normal.png";
 
-// Assimpの行列を転置し、ゲームの行列型へ成分を写す。
+// Assimpの行列を転置し、ゲームの行列型へ成分を写す
 Matrix4x4 ConvertAiMatrixToMatrix4x4(aiMatrix4x4 matrix)
 {
     matrix.Transpose();
@@ -92,7 +92,7 @@ VertexData MakeDefaultVertexData()
     };
 }
 
-// OBJに使えるUVがないとき、モデルの形から代替のUVを作る。
+// OBJに使えるUVがないとき、モデルの形から代替のUVを作る
 void GenerateFallbackObjTexcoords(std::vector<VertexData>& vertices)
 {
     if (vertices.empty()) {
@@ -138,7 +138,7 @@ void GenerateFallbackObjTexcoords(std::vector<VertexData>& vertices)
     }
 }
 
-// 頂点に影響する関節と重みを登録し、影響枠を使い切った場合は強い影響を残す。
+// 頂点に影響する関節と重みを登録し、影響枠を使い切った場合は強い影響を残す
 void SetVertexInfluence(
     VertexData& vertex,
     uint32_t jointIndex,
@@ -187,7 +187,7 @@ void SetVertexInfluence(
     }
 }
 
-// 関節から受ける重みの合計が1になるよう調整する。
+// 関節から受ける重みの合計が1になるよう調整する
 void NormalizeVertexInfluence(VertexData& vertex)
 {
     const float totalWeight =
@@ -205,7 +205,7 @@ void NormalizeVertexInfluence(VertexData& vertex)
     vertex.weight.w *= inverseTotalWeight;
 }
 
-// ノード名から番号を引ける一覧を作り、子ノードにも同じ処理を行う。
+// ノード名から番号を引ける一覧を作り、子ノードにも同じ処理を行う
 void CollectNodeIndices(
     const Node& node,
     std::map<std::string, uint32_t>& nodeIndexMap,
@@ -217,7 +217,7 @@ void CollectNodeIndices(
     }
 }
 
-// Assimpのノードの姿勢と親子関係を、ゲームで扱うノード形式へ写す。
+// Assimpのノードの姿勢と親子関係を、ゲームで扱うノード形式へ写す
 Node ReadNode(aiNode* node)
 {
     assert(node);
@@ -246,7 +246,7 @@ Node ReadNode(aiNode* node)
     return result;
 }
 
-// モデルのアニメーションから、関節ごとの位置・回転・拡大率のキーフレームを読む。
+// モデルのアニメーションから、関節ごとの位置・回転・拡大率のキーフレームを読む
 Animation ReadAnimation(const aiScene* scene)
 {
     Animation animation;
@@ -298,7 +298,7 @@ Animation ReadAnimation(const aiScene* scene)
     return animation;
 }
 
-// 材質の画像パスをモデルの位置から解決する。変換済みのDDSがあれば優先し、画像がないときは既定画像を返す。
+// 材質の画像パスをモデルの位置から解決する　変換済みのDDSがあれば優先し、画像がないときは既定画像を返す
 std::string ResolveAssimpTexturePath(
     const aiString& texturePath,
     const std::string& directoryPath)
@@ -338,7 +338,7 @@ std::string ResolveAssimpTexturePath(
     return kDefaultTextureFilePath;
 }
 
-// 指定の代替画像がモデルのフォルダにあれば使い、見つからなければ既定画像を返す。
+// 指定の代替画像がモデルのフォルダにあれば使い、見つからなければ既定画像を返す
 std::string ResolveAssimpFallbackTexture(
     const std::string& directoryPath,
     const char* textureFilename)
@@ -352,7 +352,7 @@ std::string ResolveAssimpFallbackTexture(
     return kDefaultTextureFilePath;
 }
 
-// Assimpの材質が指定する色画像を探し、ゲームで読み込めるパスにする。
+// Assimpの材質が指定する色画像を探し、ゲームで読み込めるパスにする
 std::string GetAssimpMaterialTexturePath(
     const aiMaterial* material,
     const std::string& directoryPath)
@@ -372,7 +372,7 @@ std::string GetAssimpMaterialTexturePath(
     aiString materialNameString;
     if (material->Get(AI_MATKEY_NAME, materialNameString) == AI_SUCCESS) {
         const std::string materialName = materialNameString.C_Str();
-        // ガラスへ室内画像を貼ると、実際の室内面と二重になる。ガラスは材質色で描く。
+        // ガラスへ室内画像を貼ると、実際の室内面と二重になる　ガラスは材質色で描く
         if (materialName.find("FakeInterior") != std::string::npos ||
             materialName.find("Interior") != std::string::npos) {
             return ResolveAssimpFallbackTexture(directoryPath, "T_lit_interior_1.png");
@@ -382,7 +382,7 @@ std::string GetAssimpMaterialTexturePath(
     return kDefaultTextureFilePath;
 }
 
-// Assimpの材質から法線マップを探し、読み込む画像を決める。
+// Assimpの材質から法線マップを探し、読み込む画像を決める
 std::string GetAssimpNormalTexturePath(
     const aiMaterial* material,
     const std::string& directoryPath)
@@ -406,7 +406,7 @@ std::string GetAssimpNormalTexturePath(
     return kDefaultNormalTextureFilePath;
 }
 
-// 材質に指定の数値項目があるときだけ、その値を引数へ返す。
+// 材質に指定の数値項目があるときだけ、その値を引数へ返す
 bool TryGetAssimpMaterialFloat(
     const aiMaterial* material,
     const char* key,
@@ -421,7 +421,7 @@ bool TryGetAssimpMaterialFloat(
     return material->Get(key, type, index, value) == AI_SUCCESS;
 }
 
-// モデルに保存された色、反射、粗さ、画像などをゲームの材質データへ変換する。
+// モデルに保存された色、反射、粗さ、画像などをゲームの材質データへ変換する
 MaterialData GetAssimpMaterialData(
     const aiMaterial* material,
     const std::string& directoryPath)
@@ -439,8 +439,8 @@ MaterialData GetAssimpMaterialData(
             material->Get(AI_MATKEY_COLOR_DIFFUSE, baseColor) == AI_SUCCESS) {
             materialData.baseColor = { baseColor.r, baseColor.g, baseColor.b, baseColor.a };
         }
-        // テクスチャを持たない塗装面にUVチェッカーを掛けず、材質色をそのまま表示する。
-        // 参照先が壊れているテクスチャは従来どおりチェッカーで見つけられるようにする。
+        // テクスチャを持たない塗装面にUVチェッカーを掛けず、材質色をそのまま表示する
+        // 参照先が壊れているテクスチャは従来どおりチェッカーで見つけられるようにする
         if (material->GetTextureCount(aiTextureType_BASE_COLOR) == 0 &&
             material->GetTextureCount(aiTextureType_DIFFUSE) == 0 &&
             materialData.textureFilePath == kDefaultTextureFilePath) {
@@ -484,7 +484,7 @@ MaterialData GetAssimpMaterialData(
     return materialData;
 }
 
-// 読み込んだモデルに描画に必要な材質や区間の情報が欠けている場合、描画用の既定値を用意する。
+// 読み込んだモデルに描画に必要な材質や区間の情報が欠けている場合、描画用の既定値を用意する
 void EnsureModelDrawData(ModelData& modelData)
 {
     if (modelData.material.textureFilePath.empty()) {
@@ -529,7 +529,7 @@ void EnsureModelDrawData(ModelData& modelData)
     }
 }
 
-// ノードごとの座標変換を親から継ぎ、各メッシュの頂点・面・材質・関節情報をひとつのモデルへ追加する。
+// ノードごとの座標変換を親から継ぎ、各メッシュの頂点・面・材質・関節情報をひとつのモデルへ追加する
 void AppendAssimpNode(
     const aiScene* scene,
     const aiNode* node,
@@ -643,7 +643,7 @@ void AppendAssimpNode(
     }
 }
 
-// 三角形の頂点を記録し、頂点を参照するインデックスもモデルへ追加する。
+// 三角形の頂点を記録し、頂点を参照するインデックスもモデルへ追加する
 void AppendTriangle(
     ModelData& modelData,
     const VertexData& v0,
@@ -680,7 +680,7 @@ void Model::Initialize(ModelCommon* modelCommon,
     Initialize(modelCommon, LoadCpuData(directoryPath, filename));
 }
 
-// ファイルの種類から読み込み方法を選び、頂点・材質などのCPU側データを返す。
+// ファイルの種類から読み込み方法を選び、頂点・材質などのCPU側データを返す
 ModelData Model::LoadCpuData(const std::string& directoryPath, const std::string& filename)
 {
     std::filesystem::path requestedPath = filename;
@@ -701,7 +701,7 @@ void Model::Initialize(ModelCommon* modelCommon, const ModelData& modelData)
     Initialize(modelCommon, ModelData(modelData));
 }
 
-// 頂点から描画バッファを準備し、材質の色画像と法線画像も読み込む。
+// 頂点から描画バッファを準備し、材質の色画像と法線画像も読み込む
 void Model::Initialize(ModelCommon* modelCommon, ModelData&& modelData)
 {
     InitializeGeometry(modelCommon, std::move(modelData));
@@ -711,7 +711,7 @@ void Model::Initialize(ModelCommon* modelCommon, ModelData&& modelData)
     }
 }
 
-// CPU側の頂点とインデックスを受け取り、GPUの描画用バッファと材質を用意する。
+// CPU側の頂点とインデックスを受け取り、GPUの描画用バッファと材質を用意する
 void Model::InitializeGeometry(ModelCommon* modelCommon, ModelData&& modelData)
 {
     assert(modelCommon);
@@ -731,7 +731,7 @@ void Model::InitializeGeometry(ModelCommon* modelCommon, ModelData&& modelData)
     CreateMaterial();
 }
 
-// メッシュごとに材質と画像を選び、指定された描画パスの対象を描く。
+// メッシュごとに材質と画像を選び、指定された描画パスの対象を描く
 void Model::Draw(
     const D3D12_VERTEX_BUFFER_VIEW* overrideVertexBufferView,
     ID3D12Resource* overrideMaterialResource,
@@ -783,7 +783,7 @@ void Model::Draw(
         const std::string& normalTextureFilePath =
             modelData_.materials[materialIndex].normalTextureFilePath;
 
-        // Root Constantsは描画コマンドへ値をコピーするので、共有CBの上書きや追加確保が不要。
+        // Root Constantsは描画コマンドへ値をコピーするので、共有CBの上書きや追加確保が不要
         commandList->SetGraphicsRoot32BitConstants(
             kModelMaterialColorRootParameter, 4,
             &modelData_.materials[materialIndex].baseColor, 0);
@@ -813,7 +813,7 @@ bool Model::HasTransparentMaterials() const
         [](const MaterialData& material) { return material.alphaBlend; });
 }
 
-// モデルの頂点をGPUが読める領域へ写し、頂点バッファの参照を作る。
+// モデルの頂点をGPUが読める領域へ写し、頂点バッファの参照を作る
 void Model::CreateVertexBuffer()
 {
     auto dxCommon = modelCommon_->GetDxCommon();
@@ -831,7 +831,7 @@ void Model::CreateVertexBuffer()
     vertexBufferView_.StrideInBytes = sizeof(VertexData);
 }
 
-// 面の頂点順を表すインデックスをGPU用の領域へ写す。
+// 面の頂点順を表すインデックスをGPU用の領域へ写す
 void Model::CreateIndexBuffer()
 {
     auto dxCommon = modelCommon_->GetDxCommon();
@@ -848,7 +848,7 @@ void Model::CreateIndexBuffer()
     indexBufferView_.SizeInBytes = UINT(sizeof(uint32_t) * indices.size());
     indexBufferView_.Format = DXGI_FORMAT_R32_UINT;
 }
-// シェーダーが読む色、ライティング、UV変換などの材質の初期値を設定する。
+// シェーダーが読む色、ライティング、UV変換などの材質の初期値を設定する
 void Model::CreateMaterial()
 {
     auto dxCommon = modelCommon_->GetDxCommon();
@@ -916,7 +916,7 @@ int32_t Model::GetLightingMode() const
     return materialData_->lightingMode;
 }
 
-// モデルが使うテクスチャを切り替え、描画前に画像を読み込む。
+// モデルが使うテクスチャを切り替え、描画前に画像を読み込む
 void Model::SetTextureFilePath(const std::string& textureFilePath)
 {
     modelData_.material.textureFilePath = textureFilePath;
@@ -934,7 +934,7 @@ const std::string& Model::GetTextureFilePath() const
     return modelData_.material.textureFilePath;
 }
 
-// OBJの材質ファイルを読み、画像のパスを解決する。
+// OBJの材質ファイルを読み、画像のパスを解決する
 MaterialData Model::LoadMaterialTemplate(const std::string& directoryPath, const std::string& filename)
 {
     MaterialData materialData;
@@ -959,7 +959,7 @@ MaterialData Model::LoadMaterialTemplate(const std::string& directoryPath, const
     return materialData;
 }
 
-// OBJの頂点・法線・UV・面を読み込み、描画に必要なデータに組み直す。
+// OBJの頂点・法線・UV・面を読み込み、描画に必要なデータに組み直す
 ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string& filename)
 {
     ModelData modelData;
@@ -1070,7 +1070,7 @@ ModelData Model::LoadObjFile(const std::string& directoryPath, const std::string
     return modelData;
 }
 
-// モデルファイルを読み、ゲーム内で使う頂点・材質・骨格の形式へ変換する。
+// モデルファイルを読み、ゲーム内で使う頂点・材質・骨格の形式へ変換する
 ModelData Model::LoadAssimpFile(
     const std::string& directoryPath,
     const std::string& filename)
@@ -1119,7 +1119,7 @@ ModelData Model::LoadAssimpFile(
     return modelData;
 }
 
-// 指定時刻を挟むキーフレームから、関節の位置・回転・拡大率を補間する。
+// 指定時刻を挟むキーフレームから、関節の位置・回転・拡大率を補間する
 QuaternionTransform Model::CalculateValue(
     const NodeAnimation& nodeAnimation,
     float time)
@@ -1196,7 +1196,7 @@ QuaternionTransform Model::CalculateValue(
     return result;
 }
 
-// モデルのノードツリーをたどり、関節の一覧と親子関係を作る。
+// モデルのノードツリーをたどり、関節の一覧と親子関係を作る
 Skeleton Model::CreateSkeleton(const Node& rootNode)
 {
     Skeleton skeleton;
@@ -1228,7 +1228,7 @@ Skeleton Model::CreateSkeleton(const Node& rootNode)
     return skeleton;
 }
 
-// 指定時刻の位置・回転・拡大率をアニメーションから取り出し、骨格の各関節へ設定する。
+// 指定時刻の位置・回転・拡大率をアニメーションから取り出し、骨格の各関節へ設定する
 void Model::ApplyAnimation(
     Skeleton& skeleton,
     const Animation& animation,
@@ -1249,7 +1249,7 @@ void Model::ApplyAnimation(
     }
 }
 
-// 親から子へ行列を合成し、各関節の姿勢をモデル全体の座標で表せるようにする。
+// 親から子へ行列を合成し、各関節の姿勢をモデル全体の座標で表せるようにする
 void Model::UpdateSkeleton(Skeleton& skeleton)
 {
     for (Joint& joint : skeleton.joints) {
@@ -1270,7 +1270,7 @@ void Model::UpdateSkeleton(Skeleton& skeleton)
     }
 }
 
-// 1枚の平面を、法線・UVと面のインデックスを持つモデルデータにする。
+// 1枚の平面を、法線・UVと面のインデックスを持つモデルデータにする
 ModelData Model::CreatePlaneData(
     float width,
     float height,
@@ -1295,7 +1295,7 @@ ModelData Model::CreatePlaneData(
     return modelData;
 }
 
-// 三角形1枚の頂点、法線、UVと描画順を設定する。
+// 三角形1枚の頂点、法線、UVと描画順を設定する
 ModelData Model::CreateTriangleData(
     float width,
     float height,
@@ -1321,7 +1321,7 @@ ModelData Model::CreateTriangleData(
     return modelData;
 }
 
-// 円周上の頂点を並べ、中心から三角形を張って円盤を作る。
+// 円周上の頂点を並べ、中心から三角形を張って円盤を作る
 ModelData Model::CreateCircleData(
     uint32_t divideCount,
     float radius,
@@ -1369,7 +1369,7 @@ ModelData Model::CreateCircleData(
     return modelData;
 }
 
-// ハートの輪郭を曲線から求め、内側を描ける頂点と面を用意する。
+// ハートの輪郭を曲線から求め、内側を描ける頂点と面を用意する
 ModelData Model::CreateHeartData(
     uint32_t divideCount,
     float radius,
@@ -1420,7 +1420,7 @@ ModelData Model::CreateHeartData(
     return modelData;
 }
 
-// 内側と外側の円周を結んで、中心に穴のあるリングを作る。
+// 内側と外側の円周を結んで、中心に穴のあるリングを作る
 ModelData Model::CreateRingData(
     uint32_t divideCount,
     float outerRadius,
@@ -1485,7 +1485,7 @@ ModelData Model::CreateRingData(
     return modelData;
 }
 
-// 指定された角度範囲の円弧を、幅のある描画用メッシュへ変換する。
+// 指定された角度範囲の円弧を、幅のある描画用メッシュへ変換する
 ModelData Model::CreateArcData(uint32_t divideCount, float outerRadius,
     float width, float arcRadians, const std::string& textureFilePath)
 {
@@ -1496,7 +1496,7 @@ ModelData Model::CreateArcData(uint32_t divideCount, float outerRadius,
     modelData.vertices.reserve(static_cast<size_t>(divideCount) * 6);
     const auto vertex = [&](float t, bool inner) {
         const float angle = (t - 0.5f) * arcRadians;
-        // 両端を尖らせた弧。輪の一部を切るだけの一定幅にはしない。
+        // 両端を尖らせた弧　輪の一部を切るだけの一定幅にはしない
         const float taper = std::sin(t * std::numbers::pi_v<float>);
         const float radius = outerRadius - (inner ? width * taper * taper : 0.0f);
         return VertexData{ { -std::sin(angle) * radius, std::cos(angle) * radius, 0, 1 },
@@ -1511,7 +1511,7 @@ ModelData Model::CreateArcData(uint32_t divideCount, float outerRadius,
     return modelData;
 }
 
-// 緯度と経度を分割して球の頂点を作り、隣接する頂点を面でつなぐ。
+// 緯度と経度を分割して球の頂点を作り、隣接する頂点を面でつなぐ
 ModelData Model::CreateSphereData(
     uint32_t latDivideCount,
     uint32_t lonDivideCount,
@@ -1579,7 +1579,7 @@ ModelData Model::CreateSphereData(
     return modelData;
 }
 
-// 断面の円を輪の周りに並べ、法線と面を持つトーラスを作る。
+// 断面の円を輪の周りに並べ、法線と面を持つトーラスを作る
 ModelData Model::CreateTorusData(
     uint32_t majorDivideCount,
     uint32_t minorDivideCount,
@@ -1650,7 +1650,7 @@ ModelData Model::CreateTorusData(
     return modelData;
 }
 
-// 上下の円周を結び、側面とふたを持つ円柱を作る。
+// 上下の円周を結び、側面とふたを持つ円柱を作る
 ModelData Model::CreateCylinderData(
     uint32_t divideCount,
     float topRadius,
@@ -1721,7 +1721,7 @@ ModelData Model::CreateCylinderData(
     return modelData;
 }
 
-// 円周と先端を結び、側面と底面を持つ円すいを作る。
+// 円周と先端を結び、側面と底面を持つ円すいを作る
 ModelData Model::CreateConeData(
     uint32_t divideCount,
     float radius,
@@ -1780,7 +1780,7 @@ ModelData Model::CreateConeData(
     return modelData;
 }
 
-// 6面それぞれの法線とUVを設定し、箱を描く頂点と面を作る。
+// 6面それぞれの法線とUVを設定し、箱を描く頂点と面を作る
 ModelData Model::CreateBoxData(
     float width,
     float height,

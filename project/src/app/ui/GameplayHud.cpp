@@ -1,5 +1,5 @@
 // ===== GameplayHud.cpp =====
-// HP、照準、チャージ、スコアなどを描き、命中や被弾時の表示変化を管理する。
+// HP、照準、チャージ、スコアなどを描き、命中や被弾時の表示変化を管理する
 
 #include "app/ui/GameplayHud.h"
 #include "app/ui/CombatHud.h"
@@ -14,7 +14,7 @@ using GameRuntimeMath::Lerp;
 constexpr float kTwoPi = 6.28318530718f;
 }
 
-// 新しいプレイに向けて命中表示、被弾表示、チャージの発光などを初期化する。
+// 新しいプレイに向けて命中表示、被弾表示、チャージの発光などを初期化する
 void GameplayHud::Reset()
 {
     chargeFlash_ = hitFrames_ = damageFrames_ = 0;
@@ -25,7 +25,7 @@ void GameplayHud::Reset()
     damageDirection_ = { 0, -1 };
 }
 
-// 命中位置と弾の種類を記録し、照準周辺に短く命中の印を出せるようにする。
+// 命中位置と弾の種類を記録し、照準周辺に短く命中の印を出せるようにする
 void GameplayHud::RecordHit(Math::Vector2 screen, bool charged, bool boss, bool destroyed)
 {
     hitScreen_ = screen;
@@ -36,7 +36,7 @@ void GameplayHud::RecordHit(Math::Vector2 screen, bool charged, bool boss, bool 
     hitDestroyed_ = destroyed;
 }
 
-// 被弾の位置と方向を控え、被弾表示が消えるまでの時間を設定する。
+// 被弾の位置と方向を控え、被弾表示が消えるまでの時間を設定する
 void GameplayHud::RecordDamage(Math::Vector2 screen, Math::Vector2 incomingVelocity)
 {
     damageScreen_ = screen;
@@ -47,19 +47,19 @@ void GameplayHud::RecordDamage(Math::Vector2 screen, Math::Vector2 incomingVeloc
     damageFrames_ = damageDuration_ = 26;
 }
 
-// 命中表示や被弾時の点滅を進め、表示時間が終わったものを画面から消す。
+// 命中表示や被弾時の点滅を進め、表示時間が終わったものを画面から消す
 void GameplayHud::TickFeedback()
 {
     if (hitFrames_ > 0 && --hitFrames_ <= 0) { hitDuration_ = 1; }
     if (damageFrames_ > 0 && --damageFrames_ <= 0) { damageDuration_ = 1; }
 }
 
-// チャージの表示を強調する残りフレームを進める。
+// チャージの表示を強調する残りフレームを進める
 void GameplayHud::TickCharge() { if (chargeFlash_ > 0) { --chargeFlash_; } }
 void GameplayHud::FlashCharge(int frames) { chargeFlash_ = (std::max)(chargeFlash_, frames); }
 void GameplayHud::FlashChargeShot() { chargeFlash_ = 18; }
 
-// リング通過で得た効果を、残り表示時間に合わせて画面に出す。
+// リング通過で得た効果を、残り表示時間に合わせて画面に出す
 void GameplayHud::DrawRingNotice(const Frame& frame, ImDrawList* draw) const
 {
     if (frame.ringNoticeFrames > 0) {
@@ -74,7 +74,7 @@ void GameplayHud::DrawRingNotice(const Frame& frame, ImDrawList* draw) const
     }
 }
 
-// HP・チャージ・スコアなどの基本情報を、現在の表示領域に収まるように配置する。
+// HP・チャージ・スコアなどの基本情報を、現在の表示領域に収まるように配置する
 void GameplayHud::DrawCore(const Frame& frame, ImDrawList* draw) const
 {
     const auto& hudMin = frame.min;
@@ -161,7 +161,7 @@ void GameplayHud::DrawCore(const Frame& frame, ImDrawList* draw) const
         }
     }
 
-    // 練習では得点や連続撃破を競わない。今の課題と操作に必要な計器を優先する。
+    // 練習では得点や連続撃破を競わない　今の課題と操作に必要な計器を優先する
     if (!frame.tutorial) {
         const auto scorePoint = [&](float x, float y) {
             return ImVec2(layout.score.x + x * hudScale, layout.score.y + y * hudScale);
@@ -173,7 +173,7 @@ void GameplayHud::DrawCore(const Frame& frame, ImDrawList* draw) const
         CombatHud::Slant(draw, scorePoint(272, -4), 40.0f * hudScale, CombatHud::White, scoreText,
             true, true, 0.0f, 272 * hudScale);
         if (!frame.bossSpawned) {
-            // 三つの面は実際のウェーブ数。進行済みだけを埋め、説明ラベルを常駐させない。
+            // 三つの面は実際のウェーブ数　進行済みだけを埋め、説明ラベルを常駐させない
             for (int index = 0; index < frame.waveCount; ++index) {
                 const float x = 196.0f + static_cast<float>(index) * 26.0f;
                 draw->AddQuadFilled(scorePoint(x + 3, 51), scorePoint(x + 21, 51),
@@ -185,7 +185,7 @@ void GameplayHud::DrawCore(const Frame& frame, ImDrawList* draw) const
 
 }
 
-// ボスのHPと戦闘中の状態を、ボス用のゲージと表示に反映する。
+// ボスのHPと戦闘中の状態を、ボス用のゲージと表示に反映する
 void GameplayHud::DrawBoss(const Frame& frame, ImDrawList* draw) const
 {
     if (!frame.boss.visible) { return; }
@@ -207,7 +207,7 @@ void GameplayHud::DrawBoss(const Frame& frame, ImDrawList* draw) const
     CombatHud::WingMeter(draw, p(18, 56), 380 * scale, 9 * scale, hpRate, CombatHud::Danger, scale);
 
     if (counter || attacking) {
-        // 敵の状態と反撃可能時間だけを提示し、注意文やHPの重複数値は出さない。
+        // 敵の状態と反撃可能時間だけを提示し、注意文やHPの重複数値は出さない
         const char* label = counter ? "反撃 ×2" :
             frame.boss.cue == BossCue::Fan ? "拡散弾" :
             frame.boss.cue == BossCue::Sweep ? "なぎ払い" :
@@ -220,7 +220,7 @@ void GameplayHud::DrawBoss(const Frame& frame, ImDrawList* draw) const
     }
 }
 
-// ステージの現在区間や次の敵、ボスの状態を短い案内として描く。
+// ステージの現在区間や次の敵、ボスの状態を短い案内として描く
 void GameplayHud::DrawStageCue(const Frame& frame, ImDrawList* draw) const
 {
     if (frame.bossDefeat <= 0 &&
@@ -258,7 +258,7 @@ void GameplayHud::DrawStageCue(const Frame& frame, ImDrawList* draw) const
 
 }
 
-// 照準位置と敵の狙いやすさ、チャージ状態を見て照準の色や形を選ぶ。
+// 照準位置と敵の狙いやすさ、チャージ状態を見て照準の色や形を選ぶ
 void GameplayHud::DrawReticle(const Frame& frame, ImDrawList* draw) const
 {
     const auto& hudMin = frame.min;
@@ -271,12 +271,12 @@ void GameplayHud::DrawReticle(const Frame& frame, ImDrawList* draw) const
     const ImVec2 center(frame.reticle.x, frame.reticle.y);
     const float radius = 21.0f * scale;
     const float thickness = (aligned ? 2.2f : 1.5f) * scale;
-    // 明るい空でも読めるよう、発光ではなく細い暗色の下描きを使う。
+    // 明るい空でも読めるよう、発光ではなく細い暗色の下描きを使う
     const auto line = [&](ImVec2 from, ImVec2 to) {
         draw->AddLine(from, to, shadow, thickness + 2.0f);
         draw->AddLine(from, to, color, thickness);
     };
-    // 中央を空けた四隅の照準。追尾機能を示す偽のロックオン演出は追加しない。
+    // 中央を空けた四隅の照準　追尾機能を示す偽のロックオン演出は追加しない
     for (const float x : { -1.0f, 1.0f }) {
         for (const float y : { -1.0f, 1.0f }) {
             const ImVec2 corner(center.x + x * radius, center.y + y * radius);
@@ -286,7 +286,7 @@ void GameplayHud::DrawReticle(const Frame& frame, ImDrawList* draw) const
     }
     line({ center.x - 3.0f * scale, center.y }, { center.x + 3.0f * scale, center.y });
     line({ center.x, center.y - 3.0f * scale }, { center.x, center.y + 3.0f * scale });
-    // 左右の二本が満ちると金色へ変わり、四隅の外に切っ先が出る。
+    // 左右の二本が満ちると金色へ変わり、四隅の外に切っ先が出る
     const float charge = frame.charge;
     for (const float side : { -1.0f, 1.0f }) {
         const float x = center.x + side * 28.0f * scale;
@@ -312,7 +312,7 @@ void GameplayHud::DrawReticle(const Frame& frame, ImDrawList* draw) const
     }
 }
 
-// 命中した座標の周辺に、命中の種類と残り時間に合った印を描く。
+// 命中した座標の周辺に、命中の種類と残り時間に合った印を描く
 void GameplayHud::DrawHitConfirm(ImDrawList* draw) const
 {
     if (hitFrames_ <= 0) {
@@ -363,7 +363,7 @@ void GameplayHud::DrawHitConfirm(ImDrawList* draw) const
 
 }
 
-// 被弾の位置と方向を使い、画面の光や線で被弾したことを示す。
+// 被弾の位置と方向を使い、画面の光や線で被弾したことを示す
 void GameplayHud::DrawDamage(const Frame& frame, ImDrawList* draw) const
 {
     if (damageFrames_ <= 0) {
@@ -499,7 +499,7 @@ void GameplayHud::DrawDamage(const Frame& frame, ImDrawList* draw) const
 
 }
 
-// 現在のチェイン数と倍率、次の撃破までの猶予を表示する。
+// 現在のチェイン数と倍率、次の撃破までの猶予を表示する
 void GameplayHud::DrawChain(const Frame& frame, ImDrawList* draw) const
 {
     const bool isChainActive = frame.chain.count >= 2;
@@ -550,7 +550,7 @@ void GameplayHud::DrawChain(const Frame& frame, ImDrawList* draw) const
     CombatHud::WingMeter(draw, timerMin, 272 * hudScale, 4 * hudScale, timerRate, accentColor, hudScale);
 }
 
-// フィーバーのゲージと発動中の残り時間を、その時点の状態に合わせて表示する。
+// フィーバーのゲージと発動中の残り時間を、その時点の状態に合わせて表示する
 void GameplayHud::DrawFever(const Frame& frame, ImDrawList* draw) const
 {
     const auto& hudMin = frame.min;
@@ -582,7 +582,7 @@ void GameplayHud::DrawFever(const Frame& frame, ImDrawList* draw) const
         position.y = std::round(position.y);
         alpha = std::clamp(alpha, 0, 255);
         const float width = (std::max)(CombatHud::ReadoutWidth(text, size, true), 1.0f);
-        // 影は暗色のまま残し、文字の頂点だけをゲージと同じ流れる虹色にする。
+        // 影は暗色のまま残し、文字の頂点だけをゲージと同じ流れる虹色にする
         draw->AddText(CombatHud::HeadingFont(), size, { position.x, position.y + 1.0f },
             IM_COL32(0, 0, 0, alpha * 4 / 5), text);
         const int firstVertex = draw->VtxBuffer.Size;
@@ -672,7 +672,7 @@ void GameplayHud::DrawFever(const Frame& frame, ImDrawList* draw) const
             1.5f);
     }
 
-    // 練習中は課題カードが発動を伝える。中央の大見出しを重ねて案内を隠さない。
+    // 練習中は課題カードが発動を伝える　中央の大見出しを重ねて案内を隠さない
     if (frame.fever.activationFlash > 0.0f && !frame.tutorial) {
         const float remaining = frame.fever.activationFlash;
         const float elapsed = 1.0f - remaining;
@@ -689,7 +689,7 @@ void GameplayHud::DrawFever(const Frame& frame, ImDrawList* draw) const
     }
 }
 
-// スキルの再使用までの時間と、発動可能・対象なしなどの状態を表示する。
+// スキルの再使用までの時間と、発動可能・対象なしなどの状態を表示する
 void GameplayHud::DrawSkill(const Frame& frame, ImDrawList* draw) const
 {
     const auto& min = frame.min;
@@ -726,7 +726,7 @@ void GameplayHud::DrawSkill(const Frame& frame, ImDrawList* draw) const
     }
 }
 
-// ボス接近の通信を、表示時間と画面の空き領域に合わせて描く。
+// ボス接近の通信を、表示時間と画面の空き領域に合わせて描く
 void GameplayHud::DrawRadio(const Frame& frame, ImDrawList* draw) const
 {
     if (frame.bossRadioSeconds <= 0.0f) { return; }
@@ -745,7 +745,7 @@ void GameplayHud::DrawRadio(const Frame& frame, ImDrawList* draw) const
     const ImVec2 anchor{ layout.radio.x - width * 0.5f,
         layout.radio.y + 8.0f * (1.0f - ease) * scale };
     const auto p = [&](float x, float y) { return ImVec2(anchor.x + x * scale, anchor.y + y * scale); };
-    // 一枚の字幕帯。警告は最初から全文を読め、送信者と本文を同じ行で追える。
+    // 一枚の字幕帯　警告は最初から全文を読め、送信者と本文を同じ行で追える
     const float unscaledWidth = width / scale;
     const ImVec2 band[] = { p(-12, -4), p(unscaledWidth + 14, -4),
         p(unscaledWidth + 6, 44), p(-20, 44) };
@@ -753,7 +753,7 @@ void GameplayHud::DrawRadio(const Frame& frame, ImDrawList* draw) const
         CombatHud::SurfaceColor(IM_COL32(8, 15, 26, static_cast<int>(207 * fade))));
     draw->AddQuadFilled(p(-12, -4), p(-8, -4), p(-16, 44), p(-20, 44),
         CombatHud::SurfaceColor(accent));
-    // 通信マークは固定の送受信記号。架空の音声波形や数値は表示しない。
+    // 通信マークは固定の送受信記号　架空の音声波形や数値は表示しない
     for (float radius : { 5.0f, 10.0f }) {
         draw->PathArcTo(p(8, 20), radius * scale, -0.9f, 0.9f, 10);
         draw->PathStroke(CombatHud::SurfaceColor(accent), 0, 1.5f * scale);
@@ -763,7 +763,7 @@ void GameplayHud::DrawRadio(const Frame& frame, ImDrawList* draw) const
         IM_COL32(239, 241, 244, static_cast<int>(255 * fade)), message);
 }
 
-// 照準、命中、被弾などの戦闘中の表示を重ねる。
+// 照準、命中、被弾などの戦闘中の表示を重ねる
 void GameplayHud::DrawCombatFeedback(const Frame& frame, ImDrawList* draw) const
 {
     DrawStageCue(frame, draw);
@@ -772,7 +772,7 @@ void GameplayHud::DrawCombatFeedback(const Frame& frame, ImDrawList* draw) const
     DrawDamage(frame, draw);
 }
 
-// 機体の状態、進行、フィーバーやスキルの情報を画面へ描く。
+// 機体の状態、進行、フィーバーやスキルの情報を画面へ描く
 void GameplayHud::DrawStatus(const Frame& frame, ImDrawList* draw) const
 {
     if (!frame.tutorial) { DrawChain(frame, draw); }

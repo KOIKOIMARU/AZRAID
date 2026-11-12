@@ -1,5 +1,5 @@
 // ===== MyGame.cpp =====
-// 起動時の読み込みを進め、アプリ全体の更新・描画・終了を管理する。
+// 起動時の読み込みを進め、アプリ全体の更新・描画・終了を管理する
 
 #include "app/runtime/MyGame.h"
 #include "app/ui/MenuUi.h"
@@ -44,14 +44,14 @@ MyGame::MyGame(GameLaunchOptions options)
 }
 MyGame::~MyGame() = default;
 
-// 共通機能を準備し、ゲームが使うシーンと起動時ロードを設定する。
+// 共通機能を準備し、ゲームが使うシーンと起動時ロードを設定する
 void MyGame::Initialize() {
     smokeTest_.Begin();
     Framework::Initialize();
 
     smokeTest_.WriteLog("SMOKE_TEST_ENGINE_INITIALIZED");
 
-    // 自動検証の成績を、実際に遊んだユーザーの記録へ混ぜない。
+    // 自動検証の成績を、実際に遊んだユーザーの記録へ混ぜない
     StageRecords* records = debugDirectStart_ ? nullptr : &stageRecords_;
     if (records) {
         auto recordPath = StageRecords::DefaultPath();
@@ -73,14 +73,14 @@ void MyGame::Initialize() {
     );
 
     startupLoadingStart_ = std::chrono::steady_clock::now();
-    // 最初のフレームは読み込み表示だけを描画し、その後に重い準備を始める。
+    // 最初のフレームは読み込み表示だけを描画し、その後に重い準備を始める
     startupLoading_ = true;
     startupFramePresented_ = false;
     startupDisplayedProgress_ = 0.0f;
     startupStep_ = 0;
 }
 
-// 起動時のロードを1フレームずつ進め、完了した時点で最初のシーンへ切り替える。
+// 起動時のロードを1フレームずつ進め、完了した時点で最初のシーンへ切り替える
 void MyGame::UpdateStartupLoading()
 {
     if (!startupFramePresented_) { return; }
@@ -116,7 +116,7 @@ void MyGame::UpdateStartupLoading()
     }
 }
 
-// 現在のロード工程と進捗を起動画面へ描く。
+// 現在のロード工程と進捗を起動画面へ描く
 void MyGame::DrawStartupLoading()
 {
     const auto* viewport = ImGui::GetMainViewport();
@@ -132,7 +132,7 @@ void MyGame::DrawStartupLoading()
     const int resourceStep = GameScene::GetResourcePreloadStep();
     const float resources = static_cast<float>(resourceStep) / static_cast<float>(GameScene::GetResourcePreloadStepCount());
     const float game = scenes->GetScenePreparationProgress(SceneType::Game);
-    // 完了した読み込みジョブと準備段階を合成する。経過時間では進めない。
+    // 完了した読み込みジョブと準備段階を合成する　経過時間では進めない
     const float progress = debugDirectStart_ ? resources * 0.78f + game * 0.22f :
         resources * 0.72f + game * 0.20f +
         (scenes->IsScenePrepared(SceneType::Title) ? 0.06f : 0.0f) +
@@ -153,7 +153,7 @@ void MyGame::DrawStartupLoading()
     const ImVec2 end{ viewport->Pos.x + viewport->Size.x, viewport->Pos.y + viewport->Size.y };
     draw->PushClipRect(viewport->Pos, end, true);
     draw->AddRectFilled(viewport->Pos, end, color(IM_COL32(6, 7, 9, 255)));
-    // タイトルと同じロゴだけを残し、読み込みの情報は右下にまとめる。
+    // タイトルと同じロゴだけを残し、読み込みの情報は右下にまとめる
     MenuUi::Brand(draw, p(520, 300), 48 * scale, paper);
     char percent[16]{};
     const int completed = startupStep_ >= 4 ? 100 : (std::min)(99, static_cast<int>(startupDisplayedProgress_ * 100.0f));
@@ -167,7 +167,7 @@ void MyGame::DrawStartupLoading()
     draw->PopClipRect();
 }
 
-// 起動時ロード、シーン更新、検証を現在の状態に合わせて進める。
+// 起動時ロード、シーン更新、検証を現在の状態に合わせて進める
 void MyGame::Update() {
     const auto updateBegin = std::chrono::steady_clock::now();
     GameRuntime::ResetInitializationTiming();
@@ -206,7 +206,7 @@ void MyGame::Update() {
         ToMilliseconds(updateBegin, std::chrono::steady_clock::now());
 }
 
-// ロード画面、通常シーン、描画結果の合成をフレームの状態に応じて切り替える。
+// ロード画面、通常シーン、描画結果の合成をフレームの状態に応じて切り替える
 void MyGame::Draw() {
     auto& timing = dxCommon_->EditFrameTiming();
     const auto drawBegin = std::chrono::steady_clock::now();
@@ -218,7 +218,7 @@ void MyGame::Draw() {
         ToMilliseconds(sectionBegin, std::chrono::steady_clock::now());
 
     sectionBegin = std::chrono::steady_clock::now();
-    // タイトル・編集画面・再入場へ飛行中のブラー設定を持ち越さない。
+    // タイトル・編集画面・再入場へ飛行中のブラー設定を持ち越さない
     dxCommon_->SetFlightBlur();
     SceneManager::GetInstance()->Draw();
     timing.sceneDrawMs =
@@ -246,7 +246,7 @@ void MyGame::Draw() {
 
     sectionBegin = std::chrono::steady_clock::now();
     dxCommon_->DrawRenderTextureToSwapChain(postEffectMode);
-    // 出撃先の景色を色補正してから、手前にあるタイトルの切断面を重ねる。
+    // 出撃先の景色を色補正してから、手前にあるタイトルの切断面を重ねる
     if (auto* titleScene = dynamic_cast<TitleScene*>(SceneManager::GetInstance()->GetCurrentScene())) {
         titleScene->DrawDepartureOverlay();
     }
@@ -275,7 +275,7 @@ void MyGame::Draw() {
     smokeTest_.ObserveFrame(*dxCommon_);
 }
 
-// シーンとゲーム固有の処理を終えてから、共通の描画・ウィンドウ機能を終了する。
+// シーンとゲーム固有の処理を終えてから、共通の描画・ウィンドウ機能を終了する
 void MyGame::Finalize() {
     smokeTest_.WritePerformanceSummary();
     SceneManager::GetInstance()->FinalizeAllScenes();

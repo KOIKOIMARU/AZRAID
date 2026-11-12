@@ -1,5 +1,5 @@
 // ===== TitleWordmark.cpp =====
-// タイトルロゴの形状と切断面を作り、機体の動きに合わせて断片と光を描く。
+// タイトルロゴの形状と切断面を作り、機体の動きに合わせて断片と光を描く
 
 #include "engine/scene/TitleWordmark.h"
 
@@ -49,7 +49,7 @@ struct LogoGeometry {
     size_t edgeCount = 0;
 };
 
-// ロゴのポリゴンから、切断面と外周の縁を描くための辺を抽出する。
+// ロゴのポリゴンから、切断面と外周の縁を描くための辺を抽出する
 void BuildLogoEdges(LogoGeometry& geometry, int pattern)
 {
     const auto cut = GetTitleCut(pattern);
@@ -65,7 +65,7 @@ void BuildLogoEdges(LogoGeometry& geometry, int pattern)
             const ImVec2 edge{b.x - a.x,b.y - a.y};
             const float length = std::hypot(edge.x,edge.y);
             if (length <= 0.001f) { continue; }
-            // 同じ文字の別ストロークに埋まる辺を除く。共有境界は外側へ少し出して判定。
+            // 同じ文字の別ストロークに埋まる辺を除く　共有境界は外側へ少し出して判定
             const ImVec2 probe{a.x + edge.y / length * 0.01f,a.y - edge.x / length * 0.01f};
             std::array<std::array<float,2>,64> covered{};
             size_t coveredCount = 0;
@@ -107,7 +107,7 @@ void BuildLogoEdges(LogoGeometry& geometry, int pattern)
     }
 }
 
-// 文字の頂点を生成し、斬撃パターンに応じてロゴの断片を作る。
+// 文字の頂点を生成し、斬撃パターンに応じてロゴの断片を作る
 LogoGeometry CreateLogoGeometry(int pattern = 0, bool whole = false)
 {
     LogoGeometry geometry;
@@ -163,8 +163,8 @@ LogoGeometry CreateLogoGeometry(int pattern = 0, bool whole = false)
             pen += 93.0f;
             break;
         case 'Z':
-            // 隣のA・Rへ張り出さず、斜線の外郭と上下の棒を同じ輪郭で繋ぐ。
-            // 継ぎ目は輪郭の内側で2単位重ね、AAの細い隙間も残さない。
+            // 隣のA・Rへ張り出さず、斜線の外郭と上下の棒を同じ輪郭で繋ぐ
+            // 継ぎ目は輪郭の内側で2単位重ね、AAの細い隙間も残さない
             polygon({ {0,0}, {88,0}, {84,20}, {0,20} });
             polygon({ {61.8667f,18}, {84.4f,18}, {84,20}, {28,80}, {4,80} });
             polygon({ {5.8667f,78}, {84.4f,78}, {80,100}, {4,100}, {4,80} });
@@ -192,8 +192,8 @@ LogoGeometry CreateLogoGeometry(int pattern = 0, bool whole = false)
         }
         ++glyph;
     }
-    // 逆方向でも一文字の全ストロークを同時に斬る。棒ごとの右端を使うと、
-    // 一部だけ未切断のまま残り、同じ文字内で分離・反動の時計がずれる。
+    // 逆方向でも一文字の全ストロークを同時に斬る　棒ごとの右端を使うと、
+    // 一部だけ未切断のまま残り、同じ文字内で分離・反動の時計がずれる
     for (size_t index = 0; index < geometry.count; ++index) {
         auto& piece = geometry.pieces[index];
         for (size_t other = 0; other < geometry.count; ++other) {
@@ -207,7 +207,7 @@ LogoGeometry CreateLogoGeometry(int pattern = 0, bool whole = false)
 }
 } // namespace
 
-// ロゴの断片に飛行と切断の動きを反映し、輪郭・奥行き・切断面の光を重ねて描く。
+// ロゴの断片に飛行と切断の動きを反映し、輪郭・奥行き・切断面の光を重ねて描く
 void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elapsed, const TitleFlyby& flyby,
     float departure, ImTextureID surface)
 {
@@ -239,7 +239,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
     };
     const float lightX = -220.0f + 1720.0f * std::fmod(idleTime / 3.60f + 0.35f, 1.0f);
     const auto cutLight = [&](ImVec2 screen) {
-        // 投影後の画面位置を使い、実機の通過と背景・文字の反射を揃える。
+        // 投影後の画面位置を使い、実機の通過と背景・文字の反射を揃える
         const float canvasX = 195.0f + (screen.x - origin.x) / scale * 1.75f;
         const float distance = (canvasX - lightX) / 130.0f;
         const float passed = (strike.bladeX - canvasX) * (departure > 0.0f ? 1.0f : TitleDashDirection(flyby.pattern));
@@ -249,7 +249,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
             (std::exp(-flybyDistance * flybyDistance) + wake) * strike.blade +
             strike.charge * 0.18f + strike.flash * 0.72f + strike.afterglow * 0.16f, 0.0f, 1.0f);
     };
-    // 側面を先にまとめて描く。隣り合う文字ストロークの側面が正面へ重ならない。
+    // 側面を先にまとめて描く　隣り合う文字ストロークの側面が正面へ重ならない
     for (int pass = 0; pass < 3; ++pass) {
         if (pass == 2) { draw->PushTexture(surface); }
         for (size_t index = 0; index < geometry.count + wholeGeometry.count; ++index) {
@@ -260,7 +260,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
             cutPresence = departure > 0.0f ?
                 (departure >= kDepartureCutTime ? Smooth((strike.bladeX - contactX) / 45.0f) : 0.0f) :
                 LogoCutPresence(flyby,contactX);
-            // 正面は一枚だけ描く。閉じ際に未切断の文字を重ねると残像に見える。
+            // 正面は一枚だけ描く　閉じ際に未切断の文字を重ねると残像に見える
             const bool opened = cutPresence > 0.001f;
             if (whole == opened) { continue; }
             separation = whole ? 0.0f : LogoSeparation(flyby);
@@ -290,7 +290,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
                     const auto b = position(contour.end,piece.half,0.0f);
                     const auto backA = position(contour.start,piece.half,1.25f);
                     const auto backB = position(contour.end,piece.half,1.25f);
-                    // 正面の奥に隠れる側面は描かない。可視面の頂点順も時計回りに揃う。
+                    // 正面の奥に隠れる側面は描かない　可視面の頂点順も時計回りに揃う
                     if ((backA.x - a.x) * (b.y - a.y) - (backA.y - a.y) * (b.x - a.x) <= 0.0f) { continue; }
                     const std::array<ImVec2, 4> side{a,backA,backB,b};
                     draw->AddConvexPolyFilled(side.data(), 4, color(IM_COL32(29,47,80,255)));
@@ -336,10 +336,10 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
                     const ImVec2 neutralScreen{value.pos.x - offset.x / 1.75f * scale,
                         value.pos.y - offset.y / 1.75f * scale};
                     const float metalX = 195.0f + (neutralScreen.x - origin.x) / scale * 1.75f;
-                    // 共通の画面座標で面全体をサンプリング。ストロークごとの頂点補間で明暗を切らない。
+                    // 共通の画面座標で面全体をサンプリング　ストロークごとの頂点補間で明暗を切らない
                     value.uv = {0.5f + (metalX - lightX) / 4096.0f,
                         (neutralScreen.y - origin.y) / (100.0f * scale)};
-                    // 衝撃面が白く開く数フレームだけ、正面を鋼のシルエットへ落とす。
+                    // 衝撃面が白く開く数フレームだけ、正面を鋼のシルエットへ落とす
                     const float silhouette = departure > 0.0f ? DepartureImpact(departure) *
                         (1.0f - Smooth((departure - kDepartureImpactTime - 0.040f) / 0.025f)) : 0.0f;
                     const int shade = static_cast<int>(255.0f * (1.0f - silhouette * 0.82f) *
@@ -354,7 +354,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
         if (pass == 2) { draw->PopTexture(); }
     }
 
-    // 読みは自然な字形を保つ。追加の斜体・立体化はせず、英字の下の面と投影・動きを共有する。
+    // 読みは自然な字形を保つ　追加の斜体・立体化はせず、英字の下の面と投影・動きを共有する
     const float kanaReveal = Smooth((elapsed - 0.85f) / 0.35f);
     if (kanaReveal > 0.001f) {
         cutPresence = 0.0f;
@@ -370,8 +370,8 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
         }
     }
 
-    // 出撃だけは線ではなく、鋭い先端と厚い腹を持つ刃で画面を斬る。
-    // 全て固定領域。待機中の斬撃と噴射には影響させない。
+    // 出撃だけは線ではなく、鋭い先端と厚い腹を持つ刃で画面を斬る
+    // 全て固定領域　待機中の斬撃と噴射には影響させない
     if (departure > 0.0f) {
         const float cutTime = departure - kDepartureCutTime;
         const float strength = strike.blade;
@@ -391,8 +391,8 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
             blade[index] = screen({x,TitleCutY(x,flyby.cutPattern)});
         }
         const auto ribbon = [&](float width, ImU32 ink) {
-            // 一枚の共有頂点メッシュにする。各区間をAA付きの四角として描くと、
-            // 重なった境界が光の板の継ぎ目になってしまう。
+            // 一枚の共有頂点メッシュにする　各区間をAA付きの四角として描くと、
+            // 重なった境界が光の板の継ぎ目になってしまう
             const ImU32 solid = CombatHud::SurfaceColor(ink);
             const ImU32 clear = solid & ~IM_COL32_A_MASK;
             const ImVec2 uv = ImGui::GetIO().Fonts->TexUvWhitePixel;
@@ -433,8 +433,8 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
             ribbon((65.0f + impact*32.0f)*(1.0f - resistance*0.55f),IM_COL32(181,207,243,static_cast<int>(225.0f*strength)));
             ribbon((29.0f + impact*23.0f)*(1.0f - resistance*0.75f),IM_COL32(255,255,255,static_cast<int>(255.0f*strength)));
         }
-        // 出撃時だけ、実際の文字の切り口を加熱する。背景へ一本の暖色線は残さない。
-        // 固定の輪郭と頂点列を使い、GPU粒子・追加画像・毎フレームの独自確保は増やさない。
+        // 出撃時だけ、実際の文字の切り口を加熱する　背景へ一本の暖色線は残さない
+        // 固定の輪郭と頂点列を使い、GPU粒子・追加画像・毎フレームの独自確保は増やさない
         if (cutTime >= 0.0f && departure < kDepartureDuration - 0.25f) {
             for (size_t pieceIndex = 0; pieceIndex < geometry.count; ++pieceIndex) {
                 const auto& piece = geometry.pieces[pieceIndex];
@@ -500,8 +500,8 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
                     band(0.0f,8.0f,0.88f,0.0f,false);
                     band(-0.65f,1.15f,0.92f,0.94f,true);
 
-                    // 火花は切り口に接触した時だけ生まれ、上下の面から離れて慣性で飛ぶ。
-                    // 上半分だけを発生源にして、同じ断面から二重に噴き出さない。
+                    // 火花は切り口に接触した時だけ生まれ、上下の面から離れて慣性で飛ぶ
+                    // 上半分だけを発生源にして、同じ断面から二重に噴き出さない
                     if (piece.half != 0) { continue; }
                     for (int spark = 0; spark < 8; ++spark) {
                         const float seed = static_cast<float>((piece.glyph*13 + static_cast<int>(edgeIndex)*7 + spark*19)%29) / 28.0f;
@@ -536,7 +536,7 @@ void DrawTitleWordmark(ImDrawList* draw, ImVec2 origin, float scale, float elaps
                         draw->AddLine(tail,head,ink(0.16f),(2.7f + seed*1.8f)*scale);
                         draw->AddLine(tail,head,ink(0.95f),(0.55f + seed*0.50f)*scale);
                         if (spark % 3 == 0) {
-                            // 熱い金属片は面を持たせる。点の光だけで切断を軽く見せない。
+                            // 熱い金属片は面を持たせる　点の光だけで切断を軽く見せない
                             const float spin = seed*6.2831853f + age*(11.0f + seed*17.0f);
                             const float size = (2.2f + seed*3.4f)*scale*(1.0f - age/lifetime*0.45f);
                             const ImVec2 axis{std::cos(spin)*size,std::sin(spin)*size};

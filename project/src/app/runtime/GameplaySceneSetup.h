@@ -1,4 +1,4 @@
-// シーンごとに必要なリソースを段階的に準備する。進捗と完了状態はこのクラスから取得する。
+// シーンごとに必要なリソースを段階的に準備する　進捗と完了状態はこのクラスから取得する
 
 #pragma once
 
@@ -30,7 +30,7 @@ class Skybox;
 class SrvManager;
 class StageEnemies;
 
-// ステージの準備を複数フレームに分ける。準備先の各クラスは呼び出し中だけ借りる。
+// ステージの準備を複数フレームに分ける　準備先の各クラスは呼び出し中だけ借りる
 class GameplaySceneSetup {
 public:
     struct Targets {
@@ -85,5 +85,5 @@ private:
     bool PrepareRenderer(const Targets& targets, bool tutorial, float railDistance);
     Step step_ = Step::Renderer;
     std::size_t sceneryItem_ = 0;
-    Model* playerModel_ = nullptr; // ModelManagerが保持するモデル。
+    Model* playerModel_ = nullptr; // ModelManagerが保持するモデル
 };

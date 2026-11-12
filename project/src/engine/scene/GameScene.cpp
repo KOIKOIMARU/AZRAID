@@ -1,5 +1,5 @@
 // ===== GameScene.cpp =====
-// 本編シーンの準備と更新・描画をGameRuntimeにつなぎ、画面の切り替えを受け渡す。
+// 本編シーンの準備と更新・描画をGameRuntimeにつなぎ、画面の切り替えを受け渡す
 
 #include "engine/scene/GameScene.h"
 
@@ -12,7 +12,7 @@ namespace {
 bool gRetryEntryRequested = false;
 }
 
-// 通常プレイの再挑戦要求を初期化へ引き継ぐ。要求はこのシーンで消費する。
+// 通常プレイの再挑戦要求を初期化へ引き継ぐ　要求はこのシーンで消費する
 GameScene::GameScene(GameRuntime::PlayMode mode, StageRecords* records) : mode_(mode)
 {
     runtime_.SetStageRecords(records);
@@ -46,6 +46,7 @@ const char* GameScene::GetResourcePreloadLabel()
     return GameResources::GetLabel();
 }
 
+// リソース先読み直前の段階ミリ秒を返す
 float GameScene::GetResourcePreloadLastStepMs()
 {
     return GameResources::GetLastStepMs();
@@ -56,7 +57,7 @@ float GameScene::GetResourcePreloadTotalMs()
     return GameResources::GetTotalMs();
 }
 
-// ゲーム本体に共通システムを渡して開始する。再挑戦の場合は短い出撃演出を使う。
+// ゲーム本体に共通システムを渡して開始する　再挑戦の場合は短い出撃演出を使う
 void GameScene::Initialize()
 {
     runtime_.SetSystems(
@@ -74,14 +75,14 @@ void GameScene::Finalize()
     runtime_.Finalize();
 }
 
-// 現在のモードでGameRuntimeの初期化を始める。続きはフレームごとの初期化へ渡す。
+// 現在のモードでGameRuntimeの初期化を始める　続きはフレームごとの初期化へ渡す
 void GameScene::BeginInitialize()
 {
     runtime_.SetSystems(dxCommon_, srvManager_, spriteCommon_, imguiManager_, input_);
     runtime_.BeginInitialize(mode_);
 }
 
-// 素材とゲームの初期化を段階的に進め、プレイ可能になったら完了を返す。
+// 素材とゲームの初期化を段階的に進め、プレイ可能になったら完了を返す
 bool GameScene::InitializeStep()
 {
     if (!runtime_.InitializeStep()) { return false; }
@@ -89,7 +90,7 @@ bool GameScene::InitializeStep()
     return true;
 }
 
-// 本編を1フレーム進め、リザルトやメニューから届いた再挑戦・シーン切り替えを処理する。
+// 本編を1フレーム進め、リザルトやメニューから届いた再挑戦・シーン切り替えを処理する
 void GameScene::Update()
 {
     runtime_.Update();

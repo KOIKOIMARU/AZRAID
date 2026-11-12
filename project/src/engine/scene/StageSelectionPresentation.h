@@ -1,4 +1,4 @@
-// ステージ選択のプレビュー、背景の開口部、出撃時のカメラの受け渡しを管理する。
+// ステージ選択のプレビュー、背景の開口部、出撃時のカメラの受け渡しを管理する
 
 #pragma once
 
@@ -15,7 +15,7 @@ class Object3dCommon;
 class SrvManager;
 class TitleRift;
 
-// タイトルの切断線を引き継ぎ、選択画面の入口と本編へ渡す出撃の時計を管理する。
+// タイトルの切断線を引き継ぎ、選択画面の入口と本編へ渡す出撃の時計を管理する
 class StageSelectionPresentation {
 public:
     StageSelectionPresentation();
@@ -36,9 +36,9 @@ public:
     void EnableInputNow();
     void BeginDeparture();
     void AdvanceClock(float delta) { stageSelectionElapsed_ += delta; }
-    // 機体を入口へ戻している間はtrue。戻り切った次のフレームから出撃へ進む。
+    // 機体を入口へ戻している間はtrue　戻り切った次のフレームから出撃へ進む
     bool AdvanceReturn(GameScene* preview, float delta);
-    // 機体が入口を通過する時刻をまたいだフレームだけtrue。
+    // 機体が入口を通過する時刻をまたいだフレームだけtrue
     bool AdvanceOverview(float delta);
     bool OverviewComplete() const;
 

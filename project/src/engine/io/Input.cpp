@@ -1,5 +1,5 @@
 // ===== Input.cpp =====
-// キーボードとマウスの状態を毎フレーム取得し、押しっぱなしと押した瞬間を判定する。
+// キーボードとマウスの状態を毎フレーム取得し、押しっぱなしと押した瞬間を判定する
 
 #include "engine/io/Input.h"
 #include <cassert>
@@ -11,7 +11,7 @@
 
 //using namespace Microsoft::WRL;
 
-// DirectInputでキーボードを作成し、ゲームウィンドウを基準に入力を受け取るよう設定する。
+// DirectInputでキーボードを作成し、ゲームウィンドウを基準に入力を受け取るよう設定する
 void Input::Initialize(WinApp* winApp) {
 	// メンバ変数にWinAppをセット
 	this->winApp = winApp;
@@ -41,9 +41,9 @@ void Input::Initialize(WinApp* winApp) {
 	assert(SUCCEEDED(result));
 }
 
-// 前回のキー状態を控え、現在のキーとマウスを読む。自動検証の入力はキー判定側で切り替える。
+// 前回のキー状態を控え、現在のキーとマウスを読む　自動検証の入力はキー判定側で切り替える
 void Input::Update() {
-	playbackActive_ = false; // 次のフレームで指定されなければ、実際の操作へ戻す。
+	playbackActive_ = false; // 次のフレームで指定されなければ、実際の操作へ戻す
 	// 更新処理
 	keyboard->Acquire();
 	// キーの状態
@@ -70,7 +70,7 @@ void Input::Update() {
 	}
 }
 
-// キーが押され続けているか調べる。入力再生中は記録された状態を使う。
+// キーが押され続けているか調べる　入力再生中は記録された状態を使う
 bool Input::PushKey(BYTE keyNumber)
 {
     if (playbackActive_) { return playbackKeys_[keyNumber] != 0; }
@@ -81,7 +81,7 @@ bool Input::PushKey(BYTE keyNumber)
 	return false;
 }
 
-// 前フレームで離していて、今回押されたキーだけを成立とする。
+// 前フレームで離していて、今回押されたキーだけを成立とする
 bool Input::TriggerKey(BYTE keyNumber)
 {
     if (playbackActive_) { return playbackKeys_[keyNumber] && !playbackPrevious_[keyNumber]; }

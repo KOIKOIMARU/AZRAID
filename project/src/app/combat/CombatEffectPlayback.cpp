@@ -1,5 +1,5 @@
 // ===== CombatEffectPlayback.cpp =====
-// 戦闘エフェクトを時間に合わせて動かし、表示に使う3Dオブジェクトを再利用する。
+// 戦闘エフェクトを時間に合わせて動かし、表示に使う3Dオブジェクトを再利用する
 
 #include "app/combat/CombatEffectPlayback.h"
 
@@ -12,7 +12,7 @@
 #include <cmath>
 #include <utility>
 
-// 演出の描画に使う共通機能とカメラを受け取り、再生用の一覧を準備する。
+// 演出の描画に使う共通機能とカメラを受け取り、再生用の一覧を準備する
 void CombatEffectPlayback::Initialize(Object3dCommon* common, Camera* camera)
 {
     Clear();
@@ -22,7 +22,7 @@ void CombatEffectPlayback::Initialize(Object3dCommon* common, Camera* camera)
     available_.reserve(kVisualCapacity);
 }
 
-// 再生中と空きの描画枠を解放し、プールの準備状態を最初に戻す。
+// 再生中と空きの描画枠を解放し、プールの準備状態を最初に戻す
 void CombatEffectPlayback::Clear()
 {
     effects_.clear();
@@ -32,14 +32,14 @@ void CombatEffectPlayback::Clear()
     missCount_ = 0;
 }
 
-// 再生中の演出をすべて回収し、確保済みの描画枠を次の演出に使えるようにする。
+// 再生中の演出をすべて回収し、確保済みの描画枠を次の演出に使えるようにする
 void CombatEffectPlayback::Reset()
 {
     for (auto& effect : effects_) { RecycleVisuals(effect); }
     effects_.clear();
 }
 
-// 演出に使い回す描画オブジェクトの枠を1つ準備する。
+// 演出に使い回す描画オブジェクトの枠を1つ準備する
 void CombatEffectPlayback::PrepareOne()
 {
     assert(common_ && effects_.empty());
@@ -54,7 +54,7 @@ void CombatEffectPlayback::PrepareOne()
     available_.push_back(std::move(object));
 }
 
-// 再生中の各演出が使っている描画オブジェクトの数を合計する。
+// 再生中の各演出が使っている描画オブジェクトの数を合計する
 size_t CombatEffectPlayback::ActiveVisualCount() const
 {
     size_t count = 0;
@@ -66,12 +66,12 @@ size_t CombatEffectPlayback::ActiveVisualCount() const
     return count;
 }
 
-// 描画枠がある演出を再生一覧へ移す。一覧が満杯なら描画枠を返し、今回の演出は登録しない。
+// 描画枠がある演出を再生一覧へ移す　一覧が満杯なら描画枠を返し、今回の演出は登録しない
 void CombatEffectPlayback::Commit(Effect&& effect)
 {
     if (effect.visualCount == 0) { return; }
-    // 記録の枠も固定にし、連射中にvectorの容量が増えることを防ぐ。
-    // 作成途中の物体も必ず戻すため、表示を省いた後も再利用枠を失わない。
+    // 記録の枠も固定にし、連射中にvectorの容量が増えることを防ぐ
+    // 作成途中の物体も必ず戻すため、表示を省いた後も再利用枠を失わない
     if (effects_.size() >= kEffectCapacity) {
         RecycleVisuals(effect);
         ++missCount_;
@@ -80,7 +80,7 @@ void CombatEffectPlayback::Commit(Effect&& effect)
     effects_.push_back(std::move(effect));
 }
 
-// 空いている描画枠を取り出す。空きがなければ割り当て失敗として記録する。
+// 空いている描画枠を取り出す　空きがなければ割り当て失敗として記録する
 std::unique_ptr<Object3d> CombatEffectPlayback::AcquireVisual()
 {
     if (available_.empty()) {
@@ -93,7 +93,7 @@ std::unique_ptr<Object3d> CombatEffectPlayback::AcquireVisual()
     return object;
 }
 
-// 演出で使い終わった描画枠を、次の発生で使える空き一覧へ戻す。
+// 演出で使い終わった描画枠を、次の発生で使える空き一覧へ戻す
 void CombatEffectPlayback::RecycleVisuals(Effect& effect)
 {
     for (size_t index = 0; index < effect.visualCount; ++index) {
@@ -110,7 +110,7 @@ void CombatEffectPlayback::RecycleVisuals(Effect& effect)
     effect.visualCount = 0;
 }
 
-// 描画用の空き枠を取得し、エフェクトの位置・色・大きさと変化量を登録する。
+// 描画用の空き枠を取得し、エフェクトの位置・色・大きさと変化量を登録する
 void CombatEffectPlayback::AddVisual(Effect& effect, Model* model, const Math::Vector3& worldPosition, const VisualSpec& spec)
 {
     if (!common_ || !model) {
@@ -153,15 +153,15 @@ void CombatEffectPlayback::AddVisual(Effect& effect, Model* model, const Math::V
     ++effect.visualCount;
 }
 
-// 演出の経過時間に合わせて見た目を変える。寿命が尽きた描画枠は次の演出で再利用する。
+// 演出の経過時間に合わせて見た目を変える　寿命が尽きた描画枠は次の演出で再利用する
 void CombatEffectPlayback::Update(float deltaSeconds)
 {
-    // 演出は実時間で進める。戦闘スローを掛けて煙や閃光を長引かせない。
+    // 演出は実時間で進める　戦闘スローを掛けて煙や閃光を長引かせない
     const float effectFrameStep = std::clamp(deltaSeconds * 60.0f, 0.5f, 4.0f);
 
     for (auto iterator = effects_.begin(); iterator != effects_.end();) {
         iterator->age += effectFrameStep;
-        // 短い閃光の枠は煙の終了を待たず返す。連続撃破時の枠不足を防ぐ。
+        // 短い閃光の枠は煙の終了を待たず返す　連続撃破時の枠不足を防ぐ
         for (size_t index = 0; index < iterator->visualCount; ++index) {
             auto& visual = iterator->visuals[index];
             if (visual.object && iterator->age >= visual.lifeEnd * static_cast<float>(iterator->duration)) {
@@ -177,7 +177,7 @@ void CombatEffectPlayback::Update(float deltaSeconds)
     }
 }
 
-// 再生中の演出に属する描画オブジェクトをまとめて描く。
+// 再生中の演出に属する描画オブジェクトをまとめて描く
 void CombatEffectPlayback::Draw()
 {
     if (effects_.empty() || !common_) {
@@ -187,7 +187,7 @@ void CombatEffectPlayback::Draw()
     const BlendMode previousBlendMode = common_->GetBlendMode();
     const DepthDrawMode previousDepthMode = common_->GetDepthDrawMode();
 
-    // 煙や閃光は深度を書き込まず、後ろのエフェクトを消してしまうことを防ぐ。
+    // 煙や閃光は深度を書き込まず、後ろのエフェクトを消してしまうことを防ぐ
     common_->SetDepthDrawMode(DepthDrawMode::ReadOnly);
 
     auto drawVisualPass = [&](bool additivePass) {
@@ -264,7 +264,7 @@ void CombatEffectPlayback::Draw()
     drawVisualPass(false);
     drawVisualPass(true);
 
-    // 共通描画設定は他の描画も使うため、呼び出し前の状態へ戻す。
+    // 共通描画設定は他の描画も使うため、呼び出し前の状態へ戻す
     common_->SetBlendMode(previousBlendMode);
     common_->SetDepthDrawMode(previousDepthMode);
     common_->CommonDrawSetting();

@@ -27,7 +27,7 @@ public:
 private:
     void UpdateStartupLoading();
     void DrawStartupLoading();
-    StageRecords stageRecords_; // アプリが所有し、タイトルと本編へ同じ記録を渡す。
+    StageRecords stageRecords_; // アプリが所有し、タイトルと本編へ同じ記録を渡す
     std::unique_ptr<AbstractSceneFactory> sceneFactory_;
     bool startupLoading_ = true;
     bool debugDirectStart_ = false;

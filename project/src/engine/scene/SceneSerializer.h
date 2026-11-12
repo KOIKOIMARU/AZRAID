@@ -1,4 +1,4 @@
-// シーンに置いたオブジェクトのモデル名や姿勢をファイルへ保存し、読み戻す。
+// シーンに置いたオブジェクトのモデル名や姿勢をファイルへ保存し、読み戻す
 
 #pragma once
 #include <string>
@@ -48,6 +48,7 @@ bool LoadScene(
     const char* path,
     std::vector<ObjectRecord>& records,
     SceneSettings& settings);
+// 名前が一致する最初の配置データを探し、見つからなければnullptrを返す
 const ObjectRecord* FindObjectByName(
     const std::vector<ObjectRecord>& records,
     const char* name);

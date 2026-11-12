@@ -1,5 +1,5 @@
 // ===== EnemyAttackPatterns.cpp =====
-// 通常敵の射撃タイミングを決め、自機の移動を見越して弾の発射方向を求める。
+// 通常敵の射撃タイミングを決め、自機の移動を見越して弾の発射方向を求める
 
 #include "app/enemy/EnemyAttackPatterns.h"
 
@@ -9,9 +9,9 @@
 
 #include <algorithm>
 
-// 自機の位置差から移動の傾向を記録し、射撃の照準補正に使う。
+// 自機の位置差から移動の傾向を記録し、射撃の照準補正に使う
 void EnemyAttackPatterns::TrackPlayerMovement(const Math::Vector3& before, const Math::Vector3& after,
-    float frameStep, bool dodging)
+    float frameStep, bool dodging) // frameStepは60fps換算で進めるフレーム数　dodgingは回避中か
 {
     const float step = (std::max)(frameStep, 0.1f);
     const Math::Vector2 velocity{
@@ -24,7 +24,7 @@ void EnemyAttackPatterns::TrackPlayerMovement(const Math::Vector3& before, const
     };
 }
 
-// 通常敵の機種に合う射撃周期を進める。発射時に固定照準と弾の並びを返す。
+// 通常敵の機種に合う射撃周期を進める　発射時に固定照準と弾の並びを返す
 std::optional<EnemyAttackPatterns::Volley> EnemyAttackPatterns::Update(Enemy& enemy,
     const Math::Vector3& playerPosition, float worldStep, int shotInterval, bool hasSupportDrone, bool visible) const
 {
@@ -35,7 +35,7 @@ std::optional<EnemyAttackPatterns::Volley> EnemyAttackPatterns::Update(Enemy& en
     case Enemy::Behavior::Formation:
         pattern = { 24.0f, 14.0f, shotInterval * 1.1f, 2 };
         if (enemy.IsTightFormation()) {
-            // 小型三機の斉射を一度に重ねない。内側から順に撃ち、狙撃機が主な脅威になる。
+            // 小型三機の斉射を一度に重ねない　内側から順に撃ち、狙撃機が主な脅威になる
             pattern = { 24.0f + enemy.GetFormationShotDelay(), 14.0f, shotInterval * 1.35f, 2 };
         }
         break;
@@ -69,7 +69,7 @@ std::optional<EnemyAttackPatterns::Volley> EnemyAttackPatterns::Update(Enemy& en
         pattern, hasSupportDrone ? 0.72f : 1.0f);
     if (event == EnemyFireControl::Event::Aim || control.IsTracking()) {
         control.aimPoint = playerPosition;
-        // 入力の未来を読むのではなく、観測した移動だけを少し先読みする。
+        // 入力の未来を読むのではなく、観測した移動だけを少し先読みする
         control.aimPoint.x += std::clamp(playerAimVelocity_.x * leadFrames, -2.6f, 2.6f);
         control.aimPoint.y += std::clamp(playerAimVelocity_.y * leadFrames, -1.3f, 1.3f);
     }
@@ -83,7 +83,7 @@ std::optional<EnemyAttackPatterns::Volley> EnemyAttackPatterns::Update(Enemy& en
         volley.shots[0].style = Style::Sniper;
         break;
     case Enemy::Behavior::Shield: {
-        // 二段の扇。中央は狙うが、外側と上下には逃げ道を残す。
+        // 二段の扇　中央は狙うが、外側と上下には逃げ道を残す
         const float y = shot == 0 ? 0.0f : (control.aimPoint.y > 2.4f ? -1.8f : 1.8f);
         for (size_t index = 0; index < volley.shots.size(); ++index) {
             volley.shots[index] = { Style::ShieldOrb, { (static_cast<float>(index) - 1.0f) * 3.4f, y } };
@@ -92,7 +92,7 @@ std::optional<EnemyAttackPatterns::Volley> EnemyAttackPatterns::Update(Enemy& en
         break;
     }
     case Enemy::Behavior::Crossfire: {
-        // 左右の敵が内側へ射線を寄せる。端か上下へ抜ければ回避できる。
+        // 左右の敵が内側へ射線を寄せる　端か上下へ抜ければ回避できる
         const float side = volley.muzzle.x < 0.0f ? -1.0f : 1.0f;
         volley.shots[0] = { Style::Crossfire, { side * (2.6f - static_cast<float>(shot) * 1.3f), 0.0f } };
         break;

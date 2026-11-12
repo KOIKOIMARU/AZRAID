@@ -1,5 +1,5 @@
 // ===== TitleRift.cpp =====
-// タイトルから出撃までの裂け目をシェーダーで描き、機体と背景の重なりを処理する。
+// タイトルから出撃までの裂け目をシェーダーで描き、機体と背景の重なりを処理する
 
 #include "engine/scene/TitleRift.h"
 
@@ -12,7 +12,7 @@
 
 using namespace TitleMotion;
 
-// 裂け目の描画で使うシェーダーとルートシグネチャ、描画パイプラインを用意する。
+// 裂け目の描画で使うシェーダーとルートシグネチャ、描画パイプラインを用意する
 void TitleRift::Initialize(DirectXCommon* dxCommon)
 {
     dxCommon_ = dxCommon;
@@ -62,7 +62,7 @@ void TitleRift::Initialize(DirectXCommon* dxCommon)
     if (FAILED(dxCommon_->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&wakePipeline_)))) {
         throw std::runtime_error("Title flight wake pipeline");
     }
-    // 本編の色補正後の描画先には深度を接続しない。
+    // 本編の色補正後の描画先には深度を接続しない
     desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
     if (FAILED(dxCommon_->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&departurePipeline_)))) {
         throw std::runtime_error("Title departure overlay pipeline");
@@ -70,7 +70,7 @@ void TitleRift::Initialize(DirectXCommon* dxCommon)
     flightDsvHeap_ = dxCommon_->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV,1,false);
 }
 
-// 画面の大きさに合わせて機体の重なり判定用の深度バッファを確保する。解像度が同じなら再利用する。
+// 画面の大きさに合わせて機体の重なり判定用の深度バッファを確保する　解像度が同じなら再利用する
 void TitleRift::PrepareFlightDepth()
 {
     DXGI_SWAP_CHAIN_DESC1 swapDesc{};
@@ -78,7 +78,7 @@ void TitleRift::PrepareFlightDepth()
         throw std::runtime_error("Title flight target size");
     }
     if (flightDepth_ && flightWidth_ == swapDesc.Width && flightHeight_ == swapDesc.Height) { return; }
-    // Updateは前フレームのPostDrawによるGPU完了待ち後。リサイズ時だけ作り直す。
+    // Updateは前フレームのPostDrawによるGPU完了待ち後　リサイズ時だけ作り直す
     D3D12_HEAP_PROPERTIES heap{};
     heap.Type = D3D12_HEAP_TYPE_DEFAULT;
     heap.CreationNodeMask = heap.VisibleNodeMask = 1;
@@ -109,7 +109,7 @@ void TitleRift::PrepareFlightDepth()
     flightHeight_ = swapDesc.Height;
 }
 
-// 機体を画面バッファへ描く際は、機体専用の深度バッファを組み合わせる。
+// 機体を画面バッファへ描く際は、機体専用の深度バッファを組み合わせる
 void TitleRift::BindFlightTarget(bool begin, bool clearDepth)
 {
     auto rtv = dxCommon_->GetRTVHeap()->GetCPUDescriptorHandleForHeapStart();
@@ -119,7 +119,7 @@ void TitleRift::BindFlightTarget(bool begin, bool clearDepth)
     const auto dsv = flightDsvHeap_->GetCPUDescriptorHandleForHeapStart();
     command->OMSetRenderTargets(1,&rtv,FALSE,begin ? &dsv : nullptr);
     if (begin) {
-        // 本編・背景の深度を持ち込まず、機体自身の前後関係だけを解決する。
+        // 本編・背景の深度を持ち込まず、機体自身の前後関係だけを解決する
         if (clearDepth) { command->ClearDepthStencilView(dsv,D3D12_CLEAR_FLAG_DEPTH,1.0f,0,0,nullptr); }
         const auto& viewport = dxCommon_->GetPresentationViewport();
         const D3D12_RECT scissor{0,0,static_cast<LONG>(flightWidth_),static_cast<LONG>(flightHeight_)};
@@ -128,7 +128,7 @@ void TitleRift::BindFlightTarget(bool begin, bool clearDepth)
     }
 }
 
-// 背景・航跡・ステージ開示などの描画モードに合わせて、裂け目の情報をシェーダーへ渡す。
+// 背景・航跡・ステージ開示などの描画モードに合わせて、裂け目の情報をシェーダーへ渡す
 void TitleRift::Draw(float elapsed, float departure, const TitleFlyby& flyby,
     const std::array<Math::Vector4, 2>& engines,
     const std::array<Math::Vector4, 12>& wakePoints, DrawMode mode,
@@ -136,7 +136,7 @@ void TitleRift::Draw(float elapsed, float departure, const TitleFlyby& flyby,
 {
     const bool wake = mode == DrawMode::Wake || mode == DrawMode::StageWake;
     const bool reveal = mode == DrawMode::Reveal || mode == DrawMode::Fade;
-    // この値は TitleRift.PS.hlsl の描画モードに対応する。
+    // この値は TitleRift.PS.hlsl の描画モードに対応する
     float shaderMode = 0.0f;
     switch (mode) {
     case DrawMode::Background: break;
@@ -154,8 +154,8 @@ void TitleRift::Draw(float elapsed, float departure, const TitleFlyby& flyby,
         engines[0].x, engines[0].y, engines[0].z, engines[0].w,
         engines[1].x, engines[1].y, engines[1].z, engines[1].w };
     if (departure > 0.0f && !wake) {
-        // 背景モードでは未使用のノズル領域を切断姿勢に使う。航跡モードは元の値を保持。
-        // root定数64個・GPU所有権を変えず、文字・自機・背景を同じCPUの時計で描く。
+        // 背景モードでは未使用のノズル領域を切断姿勢に使う　航跡モードは元の値を保持
+        // root定数64個・GPU所有権を変えず、文字・自機・背景を同じCPUの時計で描く
         const auto strike = GetDepartureStrike(departure);
         const auto offset = DepartureOffset(departure,0);
         parameters[5] = DepartureResistance(departure);
@@ -183,7 +183,7 @@ void TitleRift::Draw(float elapsed, float departure, const TitleFlyby& flyby,
     command->DrawInstanced(3, 1, 0, 0);
 }
 
-// ステージの裂け目の中心、幅、発光をシェーダーへ渡し、画面手前の幕を描く。
+// ステージの裂け目の中心、幅、発光をシェーダーへ渡し、画面手前の幕を描く
 void TitleRift::DrawStageCurtain(float elapsed, Math::Vector2 seam, float halfWidth, float heat, float zoom, float rush,
     float kick, const Math::Vector4* projectedEdges)
 {

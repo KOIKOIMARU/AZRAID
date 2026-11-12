@@ -1,5 +1,5 @@
 // ===== GameRuntimeEntry.cpp =====
-// ステージ選択中のプレビューと出撃・再挑戦の演出を進め、プレイ開始につなぐ。
+// ステージ選択中のプレビューと出撃・再挑戦の演出を進め、プレイ開始につなぐ
 
 #include "app/runtime/GameRuntime.h"
 
@@ -10,19 +10,19 @@
 #include <imgui.h>
 #include <algorithm>
 
-// ステージ選択の待機時間から、開口部を周回する自機の位置を求める。
+// ステージ選択の待機時間から、開口部を周回する自機の位置を求める
 Math::Vector3 GameRuntime::GetStagePatrolPosition(float elapsed, Math::Vector2 seam)
 {
     return StageEntryPresentation::GetStagePatrolPosition(elapsed, seam);
 }
 
-// 出撃計算へ渡す現在のレール距離、速度、モードをまとめる。
+// 出撃計算へ渡す現在のレール距離、速度、モードをまとめる
 StageEntryPresentation::FlightInput GameRuntime::GetEntryFlightInput() const
 {
     return { stageFlight_.Distance(), stageFlight_.Speed(), stageFlight_.SpeedRate(), IsTutorial() };
 }
 
-// 演出中の機体とカメラの姿勢に合わせて、噴射・空・背景・照準表示を更新する。
+// 演出中の機体とカメラの姿勢に合わせて、噴射・空・背景・照準表示を更新する
 void GameRuntime::UpdateEntryWorld(bool updateGameplayOverlays)
 {
     UpdatePlayerFlightEffects();
@@ -33,7 +33,7 @@ void GameRuntime::UpdateEntryWorld(bool updateGameplayOverlays)
     if (updateGameplayOverlays) { UpdatePlayerAim(); }
 }
 
-// ステージ選択のカメラを合わせ、待機中の自機の飛行と噴射を進める。
+// ステージ選択のカメラを合わせ、待機中の自機の飛行と噴射を進める
 void GameRuntime::UpdateStagePreview(float elapsed)
 {
     if (IsTutorial() || !camera_ || !player_ || !dxCommon_) { return; }
@@ -49,7 +49,7 @@ void GameRuntime::UpdateStagePreview(float elapsed)
     UpdateEntryWorld(false);
 }
 
-// 出撃に入る前の機体の戻りを計算し、その姿勢と速度演出を画面へ反映する。
+// 出撃に入る前の機体の戻りを計算し、その姿勢と速度演出を画面へ反映する
 void GameRuntime::UpdateStageReturn(float elapsed)
 {
     if (IsTutorial() || !camera_ || !player_ || !dxCommon_) { return; }
@@ -62,7 +62,7 @@ void GameRuntime::UpdateStageReturn(float elapsed)
     UpdateEntryWorld(false);
 }
 
-// ステージを見せるカメラと飛行のフレームを取得し、自機・背景・レール位置へ反映する。
+// ステージを見せるカメラと飛行のフレームを取得し、自機・背景・レール位置へ反映する
 void GameRuntime::UpdateStageOverview(float elapsed)
 {
     if (IsTutorial() || !camera_ || !player_ || !dxCommon_) { return; }
@@ -81,7 +81,7 @@ void GameRuntime::UpdateStageOverview(float elapsed)
     if (elapsed >= kStageStartFlightEnd - 0.65f) { UpdateMusic(); }
 }
 
-// 指定した経過時間で、出撃時の目標表示を現在の画面領域へ描く。
+// 指定した経過時間で、出撃時の目標表示を現在の画面領域へ描く
 void GameRuntime::DrawStageBriefing(float elapsed)
 {
     if (IsTutorial() || elapsed < 0.0f) { return; }
@@ -91,7 +91,7 @@ void GameRuntime::DrawStageBriefing(float elapsed)
     stageEntryPresentation_.DrawBriefing(elapsed, min, size);
 }
 
-// 再挑戦用の短い出撃演出を準備し、その後に通常操作へ戻す。
+// 再挑戦用の短い出撃演出を準備し、その後に通常操作へ戻す
 void GameRuntime::BeginRetryEntry()
 {
     if (IsTutorial() || !player_ || !camera_) { return; }
@@ -100,7 +100,7 @@ void GameRuntime::BeginRetryEntry()
     flightMotionBlur_.ResetHistory();
 }
 
-// 再挑戦時の機体とカメラを進める。trueの間は通常戦闘の更新を待つ。
+// 再挑戦時の機体とカメラを進める　trueの間は通常戦闘の更新を待つ
 bool GameRuntime::UpdateRetryEntry()
 {
     if (!stageEntryPresentation_.IsRetryActive() || !player_ || !camera_ || !dxCommon_) { return false; }
@@ -124,7 +124,7 @@ bool GameRuntime::UpdateRetryEntry()
     return true;
 }
 
-// 画面上の機体の位置・向き・大きさを受け取り、出撃演出の初期値にする。
+// 画面上の機体の位置・向き・大きさを受け取り、出撃演出の初期値にする
 void GameRuntime::BeginTitleEntry(const Math::Vector3& viewPosition, const Math::Vector3& rotation,
     const Math::Vector3& cameraRotation, float titleScale)
 {
@@ -134,7 +134,7 @@ void GameRuntime::BeginTitleEntry(const Math::Vector3& viewPosition, const Math:
         titleScale, player_->GetVisualScale(), GetEntryFlightInput());
 }
 
-// 出撃の経過時間で飛行を進め、機体とカメラの姿勢をゲームシーンへ反映する。
+// 出撃の経過時間で飛行を進め、機体とカメラの姿勢をゲームシーンへ反映する
 void GameRuntime::UpdateTitleEntry(float time)
 {
     if (!camera_ || !player_ || !dxCommon_) { return; }
@@ -156,7 +156,7 @@ bool GameRuntime::IsTitleEntryForeground() const
     return stageEntryPresentation_.IsForeground();
 }
 
-// 出撃中、前景に飛び出す機体と噴射を別の描画段階で表示する。
+// 出撃中、前景に飛び出す機体と噴射を別の描画段階で表示する
 void GameRuntime::DrawTitleEntryFlight()
 {
     if (!IsTitleEntryForeground() || !player_) { return; }
@@ -167,7 +167,7 @@ void GameRuntime::DrawTitleEntryFlight()
     DrawPlayerFlightEffects();
 }
 
-// 出撃中のHUDを演出の時間に合わせて表示し、通常戦闘の画面につなぐ。
+// 出撃中のHUDを演出の時間に合わせて表示し、通常戦闘の画面につなぐ
 void GameRuntime::DrawTitleEntryHud()
 {
     const float opacity = stageEntryPresentation_.TitleHudOpacity();
@@ -175,7 +175,7 @@ void GameRuntime::DrawTitleEntryHud()
     ImDrawList* list = ImGui::GetForegroundDrawList();
     const int begin = list->VtxBuffer.Size;
     DrawHud();
-    // 生の頂点色を使うHUDも一緒に立ち上げる。追加の画像・描画パスは不要。
+    // 生の頂点色を使うHUDも一緒に立ち上げる　追加の画像・描画パスは不要
     for (int index = begin; index < list->VtxBuffer.Size; ++index) {
         auto& color = list->VtxBuffer[index].col;
         const auto alpha = static_cast<ImU32>(static_cast<float>((color >> IM_COL32_A_SHIFT) & 0xffu) * opacity);

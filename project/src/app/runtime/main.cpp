@@ -1,5 +1,5 @@
 // ===== main.cpp =====
-// Windows側の起動入口。起動オプションを読み取り、ゲームループと終了コードを管理する。
+// Windows側の起動入口　起動オプションを読み取り、ゲームループと終了コードを管理する
 
 #include <Windows.h>
 #include <shellapi.h>
@@ -17,7 +17,7 @@
 
 namespace {
 
-// 起動場所によらず、実行ファイルに対応した素材を読み込めるよう作業ディレクトリを設定する。
+// 起動場所によらず、実行ファイルに対応した素材を読み込めるよう作業ディレクトリを設定する
 void ConfigureRuntimeDirectory()
 {
     std::array<wchar_t, 32768> executablePath{};
@@ -31,17 +31,17 @@ void ConfigureRuntimeDirectory()
         return std::filesystem::is_directory(path / L"resources", error) &&
             std::filesystem::is_directory(path / L"shaders", error);
     };
-    // 配布版はexeの隣のデータを使い、Visual Studioの作業場所は維持する。
+    // 配布版はexeの隣のデータを使い、Visual Studioの作業場所は維持する
     if (hasGameData(directory)) {
         std::filesystem::current_path(directory);
     } else if (!hasGameData(std::filesystem::current_path())) {
-        // generated/outputs/Debug・Release内のexeも、ダブルクリックで起動できる。
+        // generated/outputs/Debug・Release内のexeも、ダブルクリックで起動できる
         const auto project = directory.parent_path().parent_path().parent_path() / L"project";
         if (hasGameData(project)) { std::filesystem::current_path(project); }
     }
 }
 
-// 起動引数を正の数として読み取り、変換できない値を拒否する。
+// 起動引数を正の数として読み取り、変換できない値を拒否する
 bool TryParsePositiveNumber(const wchar_t* text, double& value)
 {
     if (!text || *text == L'\0') {
@@ -60,7 +60,7 @@ bool TryParsePositiveNumber(const wchar_t* text, double& value)
     return true;
 }
 
-// 起動引数から自動確認、開始モード、ログ出力先などの設定を読み取る。
+// 起動引数から自動確認、開始モード、ログ出力先などの設定を読み取る
 GameLaunchOptions ParseLaunchOptions()
 {
     GameLaunchOptions launch;
@@ -141,7 +141,7 @@ GameLaunchOptions ParseLaunchOptions()
 
 }
 
-// Windowsの起動入口。引数を読み、ゲームを実行して終了コードを返す。
+// Windowsの起動入口　引数を読み、ゲームを実行して終了コードを返す
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     try {
         ConfigureRuntimeDirectory();

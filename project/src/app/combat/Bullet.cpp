@@ -1,5 +1,5 @@
 // ===== Bullet.cpp =====
-// 弾1発の移動・寿命・描画を扱い、貫通弾が同じ相手に繰り返し当たらないようにする。
+// 弾1発の移動・寿命・描画を扱い、貫通弾が同じ相手に繰り返し当たらないようにする
 
 #include "app/combat/Bullet.h"
 
@@ -15,25 +15,25 @@ float Dot(const Math::Vector3& a, const Math::Vector3& b)
 
 } // namespace
 
-// 光の板がカメラへ向くよう回転を求め、さらに指定されたロールを加える。
+// 光の板がカメラへ向くよう回転を求め、さらに指定されたロールを加える
 Math::Vector3 Bullet::CalculateBillboardRotation(const Math::Matrix4x4& cameraWorld, float roll)
 {
-    // ロールはカメラのZ軸周りへ合成する。EulerのZだけへ加算すると
-    // 俯角やバンクが付いた時、軌跡がカメラへ正対しなくなる。
+    // ロールはカメラのZ軸周りへ合成する　EulerのZだけへ加算すると
+    // 俯角やバンクが付いた時、軌跡がカメラへ正対しなくなる
     const auto rotation = Math::Multiply(Math::MakeRotateZMatrix(roll), cameraWorld);
     return { std::atan2(rotation.m[1][2], rotation.m[2][2]),
         std::asin(std::clamp(-rotation.m[0][2], -1.0f, 1.0f)),
         std::atan2(rotation.m[0][1], rotation.m[0][0]) };
 }
 
-// 速度ベクトルからピッチとヨーを求め、弾の先端を進行方向に向ける。
+// 速度ベクトルからピッチとヨーを求め、弾の先端を進行方向に向ける
 Math::Vector3 Bullet::CalculateBodyRotation(const Math::Vector3& velocity)
 {
     const float horizontal = std::sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
     return { -std::atan2(velocity.y, horizontal), std::atan2(velocity.x, velocity.z), 0.0f };
 }
 
-// 弾の速度を画面向きの平面へ写し、軌跡を置く位置、回転、長さを求める。
+// 弾の速度を画面向きの平面へ写し、軌跡を置く位置、回転、長さを求める
 Bullet::TrailVisual Bullet::CalculateTrailVisual(const Math::Vector3& position,
     const Math::Vector3& velocity, float distance, const Math::Matrix4x4& cameraWorld)
 {
@@ -48,7 +48,7 @@ Bullet::TrailVisual Bullet::CalculateTrailVisual(const Math::Vector3& position,
     const float speed = std::sqrt(Dot(velocity, velocity));
     if (headDepth <= 0.05f || speed <= 0.001f || distance <= 0.0f) { return visual; }
     const Math::Vector3 direction = velocity * (1.0f / speed);
-    // 尾がカメラの手前へ跨ぐ場合は、射影の前に線分を切り詰める。
+    // 尾がカメラの手前へ跨ぐ場合は、射影の前に線分を切り詰める
     const float depthDirection = Dot(direction, forward);
     if (depthDirection > 0.001f) {
         distance = (std::min)(distance, (headDepth - 0.05f) / depthDirection);
@@ -62,7 +62,7 @@ Bullet::TrailVisual Bullet::CalculateTrailVisual(const Math::Vector3& position,
     const float x = Dot(offset, right), y = Dot(offset, up);
     const float projectedLength = std::sqrt(x * x + y * y);
     if (projectedLength <= 0.001f) { return visual; }
-    // 至近の透視拡大で軌跡が画面を覆わないよう、描画だけに上限を設ける。
+    // 至近の透視拡大で軌跡が画面を覆わないよう、描画だけに上限を設ける
     visual.length = (std::min)(projectedLength, distance * 1.5f);
     offset = offset * (visual.length / projectedLength);
     visual.center = { position.x + offset.x * 0.5f,
@@ -71,7 +71,7 @@ Bullet::TrailVisual Bullet::CalculateTrailVisual(const Math::Vector3& position,
     return visual;
 }
 
-// 渡された弾種に合わせて描画オブジェクトと光の部品を作り、使い回す弾の初期値を設定する。
+// 渡された弾種に合わせて描画オブジェクトと光の部品を作り、使い回す弾の初期値を設定する
 void Bullet::Initialize(
     Object3dCommon* object3dCommon,
     Model* model,
@@ -210,7 +210,7 @@ void Bullet::Initialize(
     }
 }
 
-// 弾を進め、残り寿命と描画姿勢を更新する。追尾弾では目標への向きも補正する。
+// 弾を進め、残り寿命と描画姿勢を更新する　追尾弾では目標への向きも補正する
 void Bullet::Update(float timeScale)
 {
     if (isDead_ || !object_) {
@@ -290,12 +290,12 @@ void Bullet::Update(float timeScale)
     }
 }
 
-// 弾が表示中なら本体を描く。カメラが指定された場合は視点に合わせて姿勢を更新する。
+// 弾が表示中なら本体を描く　カメラが指定された場合は視点に合わせて姿勢を更新する
 void Bullet::Draw(const Math::Matrix4x4* cameraWorld)
 {
     if (!isDead_ && object_) {
         if (enemyVisual_ && cameraWorld) {
-            // 敵弾は輪郭と芯を同じ面へ載せる。球の内部に発光面を埋めて隠さない。
+            // 敵弾は輪郭と芯を同じ面へ載せる　球の内部に発光面を埋めて隠さない
             object_->SetRotate(CalculateTrailVisual(translate_, velocity_, trailDistance_, *cameraWorld).rotate);
             object_->Update();
         }
@@ -303,7 +303,7 @@ void Bullet::Draw(const Math::Matrix4x4* cameraWorld)
     }
 }
 
-// 本体とは別に、弾種と速度に合わせた光や軌跡を描く。
+// 本体とは別に、弾種と速度に合わせた光や軌跡を描く
 void Bullet::DrawGlow(const Math::Matrix4x4& cameraWorld)
 {
     const float lifeRate =
@@ -387,7 +387,7 @@ void Bullet::DrawGlow(const Math::Matrix4x4& cameraWorld)
     }
 }
 
-// 残りの命中回数を1つ消費し、使い切ったら弾を終了させる。
+// 残りの命中回数を1つ消費し、使い切ったら弾を終了させる
 void Bullet::RegisterHit()
 {
     --remainingHits_;
@@ -396,7 +396,7 @@ void Bullet::RegisterHit()
     }
 }
 
-// 貫通弾が同じ敵と何フレーム重なっても、同じ弾からのダメージを1回に制限する。
+// 貫通弾が同じ敵と何フレーム重なっても、同じ弾からのダメージを1回に制限する
 bool Bullet::TryRegisterHitTarget(const void* target)
 {
     if (!target) {
@@ -416,10 +416,10 @@ bool Bullet::TryRegisterHitTarget(const void* target)
     return false;
 }
 
-// 敵が退場するときに、貫通弾が覚えていたその敵の参照を解除する。
+// 敵が退場するときに、貫通弾が覚えていたその敵の参照を解除する
 void Bullet::ForgetHitTarget(const void* target)
 {
-    // 貫通回数は消費済みのまま。破棄した敵と同じアドレスの新しい敵には命中できる。
+    // 貫通回数は消費済みのまま　破棄した敵と同じアドレスの新しい敵には命中できる
     std::replace(hitTargets_.begin(), hitTargets_.end(), target, static_cast<const void*>(nullptr));
 }
 
@@ -430,7 +430,7 @@ bool Bullet::HasHitTargetsForProbe() const
 }
 #endif
 
-// 追尾を有効にし、弾が目標へ向き直る強さを設定する。
+// 追尾を有効にし、弾が目標へ向き直る強さを設定する
 void Bullet::EnableHoming(float strength)
 {
     homingEnabled_ = true;

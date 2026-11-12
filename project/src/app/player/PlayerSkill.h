@@ -6,7 +6,7 @@
 
 class Enemy;
 
-// スキルの対象・攻撃順・再使用までの時間。敵の操作と描画は呼び出し側で行う。
+// スキルの対象・攻撃順・再使用までの時間　敵の操作と描画は呼び出し側で行う
 class PlayerSkill {
 public:
     static constexpr int kMaxTargets = 5;
@@ -14,13 +14,13 @@ public:
     static constexpr float kWindupFrames = 12.0f;
     static constexpr float kStrikeInterval = 7.0f;
     struct Target {
-        const Enemy* enemy = nullptr; // 所有しない。敵を破棄する前にInvalidateTargetで参照を外す。
-        Math::Vector3 position{};     // 消滅後も最後に確認した位置で演出を続ける。
+        const Enemy* enemy = nullptr; // 所有しない　敵を破棄する前にInvalidateTargetで参照を外す
+        Math::Vector3 position{};     // 消滅後も最後に確認した位置で演出を続ける
         int marks = 0;
     };
 
-    // 画面内にいる候補を一度ずつ渡す。距離が同じ場合は渡された順番を保つ。
-    // 固定長の上位候補だけを保持し、ボスを選んだところで対象を打ち切る。
+    // 画面内にいる候補を一度ずつ渡す　距離が同じ場合は渡された順番を保つ
+    // 固定長の上位候補だけを保持し、ボスを選んだところで対象を打ち切る
     class Selection {
     public:
         explicit Selection(bool empowered) : empowered_(empowered) {}
@@ -34,18 +34,19 @@ public:
     };
 
     void Reset();
+    // 再使用可能で対象がいるときに連撃を開始する　対象がいない場合はその通知を出す時間を設定する
     bool TryActivate(const Selection& selection);
-    void TickTimers(float frameStep); // 60fps換算。ポーズ中は呼ばない。
-    bool TryRecover();               // 使用可能へ戻った瞬間だけtrueを返す。
+    void TickTimers(float frameStep); // 60fps換算　ポーズ中は呼ばない
+    bool TryRecover();               // 使用可能へ戻った瞬間だけtrueを返す
     void RecoverOnHit(bool charged, bool destroyed);
-    void MakeReadyForPractice();     // 練習の開始条件を揃える。集計は残す。
+    void MakeReadyForPractice();     // 練習の開始条件を揃える　集計は残す
 
     void AdvanceSequence(float frameStep);
-    int ConsumeStrike();            // 今回の一撃の番号。まだ時刻に達していなければ-1。
+    int ConsumeStrike();            // 今回の一撃の番号　まだ時刻に達していなければ-1
     void MarkStrike(int strikeIndex, Math::Vector3 position);
-    bool ConsumeFinisher();         // 最後の一撃を二重に処理しない。
+    bool ConsumeFinisher();         // 最後の一撃を二重に処理しない
     void EndSequenceIfElapsed();
-    void CancelSequence();          // 参照と進行を外す。再使用時間と集計は残す。
+    void CancelSequence();          // 参照と進行を外す　再使用時間と集計は残す
     void UpdateTargetPosition(const Enemy* enemy, Math::Vector3 position);
     void InvalidateTarget(const Enemy* enemy);
     void RecordDefeat() { ++defeatCount_; }

@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-// 選択処理は敵を参照・操作しない。識別用のオブジェクトだけで検証できる。
+// 選択処理は敵を参照・操作しない　識別用のオブジェクトだけで検証できる
 class Enemy {};
 namespace {
 void Require(bool ok, const char* message) { if (!ok) { throw std::runtime_error(message); } }

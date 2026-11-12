@@ -28,7 +28,7 @@ public:
 #endif
 
 private:
-    // 敵を所有するStageEnemiesが、敵を破棄する前に参照を外す。
+    // 敵を所有するStageEnemiesが、敵を破棄する前に参照を外す
     const Enemy* target_ = nullptr;
     Math::Vector2 reticle_{};
     float lockRadius_ = kDefaultLockRadius;

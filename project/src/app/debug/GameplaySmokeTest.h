@@ -11,26 +11,26 @@ class SceneManager;
 
 struct SmokeTestOptions {
     bool enabled = false;
-    bool tutorial = false; // スモークテストの入場先。通常起動には影響しない。
-    bool tutorialPreview = false; // Debug専用。各練習の実画面で止めて確認する。
-    bool tutorialDeparture = false; // Debug専用。全練習から通常の出撃カット・本編まで通す。
-    bool playthrough = false; // Debug専用。通常の射撃・被弾ルールでクリアと再挑戦を検証。
-    bool phantom = false; // Debug専用。残像連撃の条件・対象消失・ボス撃破を試験配置で検証。
-    bool phantomPreview = false; // 映像確認用。代表フレームで止め、NEXTボタンで再開する。
-    bool chargeShot = false; // Debug専用。チャージ爆風の境界・重複命中・本編編隊への実射を検証。
+    bool tutorial = false; // スモークテストの入場先　通常起動には影響しない
+    bool tutorialPreview = false; // Debug専用　各練習の実画面で止めて確認する
+    bool tutorialDeparture = false; // Debug専用　全練習から通常の出撃カット・本編まで通す
+    bool playthrough = false; // Debug専用　通常の射撃・被弾ルールでクリアと再挑戦を検証
+    bool phantom = false; // Debug専用　残像連撃の条件・対象消失・ボス撃破を試験配置で検証
+    bool phantomPreview = false; // 映像確認用　代表フレームで止め、NEXTボタンで再開する
+    bool chargeShot = false; // Debug専用　チャージ爆風の境界・重複命中・本編編隊への実射を検証
     bool chargePreview = false;
-    bool rift = false; // Debug専用。照準・実射・裂け目通過・延長・固定プールを検証。
+    bool rift = false; // Debug専用　照準・実射・裂け目通過・延長・固定プールを検証
     bool riftPreview = false;
-    bool boss = false; // Debug専用。全攻撃・固定照準・反撃時間・音楽切替を検証。
+    bool boss = false; // Debug専用　全攻撃・固定照準・反撃時間・音楽切替を検証
     bool bossPreview = false;
-    bool defeat = false; // Debug専用。致命弾・失速・結果・再挑戦の連続性を検証する。
+    bool defeat = false; // Debug専用　致命弾・失速・結果・再挑戦の連続性を検証する
     bool defeatPreview = false;
     double gameplaySeconds = 15.0;
     double startupTimeoutSeconds = 120.0;
     std::filesystem::path logPath;
 };
 
-// 起動オプションで有効になる自動検証。通常プレイとは別に成績と計測結果を扱う。
+// 起動オプションで有効になる自動検証　通常プレイとは別に成績と計測結果を扱う
 class GameplaySmokeTest {
 public:
     explicit GameplaySmokeTest(SmokeTestOptions options);
@@ -40,6 +40,7 @@ public:
     int GetExitCode() const { return exitCode_; }
     const std::filesystem::path& GetLogPath() const { return options_.logPath; }
     void Begin();
+    // テスト完了前にウィンドウが閉じられた場合、早期終了として失敗を記録する
     void OnWindowClosed();
     void UpdateProbe(SceneManager& scenes);
     void ObservePreparation(bool startupLoading);
@@ -47,6 +48,7 @@ public:
     void Update(SceneManager& scenes);
     void WriteLog(std::string_view message) const;
     void WritePerformanceSummary() const;
+    // テストの終了コードをログに書く　完了の記録がないまま終了した場合は失敗を残す
     void End();
 
 private:
@@ -68,7 +70,7 @@ private:
         float draw = 0.0f, present = 0.0f, fence = 0.0f;
         uint32_t buffers = 0;
     };
-    // 先頭10秒を固定領域に記録し、終了後に集計。毎フレームのファイル書込を避ける。
+    // 先頭10秒を固定領域に記録し、終了後に集計　毎フレームのファイル書込を避ける
     std::array<SmokeFrameSample, 720> smokeFrameSamples_{};
     size_t smokeFrameSampleCount_ = 0;
     std::array<float, 4096> smokeTitleFrameTimes_{};

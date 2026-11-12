@@ -1,4 +1,4 @@
-// モデルの頂点・材質・骨格を管理する。同じモデルは複数のObject3dで共有できる。
+// モデルの頂点・材質・骨格を管理する　同じモデルは複数のObject3dで共有できる
 
 #pragma once
 #include <array>
@@ -16,7 +16,7 @@ using Microsoft::WRL::ComPtr;
 using namespace Math;
 
 constexpr uint32_t kNumMaxInfluence = 4;
-// Object3dの共通RootSignatureで、メッシュごとの材質色を渡すスロット。
+// Object3dの共通RootSignatureで、メッシュごとの材質色を渡すスロット
 constexpr uint32_t kModelMaterialColorRootParameter = 11;
 
 // ===========================
@@ -36,9 +36,9 @@ struct MaterialData {
     float roughness = 0.66f;
     float metallic = 0.0f;
     float normalStrength = 0.0f;
-    // glTFのbaseColorFactor。Object3dの演出用カラーとは別に保持する。
+    // glTFのbaseColorFactor　Object3dの演出用カラーとは別に保持する
     Vector4 baseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-    bool alphaBlend = false; // glTFのBLEND材質。壁などの不透明面とは別のパスで描く。
+    bool alphaBlend = false; // glTFのBLEND材質　壁などの不透明面とは別のパスで描く
 };
 
 enum class ModelDrawPass { All, Opaque, Transparent };
@@ -131,7 +131,7 @@ public:
     void Initialize(ModelCommon* modelCommon, const std::string& directoryPath, const std::string& filename);
     void Initialize(ModelCommon* modelCommon, const ModelData& modelData);
     void Initialize(ModelCommon* modelCommon, ModelData&& modelData);
-    // CPU解析のみ。テクスチャ・GPU・共有マネージャーには触れない。
+    // CPU解析のみ　テクスチャ・GPU・共有マネージャーには触れない
     static ModelData LoadCpuData(const std::string& directoryPath, const std::string& filename);
     void InitializeGeometry(ModelCommon* modelCommon, ModelData&& modelData);
     const std::vector<MaterialData>& GetMaterials() const { return modelData_.materials; }

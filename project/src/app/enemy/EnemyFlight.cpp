@@ -1,5 +1,5 @@
 // ===== EnemyFlight.cpp =====
-// 敵の種類に応じて飛行軌道と機体の向きを計算する。
+// 敵の種類に応じて飛行軌道と機体の向きを計算する
 
 #include "app/enemy/EnemyFlight.h"
 
@@ -20,7 +20,7 @@ float Lerp(float start, float end, float rate)
     return start + (end - start) * rate;
 }
 
-// 最初は速く、終点に近づくほどゆっくり進む補間率を返す。
+// 最初は速く、終点に近づくほどゆっくり進む補間率を返す
 float EaseOutCubic(float value)
 {
     const float t = Clamp01(value);
@@ -40,7 +40,7 @@ float SignNonZero(float value)
 }
 } // namespace
 
-// 初期位置、機種、進入方法を保存し、飛行と攻撃姿勢に使う時計を最初に戻す。
+// 初期位置、機種、進入方法を保存し、飛行と攻撃姿勢に使う時計を最初に戻す
 void EnemyFlight::Reset(const Math::Vector3& position, EnemyBehavior behavior, EnemyEntryStyle entryStyle)
 {
     *this = {};
@@ -50,14 +50,14 @@ void EnemyFlight::Reset(const Math::Vector3& position, EnemyBehavior behavior, E
     phase_ = position.x * 0.75f + position.y * 1.35f;
 }
 
-// 指定された時間倍率で飛行の時計を進め、機種に合う現在の位置・回転・大きさを返す。
+// 指定された時間倍率で飛行の時計を進め、機種に合う現在の位置・回転・大きさを返す
 EnemyFlight::Pose EnemyFlight::Advance(float railDistance, float timeScale, float telegraphRate, const EnemyFireControl::Cycle& fireControl)
 {
     const float motionScale = std::clamp(timeScale, 0.05f, 1.0f);
     const float actionTimeScale = behavior_ == EnemyBehavior::Boss ?
         motionScale : motionScale * kStandardEnemyActionTimeScale;
     ageTimer_ += actionTimeScale;
-    // 練習標的は入場後にその場へ残す。揺れの時計は練習中も進める。
+    // 練習標的は入場後にその場へ残す　揺れの時計は練習中も進める
     if (trainingTarget_) { ageTimer_ = (std::min)(ageTimer_, 110.0f); }
     age_ = static_cast<int>(std::floor(ageTimer_));
     moveTimer_ += actionTimeScale;
@@ -69,7 +69,7 @@ float EnemyFlight::FormationShotDelay() const
     return std::abs(baseTranslate_.x) * 9.0f;
 }
 
-// 機種を見て飛行パターンを選び、照準や当たり判定の基準になる姿勢を返す。
+// 機種を見て飛行パターンを選び、照準や当たり判定の基準になる姿勢を返す
 EnemyFlight::Pose EnemyFlight::UpdateFlight(float railDistance, float motionScale, float telegraphRate, const EnemyFireControl::Cycle& fireControl)
 {
     switch (behavior_) {
@@ -86,12 +86,12 @@ EnemyFlight::Pose EnemyFlight::UpdateFlight(float railDistance, float motionScal
     }
 }
 
-// 攻撃ごとに指定された位置へ補間し、機体の傾き、構え、発射後の反動を加える。
+// 攻撃ごとに指定された位置へ補間し、機体の傾き、構え、発射後の反動を加える
 EnemyFlight::Pose EnemyFlight::UpdateBossFlight(float railDistance, float motionScale, float telegraphRate)
 {
     Pose pose;
     const float entryRate = EaseOutCubic(static_cast<float>(age_) / 96.0f);
-    // 攻撃ごとの飛行先へ滑らかに移動。構え中にも旋回し、反撃時はゆっくり戻る。
+    // 攻撃ごとの飛行先へ滑らかに移動　構え中にも旋回し、反撃時はゆっくり戻る
     const auto previous = bossFlightOffset_;
     const float follow = (bossRecoveryRate_ > 0.0f ? 0.028f : 0.070f) * motionScale;
     bossFlightOffset_.x = Lerp(previous.x, bossFlightTarget_.x, follow);
@@ -112,7 +112,7 @@ EnemyFlight::Pose EnemyFlight::UpdateBossFlight(float railDistance, float motion
     pose.rotation.z = std::clamp(-lateral * 1.8f, -0.42f, 0.42f);
     if (bossRecoveryRate_ > 0.0f) {
         const float elapsed = 1.0f - Clamp01(bossRecoveryRate_);
-        // 発射直後に位置を飛ばさず、短く押し戻されてから戻る。
+        // 発射直後に位置を飛ばさず、短く押し戻されてから戻る
         const float recoil = std::sin(std::clamp(elapsed / 0.18f, 0.0f, 1.0f) * kPi);
         const float settle = std::sin(elapsed * kPi);
         pose.position.z += recoil * 2.0f - settle * 1.8f;
@@ -123,7 +123,7 @@ EnemyFlight::Pose EnemyFlight::UpdateBossFlight(float railDistance, float motion
     return pose;
 }
 
-// 横切る機体の進入、弧を描く接近、反対側への離脱を時刻から求める。
+// 横切る機体の進入、弧を描く接近、反対側への離脱を時刻から求める
 EnemyFlight::Pose EnemyFlight::UpdateSwoopFlight(float railDistance)
 {
     Pose pose;
@@ -171,7 +171,7 @@ EnemyFlight::Pose EnemyFlight::UpdateSwoopFlight(float railDistance)
     return pose;
 }
 
-// 横から入り、プレイヤー前方を横切る射撃機の軌道と傾きを計算する。
+// 横から入り、プレイヤー前方を横切る射撃機の軌道と傾きを計算する
 EnemyFlight::Pose EnemyFlight::UpdateStrafeShooterFlight(float railDistance)
 {
     Pose pose;
@@ -218,7 +218,7 @@ EnemyFlight::Pose EnemyFlight::UpdateStrafeShooterFlight(float railDistance)
     return pose;
 }
 
-// 高い位置から接近して急降下する敵の軌道を計算し、離脱が終われば退場を返す。
+// 高い位置から接近して急降下する敵の軌道を計算し、離脱が終われば退場を返す
 EnemyFlight::Pose EnemyFlight::UpdateDiveBomberFlight(float railDistance)
 {
     Pose pose;
@@ -273,7 +273,7 @@ EnemyFlight::Pose EnemyFlight::UpdateDiveBomberFlight(float railDistance)
     return pose;
 }
 
-// 挟撃する機体を左右の進入位置から動かし、交差攻撃に合わせて向きを変える。
+// 挟撃する機体を左右の進入位置から動かし、交差攻撃に合わせて向きを変える
 EnemyFlight::Pose EnemyFlight::UpdateCrossfireFlight(float railDistance)
 {
     Pose pose;
@@ -313,7 +313,7 @@ EnemyFlight::Pose EnemyFlight::UpdateCrossfireFlight(float railDistance)
     return pose;
 }
 
-// 狙撃機の進入と離脱を計算する。構えている間はレールからの相対位置を固定し、発射後に反動を加える。
+// 狙撃機の進入と離脱を計算する　構えている間はレールからの相対位置を固定し、発射後に反動を加える
 EnemyFlight::Pose EnemyFlight::UpdateSniperFlight(float railDistance, const EnemyFireControl::Cycle& fireControl)
 {
     Pose pose;
@@ -345,8 +345,8 @@ EnemyFlight::Pose EnemyFlight::UpdateSniperFlight(float railDistance, const Enem
     pose.rotation.z =
         std::sin(moveTimer_ * 0.020f + phase_) * 0.08f -
         exitSide * exitRunRate * 0.58f;
-    // 構えると横揺れを止める。二射後は前へ沈み、照準を合わせ直せる隙を残す。
-    // レール相対座標なので高速移動・スロー・停止でも背景に置き去りにならない。
+    // 構えると横揺れを止める　二射後は前へ沈み、照準を合わせ直せる隙を残す
+    // レール相対座標なので高速移動・スロー・停止でも背景に置き去りにならない
     const float recovery = fireControl.RecoveryElapsed();
     const bool attackPose = age_ <= 304 &&
         (fireControl.IsBraced() || (recovery >= 0.0f && recovery < 90.0f));
@@ -374,7 +374,7 @@ EnemyFlight::Pose EnemyFlight::UpdateSniperFlight(float railDistance, const Enem
     return pose;
 }
 
-// シールド機の進入と前方での動きを計算し、一定時間後に離脱させる。
+// シールド機の進入と前方での動きを計算し、一定時間後に離脱させる
 EnemyFlight::Pose EnemyFlight::UpdateShieldFlight(float railDistance)
 {
     Pose pose;
@@ -412,7 +412,7 @@ EnemyFlight::Pose EnemyFlight::UpdateShieldFlight(float railDistance)
     return pose;
 }
 
-// 後方に留まる支援機の姿勢と、支援終了後の離脱を計算する。
+// 後方に留まる支援機の姿勢と、支援終了後の離脱を計算する
 EnemyFlight::Pose EnemyFlight::UpdateSupportFlight(float railDistance)
 {
     Pose pose;
@@ -450,7 +450,7 @@ EnemyFlight::Pose EnemyFlight::UpdateSupportFlight(float railDistance)
     return pose;
 }
 
-// 編隊の並び方ごとに進入位置と揺れを求め、時間が過ぎたら離脱させる。
+// 編隊の並び方ごとに進入位置と揺れを求め、時間が過ぎたら離脱させる
 EnemyFlight::Pose EnemyFlight::UpdateFormationFlight(float railDistance)
 {
     Pose pose;
@@ -482,7 +482,7 @@ EnemyFlight::Pose EnemyFlight::UpdateFormationFlight(float railDistance)
     pose.position.y += exitRunRate * 30.0f;
     pose.position.z += exitRunRate * 16.0f;
     if (entryStyle_ == EnemyEntryStyle::TightFormation) {
-        // 各機固有の位相を使わず、ひとかたまりで入場する。照準を振って順に倒せる間隔。
+        // 各機固有の位相を使わず、ひとかたまりで入場する　照準を振って順に倒せる間隔
         pose.position.x = baseTranslate_.x * Lerp(0.75f, 1.0f, entryRate) +
             std::sin(moveTimer_ * 0.032f) * 0.38f +
             exitSide * (exitRate * 11.5f + exitRunRate * 56.0f);

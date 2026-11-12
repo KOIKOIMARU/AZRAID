@@ -1,5 +1,5 @@
 // ===== PlayerSkillPresentation.cpp =====
-// スキルの連撃と最後の一撃に合わせて、斬撃や画面エフェクトを表示する。
+// スキルの連撃と最後の一撃に合わせて、斬撃や画面エフェクトを表示する
 
 #include "app/player/PlayerSkillPresentation.h"
 
@@ -21,7 +21,7 @@ void PlayerSkillPresentation::Clear()
     finisherVisuals_ = {};
 }
 
-// スキルに重ねる画面効果と連撃表示を初期化する。
+// スキルに重ねる画面効果と連撃表示を初期化する
 void PlayerSkillPresentation::Reset()
 {
     for (auto& slash : slashes_) {
@@ -29,7 +29,7 @@ void PlayerSkillPresentation::Reset()
     }
 }
 
-// 斬撃やフィニッシュの表示時間を進め、寿命が終わった表示を片づける。
+// 斬撃やフィニッシュの表示時間を進め、寿命が終わった表示を片づける
 void PlayerSkillPresentation::Advance(float frameStep)
 {
     for (auto& slash : slashes_) {
@@ -42,7 +42,7 @@ void PlayerSkillPresentation::Advance(float frameStep)
     }
 }
 
-// 連撃の位置を受け取り、その一撃に対応する斬撃と残像を表示する。
+// 連撃の位置を受け取り、その一撃に対応する斬撃と残像を表示する
 void PlayerSkillPresentation::ShowStrike(int strike, const Math::Vector3& playerPosition,
     const Math::Vector3& targetPosition)
 {
@@ -53,7 +53,7 @@ void PlayerSkillPresentation::ShowStrike(int strike, const Math::Vector3& player
     slash.age = 0.0f;
 }
 
-// 最後の一撃に合わせて画面効果と照準の強調を始める。
+// 最後の一撃に合わせて画面効果と照準の強調を始める
 void PlayerSkillPresentation::ShowFinisher(const PlayerSkill& skill)
 {
     finisherPosition_ = {};
@@ -65,7 +65,7 @@ void PlayerSkillPresentation::ShowFinisher(const PlayerSkill& skill)
     }
 }
 
-// 連撃中に描く機体の残像や斬撃のオブジェクトを事前に準備する。
+// 連撃中に描く機体の残像や斬撃のオブジェクトを事前に準備する
 void PlayerSkillPresentation::Initialize(Object3dCommon& common, Model& ship)
 {
     Reset();
@@ -115,7 +115,7 @@ void PlayerSkillPresentation::Initialize(Object3dCommon& common, Model& ship)
     }
 }
 
-// スキルの対象位置と時刻に合わせ、3Dの残像と斬撃を描く。
+// スキルの対象位置と時刻に合わせ、3Dの残像と斬撃を描く
 void PlayerSkillPresentation::DrawObjects(Object3dCommon& common, const Camera& camera, const PlayerSkill& skill)
 {
     if (!(skill.IsActive() && skill.IsFinished()) &&
@@ -149,7 +149,7 @@ void PlayerSkillPresentation::DrawObjects(Object3dCommon& common, const Camera& 
         slash.ghost->Draw();
     }
 
-    // 暗い輪郭を持つ実体のある刃。敵の手前へ置き、手前の建物には隠れる。
+    // 暗い輪郭を持つ実体のある刃　敵の手前へ置き、手前の建物には隠れる
     common.SetBlendMode(BlendMode::Normal);
     common.CommonDrawSetting();
     const auto blade = [&](Object3d* visual, Math::Vector3 position, float angle,
@@ -205,7 +205,7 @@ void PlayerSkillPresentation::DrawObjects(Object3dCommon& common, const Camera& 
     common.CommonDrawSetting();
 }
 
-// スキル中の画面の色、照準付近の光、最後の一撃の見せ方をHUDへ重ねる。
+// スキル中の画面の色、照準付近の光、最後の一撃の見せ方をHUDへ重ねる
 void PlayerSkillPresentation::DrawOverlay(ImDrawList& draw, const Math::Vector2& min, const Math::Vector2& size,
     const Math::Matrix4x4* viewProjection, const PlayerSkill& skill) const
 {
@@ -222,7 +222,7 @@ void PlayerSkillPresentation::DrawOverlay(ImDrawList& draw, const Math::Vector2&
         const float fade = 1.0f - std::clamp((skill.Clock() - skill.FinisherTime() - 4.0f) / 16.0f, 0.0f, 1.0f);
         draw.AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y },
             IM_COL32(2, 8, 24, static_cast<int>(26 * fade)));
-        // 発動の一瞬だけ、実際に選ばれた相手へ四隅を収束させる。
+        // 発動の一瞬だけ、実際に選ばれた相手へ四隅を収束させる
         if (skill.Clock() < 12) {
             for (int index = 0; index < skill.TargetCount(); ++index) {
                 Math::Vector2 point{};

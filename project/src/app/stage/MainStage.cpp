@@ -1,5 +1,5 @@
 // ===== MainStage.cpp =====
-// 本編の配置データ。区間ごとの飛行設定と、敵・リング・カメラ演出が出る進行度を定義する。
+// 本編の配置データ　区間ごとの飛行設定と、敵・リング・カメラ演出が出る進行度を定義する
 
 #include "app/stage/MainStage.h"
 
@@ -21,14 +21,14 @@ constexpr RailEvent kRailEvents[] = {
     { 246.0f, 0.066f, 10 }
 };
 
-// 敵を撃破する前から選べる寄り道。左右・高低を変え、戦闘中の移動に理由を作る。
+// 敵を撃破する前から選べる寄り道　左右・高低を変え、戦闘中の移動に理由を作る
 constexpr GateSpawn kGateSpawns[] = {
     { 30.0f, 3.8f, 1.6f, 68.0f }, { 84.0f, -4.3f, 2.2f, 74.0f },
     { 138.0f, 4.7f, 0.5f, 70.0f }, { 192.0f, -4.4f, 1.8f, 74.0f },
     { 246.0f, 4.0f, 2.3f, 72.0f }, { 288.0f, -3.8f, 1.0f, 76.0f }
 };
 
-// 本編の配置。チュートリアルの案内・練習用HP・反撃制限は適用しない。
+// 本編の配置　チュートリアルの案内・練習用HP・反撃制限は適用しない
 constexpr EnemySpawn kEnemySpawns[] = {
     {  10.0f, -2.0f,  0.0f, 42.0f, EnemyBehavior::Formation,     EnemyEntryStyle::VFormation, 0.020f,  4,  4, 1.08f, "Opening pair" },
     {  16.0f,  2.7f,  0.2f, 42.0f, EnemyBehavior::Formation,     EnemyEntryStyle::VFormation, 0.020f,  4,  4, 1.08f, "Opening pair" },
@@ -41,7 +41,7 @@ constexpr EnemySpawn kEnemySpawns[] = {
     {  58.0f, -5.1f,  0.7f, 48.0f, EnemyBehavior::Swoop,         EnemyEntryStyle::LeftSweep,  0.032f,  6,  7, 1.08f, "Cross sweep" },
     {  66.0f, -2.6f,  0.0f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Wing lead-in" },
     {  66.0f,  0.0f,  1.0f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Wing lead-in" },
-    // 手前の三機を範囲攻撃で削るか、奥の狙撃機を先に処理するかを選べる組み合わせ。
+    // 手前の三機を範囲攻撃で削るか、奥の狙撃機を先に処理するかを選べる組み合わせ
     {  78.0f, -4.6f, -0.6f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.022f, 5, 4, 1.00f, "Sniper wing" },
     {  78.0f, -2.0f,  0.5f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Sniper wing" },
     {  78.0f,  0.6f, -0.6f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Sniper wing" },
@@ -83,7 +83,7 @@ constexpr EnemySpawn kEnemySpawns[] = {
     { 258.0f,  2.9f, -0.5f, 44.0f, EnemyBehavior::Formation,     EnemyEntryStyle::VFormation, 0.030f,  6,  6, 1.16f, "Support gate" },
     { 266.0f,  0.0f,  0.5f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Reprise lead-in" },
     { 266.0f,  2.6f, -0.5f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Reprise lead-in" },
-    // 終盤は左右を入れ替えて再登場。初見と同じ構え・攻撃なので学んだ対処を使える。
+    // 終盤は左右を入れ替えて再登場　初見と同じ構え・攻撃なので学んだ対処を使える
     { 274.0f,  4.6f, -0.6f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.030f, 6, 4, 1.00f, "Sniper wing reprise" },
     { 274.0f,  2.0f,  0.5f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Sniper wing reprise" },
     { 274.0f, -0.6f, -0.6f, 44.0f, EnemyBehavior::Formation, EnemyEntryStyle::TightFormation, 0.000f, 0, 4, 1.00f, "Sniper wing reprise" },
@@ -101,7 +101,7 @@ constexpr EnemySpawn kEnemySpawns[] = {
 };
 
 template <size_t Count>
-// 配置表が進行度の順に並び、敵の登場地点がボス登場より手前にあることを確認する。
+// 配置表が進行度の順に並び、敵の登場地点がボス登場より手前にあることを確認する
 constexpr bool IsStageEnemyScheduleValid(const EnemySpawn (&events)[Count])
 {
     for (size_t index = 0; index < Count; ++index) {

@@ -1,9 +1,9 @@
 #pragma once
 
-// 背景の共有アセット名と、街区の接続位置。
+// 背景の共有アセット名と、街区の接続位置
 namespace SceneryAssets {
     inline constexpr float kSceneryNearLocalZ = -24.0f;
-    // カメラの後方まで地表を残し、520mの遠クリップより外でだけ背景を循環させる。
+    // カメラの後方まで地表を残し、520mの遠クリップより外でだけ背景を循環させる
     inline constexpr float kSceneryRecycleNearLocalZ = -64.0f;
     inline constexpr float kSceneryFarLocalZ = 540.0f;
     inline constexpr const char* kCityStreet4LaneModelPath =
@@ -52,5 +52,5 @@ namespace SceneryAssets {
     inline constexpr float kBossApronModuleLength = 256.0f;
     inline constexpr int kBossApronModuleCount = 4;
     inline constexpr float kBossApronLoopLength = kBossApronModuleLength * kBossApronModuleCount;
-    inline constexpr float kTransitLandmarkWorldZ = 240.0f; // 市街地の途中に固定。撃破速度では位置を変えない。
+    inline constexpr float kTransitLandmarkWorldZ = 240.0f; // 市街地の途中に固定　撃破速度では位置を変えない
 }

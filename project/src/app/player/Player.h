@@ -1,4 +1,4 @@
-// 自機の座標、HP、無敵時間を管理する。入力はPlayerControl、横回避の状態はPlayerDodgeが担当する。
+// 自機の座標、HP、無敵時間を管理する　入力はPlayerControl、横回避の状態はPlayerDodgeが担当する
 
 #pragma once
 
@@ -20,6 +20,7 @@ public:
     };
 
     void Initialize(Object3dCommon* object3dCommon, Model* model);
+    // 上下左右の入力と回避を反映し、左右・上下の移動範囲内に座標を収める　被弾後の無敵時間もここで減らす
     void Update(MovementInput input, float timeScale = 1.0f, float frameStep = 1.0f);
     void Draw();
     void DrawShadow(const Math::Matrix4x4& lightViewProjection);
@@ -36,9 +37,10 @@ public:
     bool IsInvincible() const { return invincibleTimer_ > 0; }
     bool IsDodging() const { return dodge_.IsActive(); }
     int GetDodgeDirection() const { return dodge_.Direction(); }
-    bool TryConfirmJustDodge(); // 一回の回避につき、成功の通知と報酬は一度だけ。
+    bool TryConfirmJustDodge(); // 一回の回避につき、成功の通知と報酬は一度だけ
+    // 受け取ったダメージをHPから引く　生き残った場合は被弾直後の無敵時間を設定する
     void Damage(int amount);
-    void Reset(const Math::Vector3& position); // 描画オブジェクトを保持して、HP・姿勢・回避状態を戻す。
+    void Reset(const Math::Vector3& position); // 描画オブジェクトを保持して、HP・姿勢・回避状態を戻す
 
 private:
     void UpdateObjectTransform();

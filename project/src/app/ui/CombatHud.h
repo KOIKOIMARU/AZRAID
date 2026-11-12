@@ -5,7 +5,7 @@
 #include <cfloat>
 #include <cmath>
 
-// 戦闘HUD共通の文字・色・寸法。画面ごとに影や縮尺の流儀を増やさない。
+// 戦闘HUD共通の文字・色・寸法　画面ごとに影や縮尺の流儀を増やさない
 namespace CombatHud {
 inline constexpr ImU32 White = IM_COL32(239, 241, 244, 255);
 inline constexpr ImU32 Muted = IM_COL32(168, 171, 178, 255);
@@ -14,7 +14,7 @@ inline constexpr ImU32 Gold = IM_COL32(231, 189, 109, 255);
 inline constexpr ImU32 Danger = IM_COL32(237, 100, 88, 255);
 inline constexpr ImU32 Warning = IM_COL32(255, 179, 71, 255);
 inline constexpr ImU32 Track = IM_COL32(41, 42, 43, 220);
-// ゲージの意味で色を固定する。青はチャージ・スキルのエネルギー、金は報酬・フィーバー。
+// ゲージの意味で色を固定する　青はチャージ・スキルのエネルギー、金は報酬・フィーバー
 inline constexpr ImU32 GaugeGold = IM_COL32(255, 202, 70, 255);
 inline constexpr ImU32 Health = IM_COL32(66, 218, 142, 255);
 inline constexpr ImU32 Energy = IM_COL32(82, 145, 244, 255);
@@ -31,7 +31,7 @@ inline float Scale(const Math::Vector2& viewport)
     return std::clamp((std::min)(viewport.x / 1280.0f, viewport.y / 720.0f), 0.5f, 2.0f);
 }
 
-// 各計器は同じ画面端・列・間隔へ揃える。通信と操作計器は中央の射撃領域へ置かない。
+// 各計器は同じ画面端・列・間隔へ揃える　通信と操作計器は中央の射撃領域へ置かない
 struct Layout {
     float scale;
     ImVec2 health, score, chain, boss, charge, skill, fever, radio;
@@ -57,7 +57,7 @@ inline float Width(const char* text, float size, bool number = false)
     return Font(number)->CalcTextSizeA(size, FLT_MAX, 0.0f, text).x;
 }
 
-// 文字の右揃えを適用し、画素境界に合わせた位置でHUD用の書体を描く。
+// 文字の右揃えを適用し、画素境界に合わせた位置でHUD用の書体を描く
 inline void Text(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     const char* text, bool right = false, bool number = false)
 {
@@ -65,13 +65,13 @@ inline void Text(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     position.x = std::round(position.x);
     position.y = std::round(position.y);
     const int alpha = static_cast<int>((color >> IM_COL32_A_SHIFT) & 0xff);
-    // 太さは書体で確保し、何重もの縁取りで小さな文字を潰さない。
+    // 太さは書体で確保し、何重もの縁取りで小さな文字を潰さない
     draw->AddText(Font(number), size, { position.x, position.y + 1.0f },
         IM_COL32(10, 11, 12, alpha * 3 / 4), text);
     draw->AddText(Font(number), size, position, color, text);
 }
 
-// 指定した側を暗くするグラデーションを敷き、背景に重なる文字を読みやすくする。
+// 指定した側を暗くするグラデーションを敷き、背景に重なる文字を読みやすくする
 inline void Shade(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
 {
     const ImU32 dark = IM_COL32(12, 13, 14, 180);
@@ -83,7 +83,7 @@ inline void Shade(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
 inline ImFont* BattleFont() { return ImGuiManager::GetCombatFont(); }
 inline ImFont* HeadingFont() { return ImGuiManager::GetHudHeadingFont(); }
 
-// 和文を含む行は同じ和文書体で組む。短い英字・キー名だけは数字と書体を揃える。
+// 和文を含む行は同じ和文書体で組む　短い英字・キー名だけは数字と書体を揃える
 inline ImFont* ReadoutFont(const char* text, bool heading = false)
 {
     for (const char* letter = text; *letter; ++letter) {
@@ -97,7 +97,7 @@ inline float ReadoutWidth(const char* text, float size, bool heading = false)
     return ReadoutFont(text, heading)->CalcTextSizeA(size, FLT_MAX, 0.0f, text).x;
 }
 
-// 和文ラベルはメニューと同じ書体・色変換を使う。細い影だけで背景から分離する。
+// 和文ラベルはメニューと同じ書体・色変換を使う　細い影だけで背景から分離する
 inline void Readout(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     const char* text, bool right = false, bool heading = false)
 {
@@ -116,7 +116,7 @@ inline void Heading(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     Readout(draw, position, size, color, text, right, true);
 }
 
-// 大きな数字は角を落とした書体で揃える。和文の行中にある数字は和文書体で組む。
+// 大きな数字は角を落とした書体で揃える　和文の行中にある数字は和文書体で組む
 inline void Number(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     const char* text, bool right = false)
 {
@@ -126,9 +126,9 @@ inline void Number(ImDrawList* draw, ImVec2 position, float size, ImU32 color,
     draw->AddText(Font(true), size, position, SurfaceColor(color), text);
 }
 
-// ImGuiは頂点色をそのまま出力し、描画先がsRGBへ変換する。
-// 新しい計器の指定色だけを線形化し、暗部が灰色へ持ち上がるのを防ぐ。
-// タイトルや既存VFXの色・レンダリング設定は変更しない。
+// ImGuiは頂点色をそのまま出力し、描画先がsRGBへ変換する
+// 新しい計器の指定色だけを線形化し、暗部が灰色へ持ち上がるのを防ぐ
+// タイトルや既存VFXの色・レンダリング設定は変更しない
 inline ImU32 SurfaceColor(ImU32 srgb)
 {
     static const std::array<ImU32, 256> linear = [] {
@@ -146,7 +146,7 @@ inline ImU32 SurfaceColor(ImU32 srgb)
         (linear[(srgb >> IM_COL32_B_SHIFT) & 255] << IM_COL32_B_SHIFT);
 }
 
-// RGBAの各成分を個別に補間し、色と透明度を一緒に変化させる。
+// RGBAの各成分を個別に補間し、色と透明度を一緒に変化させる
 inline ImU32 Mix(ImU32 from, ImU32 to, float rate)
 {
     ImU32 result = 0;
@@ -158,7 +158,7 @@ inline ImU32 Mix(ImU32 from, ImU32 to, float rate)
     return result;
 }
 
-// タイトルと同じ前傾を数字にも通す。幅を指定した欄では長い値も収める。
+// タイトルと同じ前傾を数字にも通す　幅を指定した欄では長い値も収める
 inline void Slant(ImDrawList* draw, ImVec2 at, float size, ImU32 color,
     const char* text, bool right = false, bool shadow = true, float rise = 0.0f, float maxWidth = 0.0f)
 {
@@ -181,7 +181,7 @@ inline void Slant(ImDrawList* draw, ImVec2 at, float size, ImU32 color,
     pass(at, SurfaceColor(color));
 }
 
-// 機体の後退翼と同じ傾き。枠を増やさず、残量そのものを長い刃として描く。
+// 機体の後退翼と同じ傾き　枠を増やさず、残量そのものを長い刃として描く
 inline void WingMeter(ImDrawList* draw, ImVec2 at, float width, float thickness,
     float rate, ImU32 color, float scale, float shine = -1.0f, float rainbowTime = -1.0f)
 {
@@ -220,7 +220,7 @@ inline void WingMeter(ImDrawList* draw, ImVec2 at, float width, float thickness,
     }
 }
 
-// 通常計器は水平に読む。切っ先だけを共通化し、フィーバーの大きな刃と競合させない。
+// 通常計器は水平に読む　切っ先だけを共通化し、フィーバーの大きな刃と競合させない
 inline void FlightMeter(ImDrawList* draw, ImVec2 at, float width, float thickness,
     float rate, ImU32 color, float scale)
 {
@@ -239,7 +239,7 @@ inline void FlightMeter(ImDrawList* draw, ImVec2 at, float width, float thicknes
     }
 }
 
-// 下地は端で消える。情報ごとに箱を作らず、空と建物から文字だけを分離する。
+// 下地は端で消える　情報ごとに箱を作らず、空と建物から文字だけを分離する
 inline void Wake(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
 {
     const ImU32 dark = IM_COL32(0, 3, 9, 168), clear = IM_COL32(0, 3, 9, 0);
@@ -249,7 +249,7 @@ inline void Wake(ImDrawList* draw, ImVec2 min, ImVec2 max, bool right = false)
     draw->AddRectFilledMultiColor({ min.x, middle }, max, left, edge, clear, clear);
 }
 
-// 指定範囲を基準に角を落とした板を作り、HUDの見出しなどの背景に使う。
+// 指定範囲を基準に角を落とした板を作り、HUDの見出しなどの背景に使う
 inline void Plate(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale, int alpha = 226)
 {
     const float cut = (std::min)(8 * scale, (std::min)(max.x - min.x, max.y - min.y) * 0.25f);
@@ -258,7 +258,7 @@ inline void Plate(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale, int alp
     draw->AddConvexPolyFilled(points, 6, SurfaceColor(IM_COL32(15, 19, 25, alpha)));
 }
 
-// キー操作を示すバッジを描く。使用できるときは指定の強調色を使う。
+// キー操作を示すバッジを描く　使用できるときは指定の強調色を使う
 inline void KeyBadge(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale,
     const char* key, bool ready, ImU32 readyColor = Energy)
 {
@@ -275,7 +275,7 @@ inline void Panel(ImDrawList* draw, ImVec2 min, ImVec2 max, float scale)
     Plate(draw, min, max, scale, 244);
 }
 
-// 計器は枠を重ねず、残量と先端だけを明確にする。全ゲージで同じ断面を使う。
+// 計器は枠を重ねず、残量と先端だけを明確にする　全ゲージで同じ断面を使う
 inline void Meter(ImDrawList* draw, ImVec2 min, ImVec2 max, float rate, ImU32 color, float scale)
 {
     const ImU32 troughTop = SurfaceColor(IM_COL32(5, 9, 15, 245));
@@ -300,10 +300,10 @@ inline void Meter(ImDrawList* draw, ImVec2 min, ImVec2 max, float rate, ImU32 co
     draw->AddLine({ edge, inner.y }, { edge, end.y }, SurfaceColor(Mix(color, White, 0.48f)), scale);
 }
 
-// 胴体と左右の翼を三角形で組み合わせ、機体のアイコンを作る。
+// 胴体と左右の翼を三角形で組み合わせ、機体のアイコンを作る
 inline void ShipIcon(ImDrawList* draw, ImVec2 center, float scale, ImU32 color)
 {
-    // 自機の正面シルエット。架空の残機数を表示せず、体力の所属だけを伝える。
+    // 自機の正面シルエット　架空の残機数を表示せず、体力の所属だけを伝える
     draw->AddTriangleFilled({ center.x, center.y - 17 * scale },
         { center.x + 5 * scale, center.y + 13 * scale }, { center.x - 5 * scale, center.y + 13 * scale }, color);
     for (const float side : { -1.0f, 1.0f }) {
@@ -313,7 +313,7 @@ inline void ShipIcon(ImDrawList* draw, ImVec2 center, float scale, ImU32 color)
     }
 }
 
-// 指定の本数と間隔でゲージを分割し、現在値に応じて点灯する区画を描く。
+// 指定の本数と間隔でゲージを分割し、現在値に応じて点灯する区画を描く
 inline void Segments(ImDrawList* draw, ImVec2 min, ImVec2 max,
     float rate, ImU32 color, int count, float gap)
 {
@@ -326,10 +326,10 @@ inline void Segments(ImDrawList* draw, ImVec2 min, ImVec2 max,
     }
 }
 
-// 斜めの刃を重ねたアイコンを作り、スキルの表示に使う。
+// 斜めの刃を重ねたアイコンを作り、スキルの表示に使う
 inline void BladeIcon(ImDrawList* draw, ImVec2 center, float scale, ImU32 color)
 {
-    // 二本の刃を機体の翼と同じ鋭い形で描く。文字ではなく技を識別する目印。
+    // 二本の刃を機体の翼と同じ鋭い形で描く　文字ではなく技を識別する目印
     for (const float offset : { -7.0f, 7.0f }) {
         const ImVec2 blade[] = {
             { center.x + (offset - 9.0f) * scale, center.y + 12.0f * scale },

@@ -5,14 +5,14 @@
 class CombatProgress;
 class PlayerShooting;
 
-// リング通過とジャスト回避の報酬、フィーバー中のチャージ補充を管理する。
+// リング通過とジャスト回避の報酬、フィーバー中のチャージ補充を管理する
 class CombatRewards {
 public:
     static constexpr int kRingGaugeReward = 14;
     static constexpr int kRingFeverRecoveryFrames = 90;
 
     void Reset();
-    // 発動したフレームだけtrue。終了フレームにもチャージは補充する。
+    // 発動したフレームだけtrue　終了フレームにもチャージは補充する
     bool UpdateFever(PlayerShooting& shooting, bool canActivate);
     void ActivateFever(PlayerShooting& shooting);
     void ApplyRingPass(CombatProgress& progress, PlayerShooting& shooting, bool canEarnFever);

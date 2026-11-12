@@ -1,5 +1,5 @@
 // ===== FlightMotionBlur.cpp =====
-// カメラの動きや飛行速度から、モーションブラーに渡す値を更新する。
+// カメラの動きや飛行速度から、モーションブラーに渡す値を更新する
 
 #include "app/presentation/FlightMotionBlur.h"
 
@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <string_view>
 
-// ブラーの履歴と表示確認の設定を初期化する。
+// ブラーの履歴と表示確認の設定を初期化する
 void FlightMotionBlur::Initialize()
 {
     history_.Reset();
@@ -31,10 +31,10 @@ void FlightMotionBlur::Initialize()
     }
 }
 
-// ブラーの比較表示で方式を切り替える。停止できる場面では同じフレームで比較できる。
+// ブラーの比較表示で方式を切り替える　停止できる場面では同じフレームで比較できる
 void FlightMotionBlur::UpdateReview(const DirectXCommon& renderer, bool canFreeze)
 {
-    // 比較表示は明示した比較起動かDebugのF6だけ。通常のHUDに診断を混ぜない。
+    // 比較表示は明示した比較起動かDebugのF6だけ　通常のHUDに診断を混ぜない
 #ifdef ENABLE_DEBUG_GUI
     if (ImGui::IsKeyPressed(ImGuiKey_F6, false)) { review_ = true; mode_ = (mode_ + 1) % 4; }
 #else
@@ -64,7 +64,7 @@ void FlightMotionBlur::UpdateReview(const DirectXCommon& renderer, bool canFreez
     }
 }
 
-// 現在と直前のカメラを使ってブラー用の行列を作り、描画側へ渡す。
+// 現在と直前のカメラを使ってブラー用の行列を作り、描画側へ渡す
 void FlightMotionBlur::Apply(DirectXCommon& renderer, const Camera& camera,
     const Math::Vector2& viewportMin, const Math::Vector2& viewportSize,
     const Math::Vector3& vanishingPoint, const Math::Vector3& playerPosition,

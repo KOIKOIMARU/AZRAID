@@ -1,5 +1,5 @@
 // ===== DirectXCommon.cpp =====
-// Direct3D 12の初期化とフレームの同期を行い、描画先とポストエフェクトを管理する。
+// Direct3D 12の初期化とフレームの同期を行い、描画先とポストエフェクトを管理する
 
 #include "engine/base/DirectXCommon.h"
 #include "engine/base/Logger.h"
@@ -41,7 +41,7 @@ float ToMilliseconds(
     return std::chrono::duration<float, std::milli>(end - begin).count();
 }
 
-// Windowsのワイド文字列を、診断ログに出せるUTF-8へ変換する。
+// Windowsのワイド文字列を、診断ログに出せるUTF-8へ変換する
 std::string WideToUtf8(const wchar_t* text)
 {
     if (!text || *text == L'\0') {
@@ -62,7 +62,7 @@ std::string WideToUtf8(const wchar_t* text)
     return result;
 }
 
-// DREDが持つ名前をログ用に整える。狭い文字列がなければワイド文字列を変換する。
+// DREDが持つ名前をログ用に整える　狭い文字列がなければワイド文字列を変換する
 std::string GetDredObjectName(const char* ansiName, const wchar_t* wideName)
 {
     if (ansiName && *ansiName != '\0') {
@@ -72,7 +72,7 @@ std::string GetDredObjectName(const char* ansiName, const wchar_t* wideName)
     return convertedName.empty() ? "<unnamed>" : convertedName;
 }
 
-// DREDが記録したGPU命令を、ログで読める操作名に変換する。
+// DREDが記録したGPU命令を、ログで読める操作名に変換する
 const char* GetBreadcrumbOperationName(D3D12_AUTO_BREADCRUMB_OP operation)
 {
     switch (operation) {
@@ -117,7 +117,7 @@ const char* GetBreadcrumbOperationName(D3D12_AUTO_BREADCRUMB_OP operation)
     }
 }
 
-// DirectXのデバッグメッセージの重要度を、ログに表示する文字列へ変換する。
+// DirectXのデバッグメッセージの重要度を、ログに表示する文字列へ変換する
 const char* GetMessageSeverityName(D3D12_MESSAGE_SEVERITY severity)
 {
     switch (severity) {
@@ -132,7 +132,7 @@ const char* GetMessageSeverityName(D3D12_MESSAGE_SEVERITY severity)
 
 }
 
-// 残っているデバッグメッセージを出力し、デバイス消失が起きていれば終了時にも診断する。
+// 残っているデバッグメッセージを出力し、デバイス消失が起きていれば終了時にも診断する
 DirectXCommon::~DirectXCommon()
 {
     FlushDebugMessages();
@@ -144,7 +144,7 @@ DirectXCommon::~DirectXCommon()
     }
 }
 
-// ウィンドウに合わせてDirectXを立ち上げ、描画先と同期、画面効果に必要なものを準備する。
+// ウィンドウに合わせてDirectXを立ち上げ、描画先と同期、画面効果に必要なものを準備する
 void DirectXCommon::Initialize(WinApp* winApp)
 {
     // WinAppを覚えておく
@@ -175,12 +175,12 @@ void DirectXCommon::Initialize(WinApp* winApp)
     InitializeScissorRect();
     InitializeDXC();
 
-    // フレーム間の経過時間を測る基準時刻を初期化する。
+    // フレーム間の経過時間を測る基準時刻を初期化する
     InitializeFixFPS();
 }
 
 
-// ウィンドウの大きさに合わせて表示用バッファと関連する描画設定を更新する。
+// ウィンドウの大きさに合わせて表示用バッファと関連する描画設定を更新する
 void DirectXCommon::ResizePresentation()
 {
     RECT client{};
@@ -189,7 +189,7 @@ void DirectXCommon::ResizePresentation()
     const UINT height = static_cast<UINT>((std::max)(client.bottom, 0L));
     if (width == 0 || height == 0 || (width == presentationWidth_ && height == presentationHeight_)) { return; }
 
-    // 前フレーム・転送処理の参照が残る間は解放しない。ResizeBuffersはフレーム外だけで行う。
+    // 前フレーム・転送処理の参照が残る間は解放しない　ResizeBuffersはフレーム外だけで行う
     CheckDeviceOperation(commandQueue_->Signal(fence_.Get(), ++fenceValue_), "Resize::Signal");
     if (fence_->GetCompletedValue() < fenceValue_) {
         CheckDeviceOperation(fence_->SetEventOnCompletion(fenceValue_, fenceEvent_), "Resize::Fence");
@@ -206,17 +206,17 @@ void DirectXCommon::ResizePresentation()
     currentBackBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
     presentationWidth_ = width;
     presentationHeight_ = height;
-    // 内部解像度は維持し、表示先はクライアント領域全体を使う。
-    // カメラも表示先の縦横比を使うため、機体を横に引き伸ばさず黒帯だけをなくせる。
+    // 内部解像度は維持し、表示先はクライアント領域全体を使う
+    // カメラも表示先の縦横比を使うため、機体を横に引き伸ばさず黒帯だけをなくせる
     presentationViewport_ = { 0, 0, static_cast<float>(width), static_cast<float>(height), 0, 1 };
     presentationScissor_ = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
     FlushDebugMessages();
 }
 
-// 描画コマンドの記録を始め、シーン用の色と深度の描画先を準備する。
+// 描画コマンドの記録を始め、シーン用の色と深度の描画先を準備する
 void DirectXCommon::PreDraw() {
     assert(renderTextureResource_);
-    // 描画するシーンが登録した裂け目だけを有効にする。メニューへ戻った時も残さない。
+    // 描画するシーンが登録した裂け目だけを有効にする　メニューへ戻った時も残さない
     if (gameToneParameterData_) {
         for (size_t index = 0; index < 8; ++index) {
             gameToneParameterData_->riftCenterRadius[index] = {};
@@ -224,7 +224,7 @@ void DirectXCommon::PreDraw() {
         }
     }
 
-    // 前フレームのGPU処理はPostDrawで待機済み。記録領域を再利用して描画命令を書き始める。
+    // 前フレームのGPU処理はPostDrawで待機済み　記録領域を再利用して描画命令を書き始める
     HRESULT hr = S_OK;
     hr = commandAllocator_->Reset();
     CheckDeviceOperation(hr, "CommandAllocator::Reset");
@@ -293,10 +293,10 @@ void DirectXCommon::PreDraw() {
     commandList_->RSSetScissorRects(1, &scissorRect_);
 }
 
-// シーンの描画結果をテクスチャとして読み、指定された画面効果をかけて表示用バッファへ合成する。
+// シーンの描画結果をテクスチャとして読み、指定された画面効果をかけて表示用バッファへ合成する
 void DirectXCommon::DrawRenderTextureToSwapChain(int postEffectMode)
 {
-    // タイトル・リザルトなどブラーを使わない画面を比較平均へ混ぜない。
+    // タイトル・リザルトなどブラーを使わない画面を比較平均へ混ぜない
     blurTimestampRecorded_ = blurTimestampHeap_ && postEffectMode >= 12 && postEffectMode <= 15 &&
         gameToneParameterData_->flightBlurStrength > 0.002f;
     if (blurTimestampRecorded_) {
@@ -644,7 +644,7 @@ Math::Vector2 DirectXCommon::GetRenderTextureSize() const
     };
 }
 
-// 投影行列を逆変換し、輪郭と通常の画面効果が深度から距離を復元できるようにする。
+// 投影行列を逆変換し、輪郭と通常の画面効果が深度から距離を復元できるようにする
 void DirectXCommon::SetPostEffectProjectionMatrix(
     const Math::Matrix4x4& projectionMatrix)
 {
@@ -660,7 +660,7 @@ void DirectXCommon::SetPostEffectProjectionMatrix(
 }
 
 
-// 飛行中のぼかしの強さ、中心、自機の位置などを画面効果の定数バッファへ反映する。
+// 飛行中のぼかしの強さ、中心、自機の位置などを画面効果の定数バッファへ反映する
 void DirectXCommon::SetFlightBlur(float strength, Math::Vector2 center,
     Math::Vector2 player, Math::Vector2 reticle, float aspect)
 {
@@ -670,11 +670,11 @@ void DirectXCommon::SetFlightBlur(float strength, Math::Vector2 center,
     gameToneParameterData_->flightBlurPlayer = player;
     gameToneParameterData_->flightBlurReticle = reticle;
     gameToneParameterData_->flightBlurAspect = std::clamp(aspect, 0.5f, 4.0f);
-    // シーン描画の先頭で呼ぶ既定値は、前のシーンの速度・診断モードも消す。
+    // シーン描画の先頭で呼ぶ既定値は、前のシーンの速度・診断モードも消す
     SetCameraMotionBlur(Math::MakeIdentity4x4(), 0.0f, 1);
 }
 
-// 前フレームへ位置を写す行列と露光の強さを、ブラーを計算するシェーダーへ渡す。
+// 前フレームへ位置を写す行列と露光の強さを、ブラーを計算するシェーダーへ渡す
 void DirectXCommon::SetCameraMotionBlur(const Math::Matrix4x4& clipToPreviousClip, float exposureScale, int mode)
 {
     static_assert(sizeof(GameToneParameter) == 480);
@@ -686,7 +686,7 @@ void DirectXCommon::SetCameraMotionBlur(const Math::Matrix4x4& clipToPreviousCli
     gameToneParameterData_->cameraBlurPadding = {};
 }
 
-// リング周辺の屈折に使う画面上の中心・半径・深度を、指定したスロットに登録する。
+// リング周辺の屈折に使う画面上の中心・半径・深度を、指定したスロットに登録する
 void DirectXCommon::SetRiftLens(size_t index, Math::Vector4 centerRadius, Math::Vector4 phaseDepth)
 {
     static_assert(offsetof(GameToneParameter, riftCenterRadius) == 224);
@@ -696,7 +696,7 @@ void DirectXCommon::SetRiftLens(size_t index, Math::Vector4 centerRadius, Math::
     gameToneParameterData_->riftPhaseDepth[index] = phaseDepth;
 }
 
-// このフレームで使ったバッファを表示状態に戻し、GPUへ命令を送る。次のフレームの再利用前に完了を待つ。
+// このフレームで使ったバッファを表示状態に戻し、GPUへ命令を送る　次のフレームの再利用前に完了を待つ
 void DirectXCommon::PostDraw()
 {
     const auto postDrawBegin = std::chrono::steady_clock::now();
@@ -706,7 +706,7 @@ void DirectXCommon::PostDraw()
     UINT bbIndex = currentBackBufferIndex_; // ← 絶対に GetCurrentBackBufferIndex() を呼ばない
 
 
-    // PreDrawで選んだバッファを表示用の状態に戻す。
+    // PreDrawで選んだバッファを表示用の状態に戻す
     D3D12_RESOURCE_BARRIER barrier{};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -786,7 +786,7 @@ void DirectXCommon::PostDraw()
     }
     FlushDebugMessages();
 
-    // 描画とGPU待機が終わった時点で、次回の更新が使う経過秒数を測る。
+    // 描画とGPU待機が終わった時点で、次回の更新が使う経過秒数を測る
     UpdateFixFPS();
     const auto postDrawEnd = std::chrono::steady_clock::now();
     frameTiming_.postDrawMs = ToMilliseconds(postDrawBegin, postDrawEnd);
@@ -794,7 +794,7 @@ void DirectXCommon::PostDraw()
 
 }
 
-// GPUアダプターを選び、描画デバイスを作成する。デバッグ時は検証レイヤーや診断も有効にする。
+// GPUアダプターを選び、描画デバイスを作成する　デバッグ時は検証レイヤーや診断も有効にする
 void DirectXCommon::InitializeDevice() {
 
 #ifdef _DEBUG
@@ -891,7 +891,7 @@ void DirectXCommon::InitializeDevice() {
 #endif
 }
 
-// GPUに描画を送るキューと、命令の記録に使うアロケーター・コマンドリストを作る。
+// GPUに描画を送るキューと、命令の記録に使うアロケーター・コマンドリストを作る
 void DirectXCommon::InitializeCommand()
 {
     assert(device_);  // 念のため
@@ -931,7 +931,7 @@ void DirectXCommon::InitializeCommand()
     assert(SUCCEEDED(hr));
 }
 
-// ウィンドウに描画結果を表示するため、描画キューにつながるスワップチェーンを作る。
+// ウィンドウに描画結果を表示するため、描画キューにつながるスワップチェーンを作る
 void DirectXCommon::InitializeSwapChain()
 {
     assert(dxgiFactory_);
@@ -966,12 +966,12 @@ void DirectXCommon::InitializeSwapChain()
     // IDXGISwapChain4 にキャストしてメンバに保持
     hr = swapChain1.As(&swapChain_);
     assert(SUCCEEDED(hr));
-    // Alt+EnterはWinAppの枠なし全画面で処理し、DXGIの排他的切り替えと競合させない。
+    // Alt+EnterはWinAppの枠なし全画面で処理し、DXGIの排他的切り替えと競合させない
     CheckDeviceOperation(dxgiFactory_->MakeWindowAssociation(winApp_->GetHwnd(), DXGI_MWA_NO_ALT_ENTER),
         "DXGI::MakeWindowAssociation");
 }
 
-// 画面の奥行き判定に使う深度・ステンシル用のテクスチャを確保する。
+// 画面の奥行き判定に使う深度・ステンシル用のテクスチャを確保する
 void DirectXCommon::InitializeDepthBuffer()
 {
     assert(device_);  // 念のため
@@ -1008,7 +1008,7 @@ void DirectXCommon::InitializeDepthBuffer()
     assert(SUCCEEDED(hr));
 }
 
-// 用途と要素数を指定してディスクリプタヒープを作る。シェーダーから参照する場合は可視フラグを立てる。
+// 用途と要素数を指定してディスクリプタヒープを作る　シェーダーから参照する場合は可視フラグを立てる
 ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeap(
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     UINT numDescriptors,
@@ -1031,7 +1031,7 @@ ComPtr<ID3D12DescriptorHeap> DirectXCommon::CreateDescriptorHeap(
     return heap;
 }
 
-// 描画先と深度ビュー用のヒープを作り、スロットを計算するための要素間隔を保存する。
+// 描画先と深度ビュー用のヒープを作り、スロットを計算するための要素間隔を保存する
 void DirectXCommon::InitializeDescriptorHeaps()
 {
     rtvHeap_ = CreateDescriptorHeap(
@@ -1045,7 +1045,7 @@ void DirectXCommon::InitializeDescriptorHeaps()
         false
     );
 
-    // ヒープ内の次の番号へ進むときに必要な、記述子1個分の間隔を取得する。
+    // ヒープ内の次の番号へ進むときに必要な、記述子1個分の間隔を取得する
     rtvDescriptorSize_ =
         device_->GetDescriptorHandleIncrementSize(
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV
@@ -1059,7 +1059,7 @@ void DirectXCommon::InitializeDescriptorHeaps()
 
 
 
-// スワップチェーンから各バックバッファを取得し、描画先として使うビューを作る。
+// スワップチェーンから各バックバッファを取得し、描画先として使うビューを作る
 void DirectXCommon::InitializeRenderTargetView()
 {
     assert(device_);
@@ -1092,7 +1092,7 @@ void DirectXCommon::InitializeRenderTargetView()
 
 
 
-// CPU側のヒープ先頭から、スロット番号と要素間隔でハンドルを求める。
+// CPU側のヒープ先頭から、スロット番号と要素間隔でハンドルを求める
 D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetCPUDescriptorHandle(
     const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap,
     uint32_t descriptorSize, uint32_t index)
@@ -1103,7 +1103,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetCPUDescriptorHandle(
     return handle;
 }
 
-// GPU側のヒープ先頭から、スロット番号と要素間隔でハンドルを求める。
+// GPU側のヒープ先頭から、スロット番号と要素間隔でハンドルを求める
 D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetGPUDescriptorHandle(
     const Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap,
     uint32_t descriptorSize, uint32_t index)
@@ -1114,7 +1114,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE DirectXCommon::GetGPUDescriptorHandle(
     return handle;
 }
 
-// 深度テクスチャを奥行き判定に指定できるよう、深度ステンシルビューを作る。
+// 深度テクスチャを奥行き判定に指定できるよう、深度ステンシルビューを作る
 void DirectXCommon::InitializeDepthStencilView()
 {
     assert(device_);
@@ -1137,7 +1137,7 @@ void DirectXCommon::InitializeDepthStencilView()
         dsvHandle);
 }
 
-// GPUの処理完了を待つため、フェンスとCPUの待機イベントを作る。
+// GPUの処理完了を待つため、フェンスとCPUの待機イベントを作る
 void DirectXCommon::InitializeFence()
 {
     assert(device_);
@@ -1154,7 +1154,7 @@ void DirectXCommon::InitializeFence()
     assert(fenceEvent_ != nullptr);
 }
 
-// 初期ウィンドウ全体を描画領域にし、ビューポートの深度範囲を0～1に設定する。
+// 初期ウィンドウ全体を描画領域にし、ビューポートの深度範囲を0～1に設定する
 void DirectXCommon::InitializeViewport()
 {
     viewport_.Width = static_cast<float>(WinApp::kClientWidth);
@@ -1165,7 +1165,7 @@ void DirectXCommon::InitializeViewport()
     viewport_.MaxDepth = 1.0f;
 }
 
-// 初期ウィンドウ全体に描画できるよう、ピクセルを切り落とす境界を設定する。
+// 初期ウィンドウ全体に描画できるよう、ピクセルを切り落とす境界を設定する
 void DirectXCommon::InitializeScissorRect()
 {
     scissorRect_.left = 0;
@@ -1174,7 +1174,7 @@ void DirectXCommon::InitializeScissorRect()
     scissorRect_.bottom = WinApp::kClientHeight;
 }
 
-// HLSLのコンパイラと、シェーダーのインクルードを解決するハンドラーを用意する。
+// HLSLのコンパイラと、シェーダーのインクルードを解決するハンドラーを用意する
 void DirectXCommon::InitializeDXC()
 {
     HRESULT hr{};
@@ -1193,7 +1193,7 @@ void DirectXCommon::InitializeDXC()
 }
 
 
-// シェーダーのファイルとステージ指定からGPU用コードを作り、コンパイル結果を取得する。
+// シェーダーのファイルとステージ指定からGPU用コードを作り、コンパイル結果を取得する
 Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(
     const std::wstring& filePath,
     const wchar_t* profile)
@@ -1296,7 +1296,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> DirectXCommon::CompileShader(
     return shaderBlob;
 }
 
-// 環境変数で指定された診断ログの出力先を設定する。デバッグ時は既定の出力先も使える。
+// 環境変数で指定された診断ログの出力先を設定する　デバッグ時は既定の出力先も使える
 void DirectXCommon::InitializeDiagnosticLog()
 {
     const DWORD requiredLength = GetEnvironmentVariableW(
@@ -1347,7 +1347,7 @@ void DirectXCommon::InitializeDiagnosticLog()
 #endif
 }
 
-// デバッグ時に、デバイス消失直前のGPU命令とページフォルトをDREDで収集できるようにする。
+// デバッグ時に、デバイス消失直前のGPU命令とページフォルトをDREDで収集できるようにする
 void DirectXCommon::ConfigureDred()
 {
 #ifdef _DEBUG
@@ -1382,7 +1382,7 @@ void DirectXCommon::ConfigureDred()
 #endif
 }
 
-// 診断メッセージを改行でそろえ、通常のログと設定済みの診断ファイルへ追記する。
+// 診断メッセージを改行でそろえ、通常のログと設定済みの診断ファイルへ追記する
 void DirectXCommon::AppendDiagnosticLog(std::string_view message) const
 {
     std::string output(message);
@@ -1403,7 +1403,7 @@ void DirectXCommon::AppendDiagnosticLog(std::string_view message) const
     }
 }
 
-// D3D12の診断キューを読み、警告やエラーをログへ残す。
+// D3D12の診断キューを読み、警告やエラーをログへ残す
 void DirectXCommon::FlushDebugMessages()
 {
 #ifdef _DEBUG
@@ -1439,7 +1439,7 @@ void DirectXCommon::FlushDebugMessages()
 #endif
 }
 
-// DirectXの処理結果を調べ、失敗時は操作名とデバイス状態の診断を出す。
+// DirectXの処理結果を調べ、失敗時は操作名とデバイス状態の診断を出す
 void DirectXCommon::CheckDeviceOperation(
     HRESULT result,
     std::string_view operation)
@@ -1456,7 +1456,7 @@ void DirectXCommon::CheckDeviceOperation(
         static_cast<uint32_t>(result)));
 }
 
-// GPU処理の失敗とデバイス消失理由を記録し、取得できる場合はDREDの履歴と障害アドレスも出力する。
+// GPU処理の失敗とデバイス消失理由を記録し、取得できる場合はDREDの履歴と障害アドレスも出力する
 void DirectXCommon::ReportDeviceRemovedDiagnostics(
     std::string_view operation,
     HRESULT failureResult)
@@ -1577,7 +1577,7 @@ void DirectXCommon::ReportDeviceRemovedDiagnostics(
 }
 
 
-// CPUから書き込めるアップロードヒープに、指定バイト数のバッファを確保する。
+// CPUから書き込めるアップロードヒープに、指定バイト数のバッファを確保する
 Microsoft::WRL::ComPtr<ID3D12Resource>
 DirectXCommon::CreateBufferResource(size_t sizeInBytes)
 {
@@ -1612,7 +1612,7 @@ DirectXCommon::CreateBufferResource(size_t sizeInBytes)
     return resource;
 }
 
-// ヒープの種類、初期状態、用途フラグを指定して、必要なバイト数のバッファを確保する。
+// ヒープの種類、初期状態、用途フラグを指定して、必要なバイト数のバッファを確保する
 Microsoft::WRL::ComPtr<ID3D12Resource>
 DirectXCommon::CreateBufferResource(
     size_t sizeInBytes,
@@ -1649,7 +1649,7 @@ DirectXCommon::CreateBufferResource(
     return resource;
 }
 
-// 画像の寸法・形式・ミップ数からGPUのテクスチャ領域を確保する。
+// 画像の寸法・形式・ミップ数からGPUのテクスチャ領域を確保する
 Microsoft::WRL::ComPtr<ID3D12Resource>
 DirectXCommon::CreateTextureResource(const DirectX::TexMetadata& metadata)
 {
@@ -1686,7 +1686,7 @@ DirectXCommon::CreateTextureResource(const DirectX::TexMetadata& metadata)
     return resource;
 }
 
-// 画面効果などの描画先になる2Dテクスチャを、指定サイズ・形式・クリア色で作る。
+// 画面効果などの描画先になる2Dテクスチャを、指定サイズ・形式・クリア色で作る
 Microsoft::WRL::ComPtr<ID3D12Resource>
 DirectXCommon::CreateRenderTextureResource(
     ID3D12Device* device,
@@ -1731,7 +1731,7 @@ DirectXCommon::CreateRenderTextureResource(
     return resource;
 }
 
-// 画像の用途が変わる箇所でGPUへバリアを記録し、CPU側の現在状態も同じ値に更新する。
+// 画像の用途が変わる箇所でGPUへバリアを記録し、CPU側の現在状態も同じ値に更新する
 void DirectXCommon::TransitionResource(
     ID3D12Resource* resource,
     D3D12_RESOURCE_STATES& currentState,
@@ -1753,7 +1753,7 @@ void DirectXCommon::TransitionResource(
     currentState = nextState;
 }
 
-// 入力テクスチャと定数を設定し、指定の描画先へ全画面三角形で画面効果を適用する。
+// 入力テクスチャと定数を設定し、指定の描画先へ全画面三角形で画面効果を適用する
 void DirectXCommon::DrawFullscreenPass(
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
     uint32_t width,
@@ -1814,7 +1814,7 @@ void DirectXCommon::DrawFullscreenPass(
     commandList_->DrawInstanced(3, 1, 0, 0);
 }
 
-// 明るい部分を抜き出し、縮小とぼかしを段階的に適用してブルームの光を作る。
+// 明るい部分を抜き出し、縮小とぼかしを段階的に適用してブルームの光を作る
 void DirectXCommon::DrawBloomPasses(
     uint32_t sourceSrvIndex,
     uint32_t sourceWidth,
@@ -1891,7 +1891,7 @@ void DirectXCommon::DrawBloomPasses(
     TransitionResource(halfB.resource.Get(), halfB.state, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
-// ブルーム用のテクスチャを読み取り可能に切り替え、元の描画と合成してバックバッファへ出す。
+// ブルーム用のテクスチャを読み取り可能に切り替え、元の描画と合成してバックバッファへ出す
 void DirectXCommon::DrawBloomCompositeToBackBuffer(
     uint32_t sourceSrvIndex,
     float intensity)
@@ -1930,7 +1930,7 @@ void DirectXCommon::DrawBloomCompositeToBackBuffer(
         bloomParameterResource_->GetGPUVirtualAddress(), true);
 }
 
-// ゲームの色と深度を画面効果から参照できるようにし、全画面描画の設定と中間画像を準備する。
+// ゲームの色と深度を画面効果から参照できるようにし、全画面描画の設定と中間画像を準備する
 void DirectXCommon::InitializeRenderTexture(SrvManager* srvManager)
 {
     assert(srvManager);
@@ -2213,7 +2213,7 @@ void DirectXCommon::InitializeRenderTexture(SrvManager* srvManager)
     bloomParameterData_->padding = 0.0f;
 }
 
-// 全画面効果が参照するテクスチャ、定数バッファ、サンプラーの接続を定義する。
+// 全画面効果が参照するテクスチャ、定数バッファ、サンプラーの接続を定義する
 void DirectXCommon::CreateFullscreenRootSignature()
 {
     D3D12_DESCRIPTOR_RANGE descriptorRanges[2]{};
@@ -2287,7 +2287,7 @@ void DirectXCommon::CreateFullscreenRootSignature()
     assert(SUCCEEDED(hr));
 }
 
-// 共通の全画面頂点シェーダーに、効果ごとのピクセルシェーダーを組み合わせる。
+// 共通の全画面頂点シェーダーに、効果ごとのピクセルシェーダーを組み合わせる
 Microsoft::WRL::ComPtr<ID3D12PipelineState>
 DirectXCommon::CreateFullscreenPipelineState(
     const std::wstring& pixelShaderPath,
@@ -2342,7 +2342,7 @@ DirectXCommon::CreateFullscreenPipelineState(
     return pipelineState;
 }
 
-// CPU上の画素を転送用バッファへ詰め、GPUのテクスチャへコピーする命令を記録する。
+// CPU上の画素を転送用バッファへ詰め、GPUのテクスチャへコピーする命令を記録する
 void DirectXCommon::UploadTextureData(
     const Microsoft::WRL::ComPtr<ID3D12Resource>& texture,
     const DirectX::ScratchImage& mipImages)
@@ -2461,7 +2461,7 @@ void DirectXCommon::UploadTextureData(
     // GPU 側の処理が終わっているので破棄されてOK（スコープアウト）
 }
 
-// 複数の画像を転送する専用のコマンド記録を始める。GPUへの送信と完了待ちはEndTextureUploadBatchでまとめる。
+// 複数の画像を転送する専用のコマンド記録を始める　GPUへの送信と完了待ちはEndTextureUploadBatchでまとめる
 void DirectXCommon::BeginTextureUploadBatch()
 {
     assert(device_);
@@ -2487,7 +2487,7 @@ void DirectXCommon::BeginTextureUploadBatch()
     isTextureUploadBatchActive_ = true;
 }
 
-// まとめた画像転送をGPUに送り、転送完了後に中間バッファを解放する。
+// まとめた画像転送をGPUに送り、転送完了後に中間バッファを解放する
 void DirectXCommon::EndTextureUploadBatch()
 {
     assert(isTextureUploadBatchActive_);
@@ -2538,7 +2538,7 @@ void DirectXCommon::EndTextureUploadBatch()
     isTextureUploadBatchActive_ = false;
 }
 
-// 画像ファイルを読み、シェーダーで参照するミップ画像を準備する。
+// 画像ファイルを読み、シェーダーで参照するミップ画像を準備する
 DirectX::ScratchImage DirectXCommon::LoadTexture(
     const std::string& filePath,
     bool forceSrgb)
@@ -2590,7 +2590,7 @@ void DirectXCommon::InitializeFixFPS() {
     reference_ = std::chrono::steady_clock::now();
 }
 
-// 直前のフレームからの経過時間を測る。ソフトウェアでの60fps待機は現在無効。
+// 直前のフレームからの経過時間を測る　ソフトウェアでの60fps待機は現在無効
 void DirectXCommon::UpdateFixFPS() {
     frameTiming_.fpsWaitMs = 0.0f;
 
@@ -2601,7 +2601,7 @@ void DirectXCommon::UpdateFixFPS() {
     auto elapsed =
         std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
 
-    // マイクロ秒で測ったフレーム時間を秒へ換算する。
+    // マイクロ秒で測ったフレーム時間を秒へ換算する
     deltaTime_ = elapsed.count() / 1000000.0f;
 
     if (kUseSoftwareFrameLimiter && elapsed < kMinTime) {
@@ -2612,7 +2612,7 @@ void DirectXCommon::UpdateFixFPS() {
         const auto waitEnd = std::chrono::steady_clock::now();
         frameTiming_.fpsWaitMs = ToMilliseconds(waitBegin, waitEnd);
 
-        // ソフトウェア側で待機した場合は、更新に使う時間を60分の1秒へそろえる。
+        // ソフトウェア側で待機した場合は、更新に使う時間を60分の1秒へそろえる
         deltaTime_ = 1.0f / 60.0f;
     }
 

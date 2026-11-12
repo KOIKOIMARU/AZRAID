@@ -1,5 +1,5 @@
 // ===== PlayerCombatFeedback.cpp =====
-// 被弾とジャスト回避に応じて、カメラの揺れやスローの強さと長さを管理する。
+// 被弾とジャスト回避に応じて、カメラの揺れやスローの強さと長さを管理する
 
 #include "app/player/PlayerCombatFeedback.h"
 
@@ -7,14 +7,14 @@
 
 #include <algorithm>
 
-// ジャスト回避が成立したフレームから、時間の減速と画面表示の時計を始める。
+// ジャスト回避が成立したフレームから、時間の減速と画面表示の時計を始める
 void PlayerCombatFeedback::StartJustDodge()
 {
     dodgeFlashFrames_ = JustDodgeFeedback::kDuration;
     dodgeSlowFrames_ = JustDodgeFeedback::kSlowDuration;
 }
 
-// 命中の種類から演出の強さを選び、スローと画面揺れに使う値を決める。
+// 命中の種類から演出の強さを選び、スローと画面揺れに使う値を決める
 PlayerCombatFeedback::CameraShake PlayerCombatFeedback::StartImpact(bool charged, bool bossHit, bool destroyed)
 {
     int flashDuration = 4;
@@ -40,7 +40,7 @@ PlayerCombatFeedback::CameraShake PlayerCombatFeedback::StartImpact(bool charged
     return shake;
 }
 
-// 回避や命中で使う演出の残りフレームを進める。
+// 回避や命中で使う演出の残りフレームを進める
 void PlayerCombatFeedback::Tick()
 {
     dodgeFlashFrames_ = (std::max)(dodgeFlashFrames_ - 1, 0);
@@ -49,7 +49,7 @@ void PlayerCombatFeedback::Tick()
     impactSlowFrames_ = (std::max)(impactSlowFrames_ - 1, 0);
 }
 
-// 命中による一時的なスローと画面の光を消し、次の場面に持ち越さないようにする。
+// 命中による一時的なスローと画面の光を消し、次の場面に持ち越さないようにする
 void PlayerCombatFeedback::ClearImpact()
 {
     impactFlashFrames_ = 0;
@@ -72,7 +72,7 @@ float PlayerCombatFeedback::ImpactRate() const
     return static_cast<float>(impactFlashFrames_) / impactFlashDuration_;
 }
 
-// 回避・命中・スキルの状態から、敵や弾に適用する時間倍率を求める。
+// 回避・命中・スキルの状態から、敵や弾に適用する時間倍率を求める
 float PlayerCombatFeedback::WorldTimeScale(float skillScale) const
 {
     if (IsDodgeSlowActive()) {

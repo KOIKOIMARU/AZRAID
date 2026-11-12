@@ -1,4 +1,4 @@
-// 本編とチュートリアルの入口。入力、飛行、戦闘、描画の更新順を管理し、具体的な処理は各担当クラスへ渡す。
+// 本編とチュートリアルの入口　入力、飛行、戦闘、描画の更新順を管理し、具体的な処理は各担当クラスへ渡す
 
 #pragma once
 
@@ -53,7 +53,7 @@ class SpriteCommon;
 class SrvManager;
 struct ImDrawList;
 
-// GameSceneから呼ばれ、各担当クラスと戦闘・演出の更新順を取りまとめる。
+// GameSceneから呼ばれ、各担当クラスと戦闘・演出の更新順を取りまとめる
 class GameRuntime : private CombatResolver::Reactions {
 public:
     enum class PlayMode { Game, Tutorial };
@@ -64,7 +64,7 @@ public:
     static void ResetInitializationTiming() { GameplaySceneSetup::ResetTiming(); }
     static InitializationTiming GetInitializationTiming() { return GameplaySceneSetup::GetTiming(); }
 
-    // ゲームを動かす前に、シーン管理側が持つ描画と入力の機能を受け取る。
+    // ゲームを動かす前に、シーン管理側が持つ描画と入力の機能を受け取る
     void SetSystems(
         DirectXCommon* dxCommon,
         SrvManager* srvManager,
@@ -79,7 +79,7 @@ public:
     void Update();
     void Draw();
     void SetStageRecords(StageRecords* records) { stageResults_.SetRecords(records); }
-    // タイトルで準備した同じ本編を、入力・戦闘を進めず出撃させる。
+    // タイトルで準備した同じ本編を、入力・戦闘を進めず出撃させる
     static constexpr float kTitleEntryDuration = StageEntryTiming::kTitleEntryDuration;
     static constexpr float kTitleEntryWorldTime = StageEntryTiming::kTitleEntryWorldTime;
     static constexpr float kTitleEntryDiveTime = StageEntryTiming::kTitleEntryDiveTime;
@@ -122,7 +122,7 @@ public:
     int GetPlayerHp() const;
     int GetPlayerMaxHp() const { return 100; }
 #ifdef _DEBUG
-    // 起動時に指定した自動検証の入口。検証ごとの操作と判定は実装ファイルに分けている。
+    // 起動時に指定した自動検証の入口　検証ごとの操作と判定は実装ファイルに分けている
     bool RunPlaythroughProbe(const std::string& logPath, bool tutorialPreview = false, bool tutorialDeparture = false);
     bool RunTutorialProbe(const std::string& logPath, bool preview = false, bool departure = false);
     bool RunPhantomProbe(const std::string& logPath, bool preview = false);
@@ -134,7 +134,7 @@ public:
 #endif
 
 private:
-    // リングの配置と通過を管理し、通過時に加速と報酬を適用する。
+    // リングの配置と通過を管理し、通過時に加速と報酬を適用する
     RingGates ringGates_;
     void ResetRifts();
     void SpawnRift(const Math::Vector3& position);
@@ -145,9 +145,9 @@ private:
     void RequestBossRadio();
     void UpdateBossRadio(float deltaSeconds);
 #ifdef _DEBUG
-    bool phantomPreviewPaused_ = false; // 明示的な映像確認テストだけで演出をコマ止めする。
+    bool phantomPreviewPaused_ = false; // 明示的な映像確認テストだけで演出をコマ止めする
 #endif
-    // Qキーで使うスキルの開始・連撃・終了を、敵や描画とつなぐ。
+    // Qキーで使うスキルの開始・連撃・終了を、敵や描画とつなぐ
     void ResetPhantomRaid();
     void GrantPhantomRaid();
     bool TryActivatePhantomRaid();
@@ -155,10 +155,11 @@ private:
     bool IsPhantomRaidActive() const { return playerSkill_.IsActive(); }
     PlayerSkill playerSkill_;
     PlayerSkillPresentation playerSkillPresentation_;
+    // keyは効果音の識別名　pitchは再生周波数の倍率
     void PlaySfx(const char* key, float pitch = 1.0f) override;
     void UpdateMusic();
     GameplayAudio audio_;
-    PlayMode playMode_ = PlayMode::Game; // 入場時に確定。本編と練習の進行・成績を混在させない。
+    PlayMode playMode_ = PlayMode::Game; // 入場時に確定　本編と練習の進行・成績を混在させない
     TutorialProgress tutorial_;
     TutorialProgress::Stats ReadTutorialStats() const;
     void BeginTutorialLesson(TutorialProgress::Lesson lesson);
@@ -194,6 +195,7 @@ private:
     void UpdateStageEnemyEvents();
     void UpdatePlayerAim();
     PlayerControl::AimView GetPlayerAimView() const;
+    // ワールド上の点をHUDの座標へ変換する　カメラがない場合や投影できない点ではfalseを返す
     bool TryProjectToScreen(
         const Math::Vector3& worldPosition,
         Math::Vector2& screenPosition) const;
@@ -205,6 +207,7 @@ private:
         bool isCharged,
         bool isBossHit,
         bool isDestroyed) override;
+    // 命中位置を画面へ写してHUDに印を出す　画面へ写せなかった場合は照準位置を使う
     void TriggerHitConfirm(
         const Math::Vector3& worldPosition,
         bool isCharged,
@@ -213,6 +216,7 @@ private:
     void TriggerPlayerDamageFeedback(
         const Math::Vector3& worldPosition,
         const Math::Vector3& incomingVelocity) override;
+    // 通常戦闘ではポーズとヘルプ、リザルト表示後はRの再挑戦を処理する　戻り値trueは開発用キーを処理したため今回の更新を抜ける合図
     bool HandleRuntimeShortcuts();
     bool UpdateRetryEntry();
     StageEntryPresentation::FlightInput GetEntryFlightInput() const;
@@ -232,7 +236,7 @@ private:
 #endif
     bool CanEarnFever() const;
     void UpdateDefeatChain();
-    // 通常戦闘の更新順に対応する処理。移動を終えてから射撃し、弾と敵を更新して衝突を判定する。
+    // 通常戦闘の更新順に対応する処理　移動を終えてから射撃し、弾と敵を更新して衝突を判定する
     void UpdatePlayerShooting();
     void UpdateEnemyActions();
     void UpdateBossActions();
@@ -243,7 +247,7 @@ private:
     void UpdatePlayerDodgeAfterimages();
     void UpdatePlayerFlightEffects();
     void DrawPlayerFlightEffects();
-    void DrawFlightSpeedOverlay(); // 中央の照準を避け、周辺だけに薄い風の線を出す。
+    void DrawFlightSpeedOverlay(); // 中央の照準を避け、周辺だけに薄い風の線を出す
     GameplayHud::Frame BuildHudFrame() const;
     void DrawHud();
     void DrawTutorialGuideHud(ImDrawList& draw, const Math::Vector2& min, const Math::Vector2& size);
@@ -263,17 +267,18 @@ private:
     StageEnemies::TargetReferences EnemyTargetReferences();
     void UpdateEnemies();
     float GetCinematicWorldTimeScale() const;
-    float GetFlightBoostKick() const; // カメラ・風・噴射で共有する短い加速の立ち上がり。
+    float GetFlightBoostKick() const; // カメラ・風・噴射で共有する短い加速の立ち上がり
     int GetTotalEnemyTargetCount() const;
     CombatResolver::Context BuildCombatContext();
     void OnBossDefeated(const Math::Vector3& position) override;
     void UpdateGameCamera();
     void ApplyGameplayCameraPose();
     float GetFeverActivationKick() const;
+    // 揺れの強さと継続フレーム数をカメラへ伝える
     void AddCameraShake(float power, int duration) override;
     GameplaySceneSetup::Targets SceneSetupTargets();
 
-    // シーンから借りている共通機能。初期化で渡され、GameRuntimeはこれらの実体を所有しない。
+    // シーンから借りている共通機能　初期化で渡され、GameRuntimeはこれらの実体を所有しない
     DirectXCommon* dxCommon_ = nullptr;
     SrvManager* srvManager_ = nullptr;
     SpriteCommon* spriteCommon_ = nullptr;
@@ -285,8 +290,8 @@ private:
     std::unique_ptr<Camera> camera_;
     std::unique_ptr<Player> player_;
     RuntimeSceneObjects sceneObjects_;
-    ProjectileSystem projectiles_;
-    StageEnemies stageEnemies_;
+    ProjectileSystem projectiles_; // 自機弾と敵弾の発射・更新・回収を管理する処理
+    StageEnemies stageEnemies_; // ステージ上の敵の生成と破棄を管理する処理
     CombatEffects combatEffects_;
     RailScenery railScenery_;
     FlightSpeedEffects flightSpeedEffects_;
@@ -300,17 +305,17 @@ private:
     EnemyAttackPatterns enemyAttackPatterns_;
     BossPresentation bossPresentation_;
     BossAttackController bossAttack_;
-    int bossShotsFired_ = 0; // 通し試験で「登場しただけで倒される」状態を検出する実発射数。
+    int bossShotsFired_ = 0; // 通し試験で「登場しただけで倒される」状態を検出する実発射数
     CombatProgress combatProgress_;
     GameplayHud hud_;
-    CombatResolver combatResolver_;
+    CombatResolver combatResolver_; // 当たり判定とダメージを反映する処理
     PlayerDefeatPresentation playerDefeatPresentation_;
     CombatRewards rewards_;
     PlayerCombatFeedback playerCombatFeedback_;
     int enemyShotInterval_ = 64;
     float gameplayElapsedSeconds_ = 0.0f;
     FlightMotionBlur flightMotionBlur_;
-    GameplayCamera gameplayCamera_; // 行列はCamera、追従・揺れの履歴はこのクラスが担当する。
+    GameplayCamera gameplayCamera_; // 行列はCamera、追従・揺れの履歴はこのクラスが担当する
     StageEntryPresentation stageEntryPresentation_;
     float enemyBulletSpeed_ = 0.36f;
     Math::Vector2 hudViewportMin_{ 0.0f, 0.0f };

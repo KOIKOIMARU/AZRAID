@@ -4,7 +4,7 @@
 
 #include <optional>
 
-// ボス接近の通信、登場・形態移行の待ち時間、撃破後の閃光と爆発の時刻を管理する。
+// ボス接近の通信、登場・形態移行の待ち時間、撃破後の閃光と爆発の時刻を管理する
 class BossPresentation {
 public:
     static constexpr int kResultDelayFrames = 120;
@@ -27,12 +27,14 @@ public:
 
     bool IsIntroPlaying() const { return introFrames_ > 0; }
     bool IsPhaseTransitionPlaying() const { return phaseFrames_ > 0; }
-    // 登場中と形態移行中は、ボスの射撃を始められない状態にする。
+    // 登場中と形態移行中は、ボスの射撃を始められない状態にする
     bool BlocksAttacks() const { return IsIntroPlaying() || IsPhaseTransitionPlaying(); }
     bool IsDefeatPlaying() const { return defeatFrames_ > 0; }
     float DefeatFlashRate() const;
 
+    // 同じ戦闘中に一度だけ、ボス接近の通信表示を開始する
     void RequestRadio();
+    // 戦闘中は通信の残り時間を減らし、戦闘が終わった場合は表示を閉じる
     void AdvanceRadio(float deltaSeconds, bool activeBattle);
     bool HasRadio() const { return radioRemaining_ > 0.0f; }
     float RadioRemaining() const { return radioRemaining_; }

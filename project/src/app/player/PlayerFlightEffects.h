@@ -9,10 +9,10 @@ class Camera;
 class Model;
 class Object3dCommon;
 
-// 自機の噴射・チャージの光・回避の残像。入力、回避の成否、報酬は扱わない。
+// 自機の噴射・チャージの光・回避の残像　入力、回避の成否、報酬は扱わない
 class PlayerFlightEffects {
 public:
-    // モデル、共通描画設定、カメラは借りる。描画物体24個だけをこのクラスが所有する。
+    // モデル、共通描画設定、カメラは借りる　描画物体24個だけをこのクラスが所有する
     struct Assets {
         Model* glow = nullptr;
         Model* trail = nullptr;
@@ -49,18 +49,19 @@ public:
     };
 
     void Initialize(Object3dCommon* common, Camera* camera, const Assets& assets);
-    void PrepareAfterimages(); // 起動時に固定数を準備。プレイ中には確保しない。
+    void PrepareAfterimages(); // 起動時に固定数を準備　プレイ中には確保しない
+    // 噴射を構成する複数の描画部品を事前に用意し、飛行中に使い回す
     void PrepareExhaust();
     void PrepareCharge();
-    void Clear();              // 描画物体を先に破棄し、借りた参照を解除する。
-    void Reset();              // 準備済みの物体を保持して、残像と噴射の状態だけを初期化。
+    void Clear();              // 描画物体を先に破棄し、借りた参照を解除する
+    void Reset();              // 準備済みの物体を保持して、残像と噴射の状態だけを初期化
     void SetCinematicThrust(float thrust) { thrust_ = thrust; }
 
-    bool UpdateAfterimages(const DodgeFrame& frame); // 回避開始の瞬間だけtrue。音や揺れは呼び出し側へ返す。
+    bool UpdateAfterimages(const DodgeFrame& frame); // 回避開始の瞬間だけtrue　音や揺れは呼び出し側へ返す
     void FlashDodgeTrail(Math::Vector3 position, int direction);
     void FlashJustDodge(const DodgeFrame& frame);
     void UpdateFlight(const FlightFrame& frame);
-    void DrawFlight();         // 時間を進めない。ポーズ中も同じ状態を描く。
+    void DrawFlight();         // 時間を進めない　ポーズ中も同じ状態を描く
     void DrawAfterimages();
 
 #ifdef _DEBUG
@@ -81,7 +82,7 @@ private:
         float scale = 1.26f;
         bool precise = false;
         int direction = 1;
-        float age = 0.0f; // 60fps換算。成功時は姿勢を写した短い機体の残像にする。
+        float age = 0.0f; // 60fps換算　成功時は姿勢を写した短い機体の残像にする
         bool active = false;
     };
     struct Plume {

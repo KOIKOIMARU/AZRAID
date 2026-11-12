@@ -1,5 +1,5 @@
 // ===== SoundManager.cpp =====
-// 音源の読み込みとXAudio2での単発・ループ再生を管理する。
+// 音源の読み込みとXAudio2での単発・ループ再生を管理する
 
 #include "engine/audio/SoundManager.h"
 #include "engine/base/Logger.h"
@@ -17,7 +17,7 @@
 using Microsoft::WRL::ComPtr;
 SoundManager::~SoundManager() { Finalize(); }
 
-// 音声の読込に使うMedia Foundationと、再生先になるXAudio2を初期化する。
+// 音声の読込に使うMedia Foundationと、再生先になるXAudio2を初期化する
 bool SoundManager::Initialize()
 {
     Finalize();
@@ -37,10 +37,10 @@ bool SoundManager::Initialize()
     return true;
 }
 
-// 登録済みの再生ボイスを破棄してから、ボイスが参照していた音声データを解放する。
+// 登録済みの再生ボイスを破棄してから、ボイスが参照していた音声データを解放する
 void SoundManager::DestroyEntry(Entry& entry)
 {
-    // DestroyVoice完了後はこの波形がオーディオスレッドから参照されない。
+    // DestroyVoice完了後はこの波形がオーディオスレッドから参照されない
     for (auto*& voice : entry.voices) {
         if (voice) {
             voice->DestroyVoice();
@@ -51,10 +51,10 @@ void SoundManager::DestroyEntry(Entry& entry)
     entry.variations.clear();
 }
 
-// BGMの先読みが終わるのを待ち、再生ボイスと音声基盤を順に終了する。
+// BGMの先読みが終わるのを待ち、再生ボイスと音声基盤を順に終了する
 void SoundManager::Finalize()
 {
-    // デコーダーのCOMオブジェクトが解放されてからMedia Foundationを終了する。
+    // デコーダーのCOMオブジェクトが解放されてからMedia Foundationを終了する
     if (pendingMusic_.valid()) { pendingMusic_.wait(); }
     pendingMusic_ = {};
     pendingMusicKey_.clear();
@@ -82,7 +82,7 @@ bool SoundManager::Load(const std::string& key, const std::string& filename,
         pitchVariation, gainVariation);
 }
 
-// BGMの読込を別スレッドで進め、準備中はfalseを返す。デコード結果がそろったフレームで再生用に登録する。
+// BGMの読込を別スレッドで進め、準備中はfalseを返す　デコード結果がそろったフレームで再生用に登録する
 bool SoundManager::PreloadLoopStep(const std::string& key, const std::string& filename)
 {
     if (!xAudio2_ || !masterVoice_) { return true; }
@@ -109,7 +109,7 @@ bool SoundManager::PreloadLoopStep(const std::string& key, const std::string& fi
     pendingMusic_ = std::async(std::launch::async, [filename]() {
         const HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
         if (FAILED(result)) { return SoundData{}; }
-        // workerは独立したデコーダーとPCMだけを所有。SoundManagerや再生ボイスに触れない。
+        // workerは独立したデコーダーとPCMだけを所有　SoundManagerや再生ボイスに触れない
         try {
             auto data = LoadFile(filename);
             CoUninitialize();
@@ -119,7 +119,7 @@ bool SoundManager::PreloadLoopStep(const std::string& key, const std::string& fi
     return false;
 }
 
-// 同じ効果音として鳴らす複数の素材を読み込み、同時再生数の上限内で登録する。
+// 同じ効果音として鳴らす複数の素材を読み込み、同時再生数の上限内で登録する
 bool SoundManager::LoadVariations(const std::string& key, const std::vector<std::string>& filenames,
     uint32_t voiceCount, float volume, float minimumInterval,
     float pitchVariation, float gainVariation)
@@ -140,14 +140,14 @@ bool SoundManager::LoadVariations(const std::string& key, const std::vector<std:
             Logger::Log("Audio load failed: " + filename + "\n");
             return false;
         }
-        // LoadFileは全素材を48kHz/16bit/2ch PCMへ統一するので、ボイスを共有できる。
+        // LoadFileは全素材を48kHz/16bit/2ch PCMへ統一するので、ボイスを共有できる
         variations.push_back(std::move(data));
     }
     return InstallVariations(key, std::move(variations), voiceCount, volume, minimumInterval,
         pitchVariation, gainVariation);
 }
 
-// デコード済みの音声に対して、再生ボイスと音量・ピッチの設定を確保する。
+// デコード済みの音声に対して、再生ボイスと音量・ピッチの設定を確保する
 bool SoundManager::InstallVariations(const std::string& key, std::vector<SoundData> variations,
     uint32_t voiceCount, float volume, float minimumInterval, float pitchVariation, float gainVariation)
 {
@@ -176,7 +176,7 @@ bool SoundManager::InstallVariations(const std::string& key, std::vector<SoundDa
     return true;
 }
 
-// 指定した音の再生ボイスとデータを解放し、登録を消す。
+// 指定した音の再生ボイスとデータを解放し、登録を消す
 void SoundManager::Unload(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -186,7 +186,7 @@ void SoundManager::Unload(const std::string& key)
     }
 }
 
-// 空いている再生枠を使って効果音を鳴らす。音量と再生ピッチも呼び出し側から指定できる。
+// 空いている再生枠を使って効果音を鳴らす　音量と再生ピッチも呼び出し側から指定できる
 bool SoundManager::Play(const std::string& key, float gain, float pitchScale)
 {
     const auto it = sounds_.find(key);
@@ -242,7 +242,7 @@ bool SoundManager::Play(const std::string& key, float gain, float pitchScale)
     return false;
 }
 
-// BGMなどを繰り返し再生し、同じ音源のループ状態を管理する。
+// BGMなどを繰り返し再生し、同じ音源のループ状態を管理する
 bool SoundManager::PlayLoop(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -251,7 +251,7 @@ bool SoundManager::PlayLoop(const std::string& key)
     if (entry.looping) { return true; }
     auto* voice = entry.voices[0];
     Stop(key);
-    voice->SetFrequencyRatio(1.0f); // BGMは効果音の微変化を適用しない。
+    voice->SetFrequencyRatio(1.0f); // BGMは効果音の微変化を適用しない
     voice->SetVolume(entry.volume);
     XAUDIO2_BUFFER buffer{};
     buffer.pAudioData = entry.variations.front().buffer.data();
@@ -266,7 +266,7 @@ bool SoundManager::PlayLoop(const std::string& key)
     return true;
 }
 
-// 指定した音の全ボイスを止め、再生待ちデータとループ状態を消す。
+// 指定した音の全ボイスを止め、再生待ちデータとループ状態を消す
 void SoundManager::Stop(const std::string& key)
 {
     const auto it = sounds_.find(key);
@@ -277,7 +277,7 @@ void SoundManager::Stop(const std::string& key)
     it->second.looping = false;
 }
 
-// 音量を0～1に収め、同じ音を担当する全ボイスへ反映する。
+// 音量を0～1に収め、同じ音を担当する全ボイスへ反映する
 void SoundManager::SetVolume(const std::string& key, float volume)
 {
     const auto it = sounds_.find(key);
@@ -288,7 +288,7 @@ void SoundManager::SetVolume(const std::string& key, float volume)
     }
 }
 
-// ループ用のボイスに再生データが残っている音の数を返す。
+// ループ用のボイスに再生データが残っている音の数を返す
 uint32_t SoundManager::GetLoopCount() const
 {
     uint32_t count = 0;
@@ -301,7 +301,7 @@ uint32_t SoundManager::GetLoopCount() const
     return count;
 }
 
-// 音声ファイルをMedia Foundationで読み、48kHz・16ビットのステレオPCMへ変換する。
+// 音声ファイルをMedia Foundationで読み、48kHz・16ビットのステレオPCMへ変換する
 SoundData SoundManager::LoadFile(const std::string& filename)
 {
     ComPtr<IMFSourceReader> reader;
@@ -328,7 +328,7 @@ SoundData SoundManager::LoadFile(const std::string& filename)
         return {};
     }
     SoundData sound;
-    // 拡張情報を切り落とさないため、対応する通常PCM形式だけを受け付ける。
+    // 拡張情報を切り落とさないため、対応する通常PCM形式だけを受け付ける
     const bool supported = format->wFormatTag == WAVE_FORMAT_PCM && format->cbSize == 0;
     if (supported) {
         sound.wfex = *format;
@@ -354,7 +354,7 @@ SoundData SoundManager::LoadFile(const std::string& filename)
             if (FAILED(buffer->Lock(&data, nullptr, &length))) {
                 return {};
             }
-            // 1曲のPCMは最大32MB。採用するループ素材もオフラインでこの上限を確認する。
+            // 1曲のPCMは最大32MB　採用するループ素材もオフラインでこの上限を確認する
             const bool fits = sound.buffer.size() + length <= 32u * 1024u * 1024u;
             if (fits && length > 0) {
                 sound.buffer.insert(sound.buffer.end(), data, data + length);

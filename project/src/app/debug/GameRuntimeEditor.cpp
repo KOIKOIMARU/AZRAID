@@ -1,5 +1,5 @@
 // ===== GameRuntimeEditor.cpp =====
-// 開発中に特定の場面へ移動する機能と、配置の保存や処理時間の表示を担当する。
+// 開発中に特定の場面へ移動する機能と、配置の保存や処理時間の表示を担当する
 
 #include "app/runtime/GameRuntime.h"
 
@@ -27,7 +27,7 @@ using namespace GameRuntimeTuning;
 using namespace SceneryAssets;
 }
 
-// 開発用に指定された開始地点を読み取り、準備完了後に該当する区間へ移す。
+// 開発用に指定された開始地点を読み取り、準備完了後に該当する区間へ移す
 void GameRuntime::ApplyDebugStartPhase()
 {
     char* debugStartPhase = nullptr;
@@ -51,7 +51,7 @@ void GameRuntime::ApplyDebugStartPhase()
     std::free(debugStartPhase);
 }
 
-// 開発中に指定地点へ移る。敵・弾・演出の残りを整理して、その地点の確認を始められるようにする。
+// 開発中に指定地点へ移る　敵・弾・演出の残りを整理して、その地点の確認を始められるようにする
 void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
 {
     if (IsTutorial()) {
@@ -71,7 +71,7 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
 
     const auto phase = stageFlight_.SeekPhaseForDebug(phaseIndex);
     const float targetProgress = stageFlight_.Schedule().Progress();
-    // 明示的なデバッグ移動だけは、対象街区の中から始める。通常の遷移は前方から行う。
+    // 明示的なデバッグ移動だけは、対象街区の中から始める　通常の遷移は前方から行う
     railScenery_.SetDistricts(IsTutorial(),
         targetProgress >= 104.0f ? stageFlight_.Distance() - 600.0f : kDefenseStartWorldZ,
         targetProgress >= 230.0f ? stageFlight_.Distance() - 400.0f : kPlazaStartWorldZ);
@@ -92,7 +92,7 @@ void GameRuntime::DebugJumpToStagePhase(int phaseIndex)
     editorStatusMessage_ = std::string("デバッグ移動: ") + phase.name;
 }
 
-// 編集中のオブジェクトをシーンファイルへ保存し、結果を開発画面へ知らせる。
+// 編集中のオブジェクトをシーンファイルへ保存し、結果を開発画面へ知らせる
 bool GameRuntime::SaveSceneObjects(const char* path)
 {
     if (!path || path[0] == '\0') {
@@ -113,7 +113,7 @@ bool GameRuntime::SaveSceneObjects(const char* path)
     return true;
 }
 
-// 配置の編集、シーン移動、戦闘の調整を行う開発用UIを描き、操作を各担当へ渡す。
+// 配置の編集、シーン移動、戦闘の調整を行う開発用UIを描き、操作を各担当へ渡す
 void GameRuntime::DrawEditorOverlay()
 {
     if (!isEditorOverlayVisible_) {
@@ -712,7 +712,7 @@ void GameRuntime::DrawEditorOverlay()
     }
 }
 
-// 更新・描画・GPU待ちなどのフレーム時間を、開発用の画面に表示する。
+// 更新・描画・GPU待ちなどのフレーム時間を、開発用の画面に表示する
 void GameRuntime::DrawPerformanceOverlay()
 {
     if (!isPerformanceOverlayVisible_) {

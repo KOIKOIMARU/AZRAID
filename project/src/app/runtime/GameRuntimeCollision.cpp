@@ -1,9 +1,9 @@
 // ===== GameRuntimeCollision.cpp =====
-// 当たり判定に必要な情報をCombatResolverに渡し、ボス撃破後の演出と進行につなぐ。
+// 当たり判定に必要な情報をCombatResolverに渡し、ボス撃破後の演出と進行につなぐ
 
 #include "app/runtime/GameRuntime.h"
 
-// 衝突判定が使う敵、弾、得点、演出への参照をそろえる。命中とダメージの計算はCombatResolverが担当する。
+// 衝突判定が使う敵、弾、得点、演出への参照をそろえる　命中とダメージの計算はCombatResolverが担当する
 CombatResolver::Context GameRuntime::BuildCombatContext()
 {
     return {
@@ -22,7 +22,7 @@ CombatResolver::Context GameRuntime::BuildCombatContext()
     };
 }
 
-// 自機弾から先に判定する。同じフレームでボスを倒したら、その後の敵弾判定は終了する。
+// 自機弾から先に判定する　同じフレームでボスを倒したら、その後の敵弾判定は終了する
 void GameRuntime::UpdateGameplayCollisions()
 {
     if (isGameOver_ || isGameClear_) { return; }
@@ -32,12 +32,12 @@ void GameRuntime::UpdateGameplayCollisions()
     if (!isGameClear_) { combatResolver_.ResolveEnemyShots(battle); }
 }
 
-// ボス撃破をステージクリアに反映し、撃破演出からリザルトへ進む準備をする。
+// ボス撃破をステージクリアに反映し、撃破演出からリザルトへ進む準備をする
 void GameRuntime::OnBossDefeated(const Math::Vector3& position)
 {
     bossPresentation_.BeginDefeat(position);
     bossAttack_.CancelAttack();
-    // 撃破後に残弾だけが画面へ迫らないよう、確保済みプールへ返す。
+    // 撃破後に残弾だけが画面へ迫らないよう、確保済みプールへ返す
     projectiles_.RecycleEnemyBullets();
     AddCameraShake(0.22f, 18);
     stageEnemies_.MarkBossDefeated();

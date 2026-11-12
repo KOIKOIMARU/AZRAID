@@ -1,4 +1,4 @@
-// 各シーンが実装する初期化・更新・描画・終了の入口。描画や入力に使う共通機能も受け渡す。
+// 各シーンが実装する初期化・更新・描画・終了の入口　描画や入力に使う共通機能も受け渡す
 
 #pragma once
 
@@ -26,7 +26,7 @@ public:
         sceneManager_ = sceneManager;
     }
 
-    // シーンが描画や入力に使う共通システムの参照を受け取る。これらのシステムの寿命は呼び出し元が管理する。
+    // シーンが描画や入力に使う共通システムの参照を受け取る　これらのシステムの寿命は呼び出し元が管理する
     virtual void SetSystems(
         DirectXCommon* dxCommon,
         SrvManager* srvManager,

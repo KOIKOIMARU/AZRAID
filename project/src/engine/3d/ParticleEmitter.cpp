@@ -1,5 +1,5 @@
 // ===== ParticleEmitter.cpp =====
-// 指定した位置と間隔に応じて、ParticleManagerへ粒子の生成を要求する。
+// 指定した位置と間隔に応じて、ParticleManagerへ粒子の生成を要求する
 
 #include "engine/3d/ParticleEmitter.h"
 
@@ -27,7 +27,7 @@ ParticleEmitter::ParticleEmitter(
 // =========================
 // 更新
 // =========================
-// 発生間隔に達するたび粒子を出し、余った時間を次の発生へ繰り越す。
+// 発生間隔に達するたび粒子を出し、余った時間を次の発生へ繰り越す
 void ParticleEmitter::Update(float deltaTime)
 {
     elapsedTime_ += deltaTime;

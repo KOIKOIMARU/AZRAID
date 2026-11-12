@@ -1,12 +1,12 @@
 // ===== Camera.cpp =====
-// カメラの位置・向き・画角から、ビュー行列と射影行列を更新する。
+// カメラの位置・向き・画角から、ビュー行列と射影行列を更新する
 
 #include "engine/3d/Camera.h"
 #include "engine/base/WinApp.h"
 
 using namespace Math;
 
-// 画角・表示比率・手前と奥の距離を初期化し、最初のカメラ行列を作る。
+// 画角・表示比率・手前と奥の距離を初期化し、最初のカメラ行列を作る
 Camera::Camera()
 {
     transform = {
@@ -24,20 +24,20 @@ Camera::Camera()
 }
 
 
-// カメラの位置と回転からビューと投影を作り、描画時に使う合成行列を更新する。
+// カメラの位置と回転からビューと投影を作り、描画時に使う合成行列を更新する
 void Camera::Update()
 {
-    // カメラ自身の位置と向きから、ワールド上での姿勢を作る。
+    // カメラ自身の位置と向きから、ワールド上での姿勢を作る
     worldMatrix = MakeAffineMatrix(
         transform.scale,
         transform.rotate,
         transform.translate
     );
 
-    // カメラの姿勢を逆変換して、ワールド座標をカメラから見た座標へ直す。
+    // カメラの姿勢を逆変換して、ワールド座標をカメラから見た座標へ直す
     viewMatrix = Inverse(worldMatrix);
 
-    // 画角・画面比率・手前と奥の限界から透視投影を作る。
+    // 画角・画面比率・手前と奥の限界から透視投影を作る
     projectionMatrix = MakePerspectiveFovMatrix(
         fovY,
         aspectRatio,
@@ -45,7 +45,7 @@ void Camera::Update()
         farClip
     );
 
-    // ビューと投影を合成し、ワールド座標からクリップ座標へ一度で変換できるようにする。
+    // ビューと投影を合成し、ワールド座標からクリップ座標へ一度で変換できるようにする
     viewProjectionMatrix =
         Multiply(viewMatrix, projectionMatrix);
 }

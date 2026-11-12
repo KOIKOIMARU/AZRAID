@@ -1,5 +1,5 @@
 // ===== GameResources.cpp =====
-// タイトルと本編で共有する素材を先読みし、リングや演出に使う形状も生成する。
+// タイトルと本編で共有する素材を先読みし、リングや演出に使う形状も生成する
 
 #include "app/runtime/GameResources.h"
 #include "app/stage/SceneryAssets.h"
@@ -19,7 +19,7 @@ using namespace SceneryAssets;
 
 constexpr float kTwoPi = 6.28318530718f;
 
-// チャージ弾の光に使う細長い形状を、頂点データから生成する。
+// チャージ弾の光に使う細長い形状を、頂点データから生成する
 ModelData CreateChargeLanceMesh()
 {
     ModelData data;
@@ -28,7 +28,7 @@ ModelData CreateChargeLanceMesh()
     const auto vertex = [](Math::Vector3 p) {
         return VertexData{{ p.x, p.y, p.z, 1.0f }, { 0.5f, 0.5f }, { 0, 0, -1 }};
     };
-    // 丸い通常弾と輪郭を変える。進行方向へ尖った八面の槍を一度だけ作る。
+    // 丸い通常弾と輪郭を変える　進行方向へ尖った八面の槍を一度だけ作る
     for (int side = 0; side < 8; ++side) {
         const float a = kTwoPi * static_cast<float>(side) / 8.0f;
         const float b = kTwoPi * static_cast<float>(side + 1) / 8.0f;
@@ -41,7 +41,7 @@ ModelData CreateChargeLanceMesh()
     return data;
 }
 
-// スキルの斬撃を描く刃の形状を、頂点データから生成する。
+// スキルの斬撃を描く刃の形状を、頂点データから生成する
 ModelData CreatePhantomBladeMesh()
 {
     ModelData data;
@@ -63,7 +63,7 @@ ModelData CreatePhantomBladeMesh()
     return data;
 }
 
-// リングの枠・内側の光・流れる光に使う形状を種類ごとに作る。
+// リングの枠・内側の光・流れる光に使う形状を種類ごとに作る
 ModelData CreateGateMesh(int kind)
 {
     ModelData data;
@@ -79,7 +79,7 @@ ModelData CreateGateMesh(int kind)
         data.vertices.insert(data.vertices.end(), {vertex(a),vertex(b),vertex(c),vertex(c),vertex(b),vertex(d)});
     };
     if (kind == 3) {
-        // 中央の視界を空け、外周の短い矢印だけを奥へ流す。
+        // 中央の視界を空け、外周の短い矢印だけを奥へ流す
         for (int side = 0; side < 4; ++side) {
             const float angle = static_cast<float>(side) * kTwoPi / 4.0f;
             for (int mark = 0; mark < 3; ++mark) {
@@ -124,14 +124,14 @@ float gSharedResourceLastStepMs = 0.0f;
 float gSharedResourceTotalMs = 0.0f;
 } // namespace
 
-// タイトルと本編で共有する素材を順番に準備する。ロード画面の進捗には、この準備単位を使う。
+// タイトルと本編で共有する素材を順番に準備する　ロード画面の進捗には、この準備単位を使う
 bool PreloadStep(DirectXCommon* dxCommon, SrvManager* srvManager)
 {
     if (gSharedResourcesPreloaded) { return true; }
     if (!dxCommon || !srvManager) { return false; }
     ModelManager::GetInstance()->Initialize(dxCommon, srvManager);
     struct Job { const char* label; bool (*load)(DirectXCommon*, ModelManager*); };
-    // タイトルの環境・自機を優先。1フレームに1素材、CPU解析の完了を待たず戻る。
+    // タイトルの環境・自機を優先　1フレームに1素材、CPU解析の完了を待たず戻る
     static const Job jobs[] = {
         { "Renderer resources", [](DirectXCommon*, ModelManager* modelManager) { modelManager->SetEnvironmentTexturePath(kGameEnvironmentTexturePath); return true; } },
         { "Environment texture", [](DirectXCommon*, ModelManager*) { return TextureManager::GetInstance()->PreloadTextureStep(kGameEnvironmentTexturePath); } },
@@ -272,6 +272,7 @@ const char* GetLabel()
     return gSharedResourcePreloadLabel;
 }
 
+// 直前の段階ミリ秒を返す
 float GetLastStepMs()
 {
     return gSharedResourceLastStepMs;

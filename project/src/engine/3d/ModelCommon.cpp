@@ -1,5 +1,5 @@
 // ===== ModelCommon.cpp =====
-// モデルの初期化と描画で共有するDirectXとSRV管理の参照を受け渡す。
+// モデルの初期化と描画で共有するDirectXとSRV管理の参照を受け渡す
 
 #include "engine/3d/ModelCommon.h"
 #include "engine/base/SrvManager.h"

@@ -1,5 +1,5 @@
 // ===== PlayerDefeatPresentation.cpp =====
-// 自機が撃墜された後の墜落、破片、炎とカメラの動きを進める。
+// 自機が撃墜された後の墜落、破片、炎とカメラの動きを進める
 
 #include "app/player/PlayerDefeatPresentation.h"
 
@@ -28,7 +28,7 @@ constexpr float kTwoPi = std::numbers::pi_v<float> * 2.0f;
 constexpr std::array<size_t, 3> kBurningDebris{ 0, 2, 3 };
 float Ease(float t) { t = std::clamp(t, 0.0f, 1.0f); return t * t * (3.0f - 2.0f * t); }
 
-// 時刻と乱数の種から風の揺らぎを求め、前後の値を補間して炎の変化をつなぐ。
+// 時刻と乱数の種から風の揺らぎを求め、前後の値を補間して炎の変化をつなぐ
 float FireGust(float time, float seed)
 {
     const float cell = std::floor(time + seed);
@@ -36,7 +36,7 @@ float FireGust(float time, float seed)
     return Lerp(noise(cell), noise(cell + 1.0f), Ease(time + seed - cell));
 }
 
-// 頂点の座標を走査し、破片の形を囲む最小・最大座標を返す。
+// 頂点の座標を走査し、破片の形を囲む最小・最大座標を返す
 std::pair<Math::Vector3, Math::Vector3> MeshBounds(const std::vector<VertexData>& vertices)
 {
     const auto& first = vertices.front().position;
@@ -56,7 +56,7 @@ float RandomRange(float low, float high)
     return std::uniform_real_distribution<float>(low, high)(generator);
 }
 
-// 破片を現在の姿勢へ回して最も低い頂点を求め、道路との接地に使う。
+// 破片を現在の姿勢へ回して最も低い頂点を求め、道路との接地に使う
 float DebrisBottom(const std::vector<Math::Vector3>& vertices, const Math::Vector3& rotation)
 {
     const auto matrix = Math::Multiply(Math::MakeRotateXMatrix(rotation.x),
@@ -69,7 +69,7 @@ float DebrisBottom(const std::vector<Math::Vector3>& vertices, const Math::Vecto
 }
 }
 
-// 機体から飛び散る部品を描くためのモデルと描画オブジェクトを、撃墜前に準備する。
+// 機体から飛び散る部品を描くためのモデルと描画オブジェクトを、撃墜前に準備する
 void PlayerDefeatPresentation::InitializeDebris(Object3dCommon& common, Camera& camera, const Model* ship, float shipScale)
 {
     if (!ship || ship->GetVertices().empty()) { return; }
@@ -82,7 +82,7 @@ void PlayerDefeatPresentation::InitializeDebris(Object3dCommon& common, Camera& 
         part.materials = ship->GetMaterials();
         part.material.textureFilePath = ship->GetTextureFilePath();
     }
-    // 同じ頂点・UV・材質を使い、三角形を翼と胴体へ振り分ける。
+    // 同じ頂点・UV・材質を使い、三角形を翼と胴体へ振り分ける
     const auto splitRange = [&](const ModelDrawRange& range) {
         std::array<uint32_t, 4> starts{};
         for (size_t p = 0; p < parts.size(); ++p) { starts[p] = static_cast<uint32_t>(parts[p].indices.size()); }
@@ -115,7 +115,7 @@ void PlayerDefeatPresentation::InitializeDebris(Object3dCommon& common, Camera& 
         auto& part = parts[p];
         if (part.vertices.empty()) { continue; }
         const auto [partLo, partHi] = MeshBounds(part.vertices);
-        const Math::Vector3 pivot{ (partLo.x + partHi.x) * 0.5f, (partLo.y + partHi.y) * 0.5f, (partLo.z + partHi.z) * 0.5f };
+        const Math::Vector3 pivot{ (partLo.x + partHi.x) * 0.5f, (partLo.y + partHi.y) * 0.5f, (partLo.z + partHi.z) * 0.5f }; // 回転の中心
         const float scale = shipScale;
         debris.localOffset = { (pivot.x - center.x) * scale, (pivot.y - center.y) * scale, (pivot.z - center.z) * scale };
         for (auto& vertex : part.vertices) {
@@ -126,7 +126,7 @@ void PlayerDefeatPresentation::InitializeDebris(Object3dCommon& common, Camera& 
         for (const auto& vertex : part.vertices) {
             debris.contactVertices.push_back({ vertex.position.x * scale, vertex.position.y * scale, vertex.position.z * scale });
         }
-        // 箱の高さではなく、実際の三角形上に火元を取る。裏返った翼にも対応する。
+        // 箱の高さではなく、実際の三角形上に火元を取る　裏返った翼にも対応する
         for (size_t site = 0; site < debris.fireAnchors.size(); ++site) {
             const Math::Vector3 target{ (site % 2 == 0 ? -0.20f : 0.20f) * (partHi.x - partLo.x),
                 (site < 4 ? partHi.y : partLo.y) - pivot.y,
@@ -158,7 +158,7 @@ void PlayerDefeatPresentation::InitializeDebris(Object3dCommon& common, Camera& 
     }
 }
 
-// 破片に設定した上下の燃焼位置を回転させ、機体の崩れに追従する炎の位置を得る。
+// 破片に設定した上下の燃焼位置を回転させ、機体の崩れに追従する炎の位置を得る
 Math::Vector3 PlayerDefeatPresentation::GetDefeatFireOrigin(size_t piece, size_t site) const
 {
     const auto& debris = defeatDebris_[piece];
@@ -168,7 +168,7 @@ Math::Vector3 PlayerDefeatPresentation::GetDefeatFireOrigin(size_t piece, size_t
     return { debris.position.x + point.x, debris.position.y + point.y, debris.position.z + point.z };
 }
 
-// 撃墜時に使う破片、火花、炎、燃料跡の描画オブジェクトをあらかじめ用意する。
+// 撃墜時に使う破片、火花、炎、燃料跡の描画オブジェクトをあらかじめ用意する
 void PlayerDefeatPresentation::Initialize(Object3dCommon& common, Camera& camera, const Models& models, float shipScale)
 {
     playerDefeat_ = {};
@@ -195,7 +195,7 @@ void PlayerDefeatPresentation::Initialize(Object3dCommon& common, Camera& camera
         fire->SetLightingMode(0);
         fire->SetEnvironmentCoefficient(0.0f);
         fire->SetAlphaReference(0.005f);
-        // テクスチャは起動時に読み込み済み。死亡時の追加読み込みを避ける。
+        // テクスチャは起動時に読み込み済み　死亡時の追加読み込みを避ける
         fire->SetTextureFilePath("resources/effects/wreck_fire_flipbook.png");
     }
     for (auto& glow : defeatFireGlow_) {
@@ -215,7 +215,7 @@ void PlayerDefeatPresentation::Initialize(Object3dCommon& common, Camera& camera
     defeatFuelStain_->SetEnvironmentCoefficient(0.0f);
 }
 
-// 撃墜時の自機・カメラ・被弾方向を控え、墜落と破片の初期状態を決める。
+// 撃墜時の自機・カメラ・被弾方向を控え、墜落と破片の初期状態を決める
 void PlayerDefeatPresentation::Start(const Player& player, const Camera& camera,
     float fov, float railSpeed, const Math::Vector3& incomingVelocity)
 {
@@ -229,7 +229,7 @@ void PlayerDefeatPresentation::Start(const Player& player, const Camera& camera,
     defeat.cameraRotation = camera.GetRotate();
     defeat.startFov = fov;
     defeat.forwardSpeed = std::clamp(railSpeed * 60.0f * RandomRange(0.88f, 1.12f), 15.0f, 46.0f);
-    // 爆発の時刻と機体の崩れ方に幅を持たせ、墜落のたびに同じ動きになるのを避ける。
+    // 爆発の時刻と機体の崩れ方に幅を持たせ、墜落のたびに同じ動きになるのを避ける
     defeat.burstTime = RandomRange(1.02f, kDefeatBurstTime);
     defeat.lateralTravel = RandomRange(1.1f, 3.2f);
     defeat.roll = RandomRange(0.85f, 1.65f);
@@ -237,14 +237,14 @@ void PlayerDefeatPresentation::Start(const Player& player, const Camera& camera,
     defeat.yaw = RandomRange(0.12f, 0.46f);
     defeat.travelScale = RandomRange(0.30f, 0.43f);
     defeat.variation = RandomRange(0.0f, 100.0f);
-    // 横から受けた弾はその方向へ崩す。正面弾は道路の中央へ流し、建物への食い込みを避ける。
+    // 横から受けた弾はその方向へ崩す　正面弾は道路の中央へ流し、建物への食い込みを避ける
     defeat.side = std::abs(incomingVelocity.x) > 0.05f && RandomRange(0.0f, 1.0f) < 0.80f ?
         (incomingVelocity.x > 0.0f ? 1.0f : -1.0f) : (RandomRange(0.0f, 1.0f) < 0.5f ? -1.0f : 1.0f);
     defeat.wreckPosition = defeat.origin;
     for (int index = 0; index < 6; ++index) { EmitDefeatMote(defeat.origin, true, true); }
 }
 
-// 空いている炎・煙・火花の枠を探し、位置や寿命を決めて発生させる。
+// 空いている炎・煙・火花の枠を探し、位置や寿命を決めて発生させる
 void PlayerDefeatPresentation::EmitDefeatMote(const Math::Vector3& position, bool spark, bool burst, float strength)
 {
     for (auto& mote : defeatMotes_) {
@@ -271,13 +271,13 @@ void PlayerDefeatPresentation::EmitDefeatMote(const Math::Vector3& position, boo
     }
 }
 
-// 実時間で墜落と破片の動きを進める。爆発した瞬間とカメラ姿勢を呼び出し元へ返す。
+// 実時間で墜落と破片の動きを進める　爆発した瞬間とカメラ姿勢を呼び出し元へ返す
 PlayerDefeatPresentation::Frame PlayerDefeatPresentation::Update(Player& player, float dt)
 {
     Frame frame;
     auto& defeat = playerDefeat_;
     defeat.elapsed += dt;
-    // 致命打だけ短くため、以後は実時間で失速させる。レール進行や敵の出現は進めない。
+    // 致命打だけ短くため、以後は実時間で失速させる　レール進行や敵の出現は進めない
     const float t = std::clamp((defeat.elapsed - 0.09f) / (defeat.burstTime - 0.09f), 0.0f, 1.0f);
     const float travel = defeat.forwardSpeed * defeat.travelScale * (1.0f - std::exp(-2.7f * t));
     const float fall = t * t;
@@ -343,7 +343,7 @@ PlayerDefeatPresentation::Frame PlayerDefeatPresentation::Update(Player& player,
                 const float drag = std::exp(-debris.drag * dt);
                 debris.velocity.x *= drag; debris.velocity.z *= drag;
                 debris.spin = debris.spin * drag;
-                // 接地後は平たい姿勢へ落ち着かせ、翼が縦に立ったままにならないようにする。
+                // 接地後は平たい姿勢へ落ち着かせ、翼が縦に立ったままにならないようにする
                 const float settle = 1.0f - std::exp(-5.0f * dt);
                 debris.rotation.x += std::remainder(debris.restPitch - debris.rotation.x, kTwoPi) * settle;
                 debris.rotation.z += std::remainder(debris.restRoll - debris.rotation.z, kTwoPi) * settle;
@@ -407,7 +407,7 @@ PlayerDefeatPresentation::Frame PlayerDefeatPresentation::Update(Player& player,
     return frame;
 }
 
-// 爆発後に残っている部品だけを、現在の姿勢で描く。
+// 爆発後に残っている部品だけを、現在の姿勢で描く
 void PlayerDefeatPresentation::DrawDebris() const
 {
     if (!playerDefeat_.exploded) { return; }
@@ -416,7 +416,7 @@ void PlayerDefeatPresentation::DrawDebris() const
     }
 }
 
-// 残った機体や破片の位置を基準に、炎・煙・火花を描く。
+// 残った機体や破片の位置を基準に、炎・煙・火花を描く
 void PlayerDefeatPresentation::DrawEffects(Object3dCommon& common, const Camera& camera, const Player& player)
 {
     if (!IsActive()) { return; }
@@ -485,7 +485,7 @@ void PlayerDefeatPresentation::DrawEffects(Object3dCommon& common, const Camera&
         return point;
     };
 
-    // 接地した胴体から漏れた燃料だけを路面へ残す。飛んでいる部品には追従させない。
+    // 接地した胴体から漏れた燃料だけを路面へ残す　飛んでいる部品には追従させない
     if (defeatFuelStain_ && fuelAge >= 0.0f) {
         common.SetBlendMode(BlendMode::Normal);
         common.CommonDrawSetting();
@@ -515,7 +515,7 @@ void PlayerDefeatPresentation::DrawEffects(Object3dCommon& common, const Camera&
             root += RotateLocalOffset({ side * 0.44f, -0.14f, -1.35f }, player.GetVisualRotate());
         } else if (index < 2) {
             if (!core.active) { continue; }
-            // 破損部の内側から、重なった薄い炎が一続きに立ち上がる。
+            // 破損部の内側から、重なった薄い炎が一続きに立ち上がる
             root = Lerp(GetDefeatFireOrigin(0, 0), GetDefeatFireOrigin(0, 3), 0.5f);
             root.y -= 0.18f;
             root.z += index == 0 ? -0.15f : 0.20f;
@@ -573,7 +573,7 @@ void PlayerDefeatPresentation::DrawEffects(Object3dCommon& common, const Camera&
         const auto& view = camera.GetViewMatrix();
         return at.x * view.m[0][2] + at.y * view.m[1][2] + at.z * view.m[2][2];
     };
-    // 炎と煙を一緒に奥から合成。煙が手前にあるときは炎も薄く隠れる。
+    // 炎と煙を一緒に奥から合成　煙が手前にあるときは炎も薄く隠れる
     std::sort(translucent.begin(), translucent.begin() + translucentCount,
         [&](const auto& a, const auto& b) { return depth(a.object) > depth(b.object); });
     auto blend = BlendMode::Add;
@@ -595,7 +595,7 @@ void PlayerDefeatPresentation::DrawEffects(Object3dCommon& common, const Camera&
     common.CommonDrawSetting();
 }
 
-// 墜落の進み具合に合わせて画面に暗さを加え、敗北画面へ視線をつなぐ。
+// 墜落の進み具合に合わせて画面に暗さを加え、敗北画面へ視線をつなぐ
 void PlayerDefeatPresentation::DrawOverlay(const Math::Vector2& min, const Math::Vector2& size) const
 {
     if (!IsActive()) { return; }
@@ -607,7 +607,7 @@ void PlayerDefeatPresentation::DrawOverlay(const Math::Vector2& min, const Math:
     if (flash > 0.0f) { draw->AddRectFilled(a, b, IM_COL32(255, 190, 135, static_cast<int>(flash * 70.0f))); }
 }
 
-// 墜落演出用の描画オブジェクトを解放し、演出の進行も初期化する。
+// 墜落演出用の描画オブジェクトを解放し、演出の進行も初期化する
 void PlayerDefeatPresentation::Clear()
 {
     defeatMotes_ = {};
@@ -618,13 +618,13 @@ void PlayerDefeatPresentation::Clear()
     Reset();
 }
 
-// 墜落演出がリザルトを開ける時刻まで進んだかを返す。
+// 墜落演出がリザルトを開ける時刻まで進んだかを返す
 bool PlayerDefeatPresentation::IsResultReady() const
 {
     return playerDefeat_.elapsed >= kDefeatMenuTime;
 }
 
-// 表示中の破片を影描画用の一覧へ入れ、登録できた個数を返す。
+// 表示中の破片を影描画用の一覧へ入れ、登録できた個数を返す
 size_t PlayerDefeatPresentation::CopyShadowCasters(std::array<Object3d*, kDebrisCount>& output) const
 {
     size_t count = 0;

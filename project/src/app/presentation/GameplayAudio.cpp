@@ -1,5 +1,5 @@
 // ===== GameplayAudio.cpp =====
-// 戦闘で使う音源を準備し、プレイの状態に応じてBGMや効果音の再生を切り替える。
+// 戦闘で使う音源を準備し、プレイの状態に応じてBGMや効果音の再生を切り替える
 
 #include "app/presentation/GameplayAudio.h"
 
@@ -33,7 +33,7 @@ const char* GameplayAudio::LoadLabel() const
 
 void GameplayAudio::Clear()
 {
-    sound_.reset(); // ボイスを破棄してから波形を解放する。
+    sound_.reset(); // ボイスを破棄してから波形を解放する
 }
 
 void GameplayAudio::ResetMix()
@@ -49,7 +49,7 @@ void GameplayAudio::ResetMixForProbe()
 }
 #endif
 
-// 音声を定めた順で少しずつ読み込む。準備完了を呼び出し元へ返し、出撃前のロード進捗に使う。
+// 音声を定めた順で少しずつ読み込む　準備完了を呼び出し元へ返し、出撃前のロード進捗に使う
 bool GameplayAudio::LoadStep()
 {
     if (loadStep_ == 0) {
@@ -60,6 +60,7 @@ bool GameplayAudio::LoadStep()
         ++loadStep_;
         return false;
     }
+    // volumeは音量　intervalは再生間隔　pitchは再生周波数の倍率
     const auto varied = [this](const char* key, uint32_t voices, float volume, float interval, float pitch) {
         const std::string base = std::string("resources/audio/combat/") + key;
         sound_->LoadVariations(key, { base + ".wav", base + "_02.wav", base + "_03.wav" },
@@ -89,7 +90,7 @@ bool GameplayAudio::LoadStep()
     return ++loadStep_ >= std::ssize(kLoadLabels);
 }
 
-// スキルの構え、連撃、最後の一撃に使う音を準備する。
+// スキルの構え、連撃、最後の一撃に使う音を準備する
 void GameplayAudio::LoadSkillSounds()
 {
     phantomLocalAudio_ = false;
@@ -97,8 +98,8 @@ void GameplayAudio::LoadSkillSounds()
     phantomAudioPlays_.fill(0);
 #endif
     if (!sound_) { return; }
-    // Sonniss素材の加工WAVは公開リポジトリへ入れない。通常配布は既存CC0バンクを使う。
-    // 入場時だけ探索・デコードし、プレイ中のファイルアクセスやボイス追加はしない。
+    // Sonniss素材の加工WAVは公開リポジトリへ入れない　通常配布は既存CC0バンクを使う
+    // 入場時だけ探索・デコードし、プレイ中のファイルアクセスやボイス追加はしない
     const std::string local = "../generated/audio-phantom-runtime/";
     char* setting = nullptr;
     size_t settingLength = 0;
@@ -118,7 +119,7 @@ void GameplayAudio::LoadSkillSounds()
             1, 0.78f, 0.4f);
         phantomLocalAudio_ = slashLoaded && finishLoaded;
         if (!phantomLocalAudio_) {
-            // 一部だけ成功した場合も両方を戻す。欠落や破損で連撃が無音にならない。
+            // 一部だけ成功した場合も両方を戻す　欠落や破損で連撃が無音にならない
             sound_->Unload("slash");
             sound_->Unload("slash_finish");
         }
@@ -133,14 +134,15 @@ void GameplayAudio::LoadSkillSounds()
         "Phantom audio: original CC0 bank loaded.\n");
 }
 
-// 効果音を名前で再生する。スキルなどの目立たせたい音が鳴る間は、通常の射撃音・命中音・撃破音を下げる。
+// 効果音を名前で再生する　スキルなどの目立たせたい音が鳴る間は、通常の射撃音・命中音・撃破音を下げる
+// keyは効果音の識別名　pitchは再生周波数の倍率　elapsedSecondsは前回の更新からの経過秒数
 void GameplayAudio::PlayEffect(const char* key, float pitch, float elapsedSeconds, bool skillActive)
 {
     if (sound_) {
         const std::string_view cue(key);
         const bool accent = elapsedSeconds < accentUntil_;
         float gain = 1.0f;
-        // 主役となる一音に場所を空ける。被弾通知と技本体は抑えない。
+        // 主役となる一音に場所を空ける　被弾通知と技本体は抑えない
         if (cue == "shot") { gain = skillActive ? 0.38f : accent ? 0.58f : 1.0f; }
         else if (cue == "hit") { gain = skillActive ? 0.45f : accent ? 0.68f : 1.0f; }
         else if (cue == "destroy") { gain = skillActive ? 0.24f : accent ? 0.56f : 1.0f; }
@@ -158,7 +160,7 @@ void GameplayAudio::PlayEffect(const char* key, float pitch, float elapsedSecond
     }
 }
 
-// 戦闘状況で再生するBGMを選び、音量を補間して曲の切り替えをなじませる。
+// 戦闘状況で再生するBGMを選び、音量を補間して曲の切り替えをなじませる
 void GameplayAudio::UpdateMusic(Track desiredTrack, float deltaTime, bool ducked, bool tutorial)
 {
     if (!sound_) { return; }

@@ -1,4 +1,4 @@
-// GPU上のパーティクルの発生・更新・描画を、グループ単位で管理する。
+// GPU上のパーティクルの発生・更新・描画を、グループ単位で管理する
 
 #pragma once
 
@@ -57,7 +57,7 @@ public:
     void Update(const Math::Matrix4x4& viewMatrix,
         const Math::Matrix4x4& projectionMatrix, bool advanceSimulation = true);
 
-    // 停止中は既存粒子だけを描き、GPU上の射出・移動・寿命更新を実行しない。
+    // 停止中は既存粒子だけを描き、GPU上の射出・移動・寿命更新を実行しない
     void Draw(bool advanceSimulation = true);
 
     // ===== パーティクル発生 =====

@@ -1,4 +1,4 @@
-// 戦闘中のポーズと操作ヘルプを管理する。再開や再挑戦は画面演出の完了後に確定する。
+// 戦闘中のポーズと操作ヘルプを管理する　再開や再挑戦は画面演出の完了後に確定する
 
 #pragma once
 
@@ -26,7 +26,7 @@ public:
 
 #ifdef _DEBUG
     int SelectedPauseItem() const { return selectedItem_; }
-    // 検証でポーズとヘルプの表示状態を直接設定する。解除時はポーズの経過時刻も戻す。
+    // 検証でポーズとヘルプの表示状態を直接設定する　解除時はポーズの経過時刻も戻す
     void SetPausedForDebug(bool paused, bool controls = false)
     {
         paused_ = paused;

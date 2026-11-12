@@ -1,4 +1,4 @@
-// 配置された3Dオブジェクト1個分の姿勢、色、アニメーション状態とGPUへの描画を担当する。
+// 配置された3Dオブジェクト1個分の姿勢、色、アニメーション状態とGPUへの描画を担当する
 
 #pragma once
 #include <cstddef>
@@ -91,6 +91,7 @@ class Object3d {
 public:
     void Initialize(Object3dCommon* object3dCommon);
     void Update();
+    // モデルと物体ごとの描画設定を結び付けて描く　使用できる場合は骨格で変形した頂点を使う
     void Draw(ModelDrawPass drawPass = ModelDrawPass::All);
     bool HasTransparentMaterials() const { return model_ && model_->HasTransparentMaterials(); }
     void DrawShadow(const Matrix4x4& lightViewProjection);
@@ -157,6 +158,7 @@ private:
     void CreateMaterialOverride();
     void CreateSkinningPalette();
     void CreateComputeSkinningPipeline();
+    // モデルの骨格をこの物体用に初期化する　骨格がある場合は変形に使う領域を準備する
     void InitializeSkinning();
     void UpdateSkinningPalette();
     void InitializeComputeSkinningResources();
@@ -171,13 +173,13 @@ private:
     Quaternion quaternionRotate_{ 0.0f, 0.0f, 0.0f, 1.0f };
     bool useQuaternionRotate_ = false;
     Camera* camera_ = nullptr;
-    float lastCameraAspectRatio_ = -1.0f; // 転送済み行列の縦横比。停止中のリサイズ検出用。
+    float lastCameraAspectRatio_ = -1.0f; // 転送済み行列の縦横比　停止中のリサイズ検出用
     Matrix4x4 worldMatrix_ = MakeIdentity4x4();
 
-    // 物体ごとに一度だけ確保する。各CBVの先頭は256バイト境界、材質はModel::Draw用に先頭。
+    // 物体ごとに一度だけ確保する　各CBVの先頭は256バイト境界、材質はModel::Draw用に先頭
     static constexpr size_t kTransformOffset = (sizeof(Material) + 255u) & ~size_t(255u);
     TransformationMatrix* transformationMatrixData_ = nullptr;
-    // 同じUpload Buffer内の別領域。影描画後に通常行列を書いてもGPUの参照先を壊さない。
+    // 同じUpload Buffer内の別領域　影描画後に通常行列を書いてもGPUの参照先を壊さない
     static constexpr size_t kTransformBufferStride =
         (sizeof(TransformationMatrix) + 255u) & ~size_t(255u);
     static constexpr size_t kDirectionalLightOffset = kTransformOffset + kTransformBufferStride * 2;

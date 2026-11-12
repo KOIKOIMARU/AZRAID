@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
-// GameRuntimeの各機能で共有する、状態を持たない計算。
+// GameRuntimeの各機能で共有する、状態を持たない計算
 namespace GameRuntimeMath {
 
-// 銃口や噴射口など、機体基準のずれを機体の回転に合わせる。
+// 銃口や噴射口など、機体基準のずれを機体の回転に合わせる
 inline Math::Vector3 RotateLocalOffset(
     const Math::Vector3& offset,
     const Math::Vector3& rotate)
@@ -32,7 +32,7 @@ inline Math::Vector3 RotateLocalOffset(
     };
 }
 
-// 2点間の距離の二乗を返す。球同士の当たり判定では半径の和の二乗と直接比較する。
+// 2点間の距離の二乗を返す　球同士の当たり判定では半径の和の二乗と直接比較する
 inline float DistanceSquared(const Math::Vector3& a, const Math::Vector3& b)
 {
     const float x = a.x - b.x;
@@ -55,7 +55,7 @@ inline Math::Vector3 Lerp(const Math::Vector3& start, const Math::Vector3& end, 
     };
 }
 
-// 点を行列で変換する。透視投影を含む場合に使えるよう、最後にwで割る。
+// 点を行列で変換する　透視投影を含む場合に使えるよう、最後にwで割る
 inline Math::Vector3 TransformCoord(const Math::Vector3& v, const Math::Matrix4x4& m)
 {
     const float x =
@@ -72,7 +72,7 @@ inline Math::Vector3 TransformCoord(const Math::Vector3& v, const Math::Matrix4x
     return { x / w, y / w, z / w };
 }
 
-// 飛行方向を前向きにして、上方向と旋回時の傾きから機体の回転角を作る。
+// 飛行方向を前向きにして、上方向と旋回時の傾きから機体の回転角を作る
 inline Math::Vector3 StageFlightRotation(Math::Vector3 direction, Math::Vector3 referenceUp, float bank)
 {
     const auto cross=[](Math::Vector3 a,Math::Vector3 b) {

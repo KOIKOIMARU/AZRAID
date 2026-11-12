@@ -1,5 +1,5 @@
 // ===== SceneManager.cpp =====
-// 現在のシーンを保持し、次のシーンの事前準備と切り替え、終了処理を管理する。
+// 現在のシーンを保持し、次のシーンの事前準備と切り替え、終了処理を管理する
 
 #include "engine/scene/SceneManager.h"
 #include "engine/scene/BaseScene.h"
@@ -16,7 +16,7 @@ SceneManager::~SceneManager() {
     FinalizeAllScenes();
 }
 
-// 表示中と準備済みのシーンを終了し、遷移演出の状態もリセットする。
+// 表示中と準備済みのシーンを終了し、遷移演出の状態もリセットする
 void SceneManager::FinalizeAllScenes() {
     FinalizeCurrentScene();
     for (size_t index = 0; index < preparedScenes_.size(); ++index) {
@@ -30,7 +30,7 @@ void SceneManager::SetSceneFactory(AbstractSceneFactory* sceneFactory) {
     sceneFactory_ = sceneFactory;
 }
 
-// 新しいシーンを準備するときに渡す、描画や入力の共通システムを保持する。
+// 新しいシーンを準備するときに渡す、描画や入力の共通システムを保持する
 void SceneManager::SetSystems(
     DirectXCommon* dxCommon,
     SrvManager* srvManager,
@@ -45,7 +45,7 @@ void SceneManager::SetSystems(
     input_ = input;
 }
 
-// 次の画面と切り替え方法を予約する。入れ替えは次回のシーン更新で行う。
+// 次の画面と切り替え方法を予約する　入れ替えは次回のシーン更新で行う
 void SceneManager::SetNextScene(SceneType sceneType, bool menuWipe) {
     if (hasNextScene_ && nextSceneType_ == sceneType) { return; }
     nextSceneType_ = sceneType;
@@ -53,12 +53,12 @@ void SceneManager::SetNextScene(SceneType sceneType, bool menuWipe) {
     nextSceneMenuWipe_ = menuWipe;
 }
 
-// 分割初期化を完了まで繰り返し、呼び出した場で指定のシーンを使える状態にする。
+// 分割初期化を完了まで繰り返し、呼び出した場で指定のシーンを使える状態にする
 void SceneManager::PrepareScene(SceneType sceneType) {
     while (!PrepareSceneStep(sceneType)) {}
 }
 
-// 次に使うシーンを作り、更新をまたいで初期化を進める。準備済みのシーンは切り替え時に引き継ぐ。
+// 次に使うシーンを作り、更新をまたいで初期化を進める　準備済みのシーンは切り替え時に引き継ぐ
 bool SceneManager::PrepareSceneStep(SceneType sceneType) {
     assert(static_cast<size_t>(sceneType) < preparedScenes_.size());
     auto& prepared = preparedScenes_[static_cast<size_t>(sceneType)];
@@ -66,7 +66,7 @@ bool SceneManager::PrepareSceneStep(SceneType sceneType) {
         return true;
     }
 
-    // 本編と練習は同名の粒子グループを使うため、二つを同時には準備しない。
+    // 本編と練習は同名の粒子グループを使うため、二つを同時には準備しない
     if (sceneType == SceneType::Game) { DiscardPreparedScene(SceneType::Tutorial); }
     if (sceneType == SceneType::Tutorial) { DiscardPreparedScene(SceneType::Game); }
 
@@ -100,14 +100,14 @@ BaseScene* SceneManager::GetPreparedScene(SceneType sceneType) const {
     return IsScenePrepared(sceneType) ? preparedScenes_[static_cast<size_t>(sceneType)].scene.get() : nullptr;
 }
 
-// 先に用意していたシーンが不要になったら、リソースを終了処理で片づけてから手放す。
+// 先に用意していたシーンが不要になったら、リソースを終了処理で片づけてから手放す
 void SceneManager::DiscardPreparedScene(SceneType sceneType) {
     auto& prepared = preparedScenes_[static_cast<size_t>(sceneType)];
     if (prepared.scene) { prepared.scene->Finalize(); prepared.scene.reset(); }
     prepared.ready = false;
 }
 
-// 現在のシーンに終了処理を行い、所有権と切り替え予約を解除する。
+// 現在のシーンに終了処理を行い、所有権と切り替え予約を解除する
 void SceneManager::FinalizeCurrentScene()
 {
     if (scene_) {
@@ -117,7 +117,7 @@ void SceneManager::FinalizeCurrentScene()
     hasNextScene_ = false;
 }
 
-// 切り替えの予約があれば現在と次のシーンを入れ替える。画面を開く演出中は到着用の更新を使う。
+// 切り替えの予約があれば現在と次のシーンを入れ替える　画面を開く演出中は到着用の更新を使う
 void SceneManager::Update() {
     const auto wipe = [](float coverage) {
         const auto* viewport = ImGui::GetMainViewport();
@@ -126,7 +126,7 @@ void SceneManager::Update() {
     if (hasNextScene_) {
         const bool menuWipe = nextSceneMenuWipe_;
         if (menuWipe && scene_) {
-            // 完全に覆った次フレームで旧ステージを終了する。新旧の同名パーティクル群を重ねない。
+            // 完全に覆った次フレームで旧ステージを終了する　新旧の同名パーティクル群を重ねない
             DiscardPreparedScene(SceneType::Game);
             DiscardPreparedScene(SceneType::Tutorial);
             scene_->Finalize();
@@ -179,7 +179,7 @@ void SceneManager::Update() {
     }
 }
 
-// 画面切り替えで描画を止める区間を除き、現在のシーンに描画を渡す。
+// 画面切り替えで描画を止める区間を除き、現在のシーンに描画を渡す
 void SceneManager::Draw() {
     if (scene_ && !(hasNextScene_ && nextSceneMenuWipe_)) {
         scene_->Draw();

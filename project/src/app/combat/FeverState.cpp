@@ -1,11 +1,11 @@
 // ===== FeverState.cpp =====
-// フィーバーゲージと残り時間を持ち、発動・延長・終了の状態を管理する。
+// フィーバーゲージと残り時間を持ち、発動・延長・終了の状態を管理する
 
 #include "app/combat/FeverState.h"
 
 #include <algorithm>
 
-// ゲージ、発動時間、発動回数、加速演出をまとめて初期状態に戻す。
+// ゲージ、発動時間、発動回数、加速演出をまとめて初期状態に戻す
 void FeverState::Reset()
 {
     gauge_ = 0;
@@ -15,7 +15,7 @@ void FeverState::Reset()
     speedEffectRate_ = 0.0f;
 }
 
-// 発動中の残り時間を進め、時間切れで通常状態へ戻す。
+// 発動中の残り時間を進め、時間切れで通常状態へ戻す
 bool FeverState::Tick()
 {
     const bool wasActive = IsActive();
@@ -28,7 +28,7 @@ bool FeverState::Tick()
     return wasActive;
 }
 
-// ゲージを消費し、フィーバーの残り時間と発動時の光をセットする。発動条件は呼び出し側が判定する。
+// ゲージを消費し、フィーバーの残り時間と発動時の光をセットする　発動条件は呼び出し側が判定する
 void FeverState::Activate()
 {
     gauge_ = 0;
@@ -37,7 +37,7 @@ void FeverState::Activate()
     ++activationCount_;
 }
 
-// フィーバーの効果と発動表示を終える。指定された場合は加速演出の残りも消す。
+// フィーバーの効果と発動表示を終える　指定された場合は加速演出の残りも消す
 void FeverState::Stop(bool resetSpeedEffect)
 {
     remainingFrames_ = 0;
@@ -50,19 +50,19 @@ void FeverState::SetGauge(int amount)
     gauge_ = std::clamp(amount, 0, kGaugeMax);
 }
 
-// 通常状態で正の加算を受け付け、ゲージを上限まで増やす。
+// 通常状態で正の加算を受け付け、ゲージを上限まで増やす
 void FeverState::AddGauge(int amount)
 {
     if (amount > 0 && !IsActive()) { SetGauge(gauge_ + amount); }
 }
 
-// 通常状態の被弾などでゲージを減らし、0未満にならないようにする。
+// 通常状態の被弾などでゲージを減らし、0未満にならないようにする
 void FeverState::RemoveGauge(int amount)
 {
     if (amount > 0 && !IsActive()) { SetGauge(gauge_ - amount); }
 }
 
-// 発動中の残り時間を通常の最大時間まで伸ばし、実際に増えたフレーム数を返す。
+// 発動中の残り時間を通常の最大時間まで伸ばし、実際に増えたフレーム数を返す
 int FeverState::Extend(int frames)
 {
     if (!IsActive() || frames <= 0) { return 0; }

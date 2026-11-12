@@ -13,7 +13,7 @@ class Camera;
 class Model;
 class Player;
 
-// 失速から破片の接地までを再生する。敵や弾の退場、リザルトへの遷移は呼び出し側が進める。
+// 失速から破片の接地までを再生する　敵や弾の退場、リザルトへの遷移は呼び出し側が進める
 class PlayerDefeatPresentation {
 public:
     static constexpr size_t kDebrisCount = 4;
@@ -27,7 +27,7 @@ public:
     };
     struct Frame {
         GameplayCamera::Pose camera;
-        // 爆発したフレームだけ、共通の戦闘エフェクトと効果音を呼び出し側へ通知する。
+        // 爆発したフレームだけ、共通の戦闘エフェクトと効果音を呼び出し側へ通知する
         std::optional<Math::Vector3> burstPosition;
     };
 
@@ -57,6 +57,7 @@ public:
 #endif
 
 private:
+    // 機体から飛び散る部品を描くためのモデルと描画オブジェクトを、撃墜前に準備する
     void InitializeDebris(Object3dCommon& common, Camera& camera, const Model* ship, float shipScale);
     Math::Vector3 GetDefeatFireOrigin(size_t piece, size_t site) const;
     void EmitDefeatMote(const Math::Vector3& position, bool spark, bool burst, float strength = 1.0f);
@@ -94,15 +95,15 @@ private:
         bool spark = false;
         bool ember = false;
     };
-    std::array<DefeatMote, 48> defeatMotes_{}; // 起動時に確保。失速・爆発・残煙で共用する。
-    std::array<std::unique_ptr<Object3d>, 12> defeatFire_{}; // 機体内部2、燃料の火8、翼の残り火2。
+    std::array<DefeatMote, 48> defeatMotes_{}; // 起動時に確保　失速・爆発・残煙で共用する
+    std::array<std::unique_ptr<Object3d>, 12> defeatFire_{}; // 機体内部2、燃料の火8、翼の残り火2
     std::array<std::unique_ptr<Object3d>, 3> defeatFireGlow_{};
     std::unique_ptr<Object3d> defeatFuelStain_;
     struct DefeatDebris {
         std::unique_ptr<Object3d> object;
         Math::Vector3 localOffset{};
-        std::array<Math::Vector3, 8> fireAnchors{}; // 上下面それぞれの実メッシュ上の点。
-        std::vector<Math::Vector3> contactVertices; // 接地判定用。生成は初期化時だけ。
+        std::array<Math::Vector3, 8> fireAnchors{}; // 上下面それぞれの実メッシュ上の点
+        std::vector<Math::Vector3> contactVertices; // 接地判定用　生成は初期化時だけ
         Math::Vector3 position{}, velocity{}, rotation{}, spin{};
         float restitution = 0.22f;
         float drag = 6.0f;
@@ -110,5 +111,5 @@ private:
         float restRoll = 0.0f;
         bool active = false;
     };
-    std::array<DefeatDebris, kDebrisCount> defeatDebris_{}; // 胴体・機首・左右の翼。生成は初期化時だけ。
+    std::array<DefeatDebris, kDebrisCount> defeatDebris_{}; // 胴体・機首・左右の翼　生成は初期化時だけ
 };

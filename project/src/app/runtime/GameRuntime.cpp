@@ -1,5 +1,5 @@
 // ===== GameRuntime.cpp =====
-// ゲームプレイを初期化し、各フレームでステージ・自機・敵を更新して描画へつなぐ。
+// ゲームプレイを初期化し、各フレームでステージ・自機・敵を更新して描画へつなぐ
 
 #include "app/runtime/GameRuntime.h"
 #include "app/runtime/GameResources.h"
@@ -33,13 +33,14 @@ using namespace SceneryAssets;
 GameRuntime::GameRuntime() = default;
 GameRuntime::~GameRuntime() = default;
 
-// 効果音の名前と再生ピッチを音声担当に渡す。音源の選択と再生枠の管理はGameplayAudioが行う。
+// 効果音の名前と再生ピッチを音声担当に渡す　音源の選択と再生枠の管理はGameplayAudioが行う
+// keyは効果音の識別名　pitchは再生周波数の倍率
 void GameRuntime::PlaySfx(const char* key, float pitch)
 {
     audio_.PlayEffect(key, pitch, gameplayElapsedSeconds_, IsPhantomRaidActive());
 }
 
-// 敗北・クリア・フィーバー・ボス戦の順に現在の状態を見て、再生する曲を選ぶ。
+// 敗北・クリア・フィーバー・ボス戦の順に現在の状態を見て、再生する曲を選ぶ
 void GameRuntime::UpdateMusic()
 {
     using Track = GameplayAudio::Track;
@@ -49,7 +50,7 @@ void GameRuntime::UpdateMusic()
         IsPhantomRaidActive() || bossPresentation_.IsPhaseTransitionPlaying(), IsTutorial());
 }
 
-// 描画と入力に使う共通オブジェクトの参照を受け取る。ゲーム側で必要なリソースは後の初期化で作る。
+// 描画と入力に使う共通オブジェクトの参照を受け取る　ゲーム側で必要なリソースは後の初期化で作る
 void GameRuntime::SetSystems(
     DirectXCommon* dxCommon,
     SrvManager* srvManager,
@@ -64,7 +65,7 @@ void GameRuntime::SetSystems(
     input_ = input;
 }
 
-// ゲームの準備を同期的に完了させる入口。共有素材の待機中は短く休止してから再確認する。
+// ゲームの準備を同期的に完了させる入口　共有素材の待機中は短く休止してから再確認する
 void GameRuntime::Initialize(PlayMode mode)
 {
     BeginInitialize(mode);
@@ -73,11 +74,11 @@ void GameRuntime::Initialize(PlayMode mode)
     }
 }
 
-// プレイモードを確定し、今回の戦闘・表示・配置を初期状態へ戻す。実際の素材準備はInitializeStepへ引き継ぐ。
+// プレイモードを確定し、今回の戦闘・表示・配置を初期状態へ戻す　実際の素材準備はInitializeStepへ引き継ぐ
 void GameRuntime::BeginInitialize(PlayMode mode)
 {
-    // 初回出撃・再挑戦・練習開始で、担当クラスの状態を同じ順序で初期化する。
-    // 永続記録はStageRecordsが保持し、ここでは今回のリザルト表示だけを戻す。
+    // 初回出撃・再挑戦・練習開始で、担当クラスの状態を同じ順序で初期化する
+    // 永続記録はStageRecordsが保持し、ここでは今回のリザルト表示だけを戻す
     playMode_ = mode;
     editorExitRequested_ = false;
     gameplayMenu_ = {};
@@ -100,7 +101,7 @@ void GameRuntime::BeginInitialize(PlayMode mode)
     bossAttack_.Reset();
     bossShotsFired_ = 0;
     stageFlight_.Reset(IsTutorial());
-    // 地形は開始時から固定する。撃破速度による区間確定で視界内の施設を出現・変形させない。
+    // 地形は開始時から固定する　撃破速度による区間確定で視界内の施設を出現・変形させない
     railScenery_.SetDistricts(IsTutorial(), IsTutorial() ? -1.0f : kDefenseStartWorldZ,
         IsTutorial() ? -1.0f : kPlazaStartWorldZ);
     gameplayCamera_.Reset(stageFlight_.Speed());
@@ -115,7 +116,7 @@ void GameRuntime::BeginInitialize(PlayMode mode)
     projectiles_.Clear();
 }
 
-// 初期化側が設定する機体・背景・弾・UIなどへの参照をまとめる。
+// 初期化側が設定する機体・背景・弾・UIなどへの参照をまとめる
 GameplaySceneSetup::Targets GameRuntime::SceneSetupTargets()
 {
     return {
@@ -145,13 +146,13 @@ GameplaySceneSetup::Targets GameRuntime::SceneSetupTargets()
     };
 }
 
-// 弾やエフェクトの準備、音声ロードの進み具合を合わせた進捗を返す。
+// 弾やエフェクトの準備、音声ロードの進み具合を合わせた進捗を返す
 float GameRuntime::GetInitializationProgress() const
 {
     return sceneSetup_.Progress(projectiles_, combatEffects_, audio_);
 }
 
-// 初回ロードと出撃準備を少しずつ進める。準備完了後にだけ、開発用の開始地点を適用できる。
+// 初回ロードと出撃準備を少しずつ進める　準備完了後にだけ、開発用の開始地点を適用できる
 bool GameRuntime::InitializeStep()
 {
     if (sceneSetup_.IsReady()) { return true; }
@@ -164,20 +165,20 @@ bool GameRuntime::InitializeStep()
     return true;
 }
 
-// リングとこのシーンが使っていた描画リソースを終了時に解放する。
+// リングとこのシーンが使っていた描画リソースを終了時に解放する
 void GameRuntime::Finalize()
 {
     ResetRifts();
     sceneSetup_.Release(SceneSetupTargets());
 }
 
-// 本編の1フレーム。出撃・メニュー・墜落の専用処理を優先し、通常戦闘では移動、射撃、衝突、表示の順に進める。
+// 本編の1フレーム　出撃・メニュー・墜落の専用処理を優先し、通常戦闘では移動、射撃、衝突、表示の順に進める
 void GameRuntime::Update()
 {
     flightMotionBlur_.UpdateReview(*dxCommon_, !isGameOver_ && !isGameClear_ && !IsTutorial());
-    // 出撃の最終姿勢・前進位置をそのまま通常のばね追従へ引き渡す。
+    // 出撃の最終姿勢・前進位置をそのまま通常のばね追従へ引き渡す
     stageEntryPresentation_.FinishTitleEntry();
-    // ゲーム進行を止めたままでも、表示先の変更だけは反映する。
+    // ゲーム進行を止めたままでも、表示先の変更だけは反映する
     if (camera_) {
         Math::Vector2 viewportMin{}, viewportSize{};
         GetEffectiveHudViewportRect(viewportMin, viewportSize);
@@ -190,7 +191,7 @@ void GameRuntime::Update()
             UpdatePlayerAim();
         }
     }
-    // 出撃や再挑戦の演出中はここで抜ける。機体とカメラの姿勢は演出側が更新する。
+    // 出撃や再挑戦の演出中はここで抜ける　機体とカメラの姿勢は演出側が更新する
     if (UpdateRetryEntry()) { return; }
     if (UpdateMenuAction()) { return; }
 #ifdef _DEBUG
@@ -211,7 +212,7 @@ void GameRuntime::Update()
     }
     if (UpdateMenuAction()) { return; }
 
-    // 自機の撃墜後は墜落演出とリザルトだけを進める。
+    // 自機の撃墜後は墜落演出とリザルトだけを進める
     if (isGameOver_ && playerDefeatPresentation_.IsActive()) {
         UpdatePlayerDefeat();
         DrawPlayerDefeatOverlay();
@@ -221,7 +222,7 @@ void GameRuntime::Update()
     }
 
     if (gameplayMenu_.IsPaused() || flightMotionBlur_.IsFrozen()) {
-        // カメラ・敵・弾・衝突・ゲージを更新せず、最後のゲーム画面を描き続ける。
+        // カメラ・敵・弾・衝突・ゲージを更新せず、最後のゲーム画面を描き続ける
         DrawHud();
         DrawPauseOverlay();
         DrawControlsHelp();
@@ -236,7 +237,7 @@ void GameRuntime::Update()
 
     const Math::Vector3 previousRiftPlayerPosition = player_ ? player_->GetTranslate() : Math::Vector3{};
     UpdateBossRadio(dxCommon_ ? dxCommon_->GetDeltaTime() : 1.0f / 60.0f);
-    // レールと機体の位置を先に確定し、その位置と更新済みの照準から発射する。
+    // レールと機体の位置を先に確定し、その位置と更新済みの照準から発射する
     UpdateRailProgress();
     UpdatePlayerAndCamera();
     UpdateFever();
@@ -249,13 +250,13 @@ void GameRuntime::Update()
         UpdateEnemyActions();
     }
 
-    // 敵と弾の位置を進めてから、同じフレームの位置で衝突を判定する。
+    // 敵と弾の位置を進めてから、同じフレームの位置で衝突を判定する
     UpdateWorldEntities();
     UpdateGameplayCollisions();
     if (player_) { UpdateRifts(previousRiftPlayerPosition, player_->GetTranslate()); }
     UpdateTutorialLesson();
     UpdateDefeatChain();
-    // HUDを描く前に、撃破や退場を照準表示へ反映する。
+    // HUDを描く前に、撃破や退場を照準表示へ反映する
     UpdatePlayerAim();
     DrawHud();
     DrawStageBriefing(stageEntryPresentation_.BriefingTime());
@@ -274,7 +275,7 @@ void GameRuntime::Update()
     UpdateMusic();
 }
 
-// 通常戦闘ではポーズとヘルプ、リザルト表示後はRの再挑戦を処理する。戻り値trueは開発用キーを処理したため今回の更新を抜ける合図。
+// 通常戦闘ではポーズとヘルプ、リザルト表示後はRの再挑戦を処理する　戻り値trueは開発用キーを処理したため今回の更新を抜ける合図
 bool GameRuntime::HandleRuntimeShortcuts()
 {
     gameplayMenu_.HandleShortcuts(input_, !isGameOver_ && !isGameClear_);
@@ -286,7 +287,7 @@ bool GameRuntime::HandleRuntimeShortcuts()
         return false;
     }
 #ifdef ENABLE_DEBUG_GUI
-    // 提出版では診断表示・描画切り替え・強制シーン移動を受け付けない。
+    // 提出版では診断表示・描画切り替え・強制シーン移動を受け付けない
     if (input_ && input_->TriggerKey(DIK_F1)) {
         isEditorOverlayVisible_ = !isEditorOverlayVisible_;
         return true;
@@ -307,7 +308,7 @@ bool GameRuntime::HandleRuntimeShortcuts()
     return false;
 }
 
-// 現在区間の飛行設定を取り出し、到達したイベントを揺れ・リング・ボス警告に変える。
+// 現在区間の飛行設定を取り出し、到達したイベントを揺れ・リング・ボス警告に変える
 void GameRuntime::PrepareStageFrame()
 {
     stageFlight_.PrepareFrame(rewards_.Fever().IsActive(), ringGates_.BoostStrength());
@@ -327,7 +328,7 @@ void GameRuntime::PrepareStageFrame()
     }
 }
 
-// 前方への移動を進める。敵の同時出現数とボスの状態は配置の進み方にも渡す。
+// 前方への移動を進める　敵の同時出現数とボスの状態は配置の進み方にも渡す
 void GameRuntime::UpdateRailProgress()
 {
     if (isGameOver_ || isGameClear_) { return; }
@@ -337,7 +338,7 @@ void GameRuntime::UpdateRailProgress()
         rewards_.Fever().IsActive(), ringGates_.BoostStrength(), stageEnemies_.BossSpawned());
 }
 
-// 入力で自機を動かし、その移動を敵の照準に渡す。更新したカメラから照準の位置を求め直す。
+// 入力で自機を動かし、その移動を敵の照準に渡す　更新したカメラから照準の位置を求め直す
 void GameRuntime::UpdatePlayerAndCamera()
 {
     const float controlStep = dxCommon_ ? dxCommon_->GetDeltaTime() * 60.0f : 1.0f;
@@ -352,7 +353,7 @@ void GameRuntime::UpdatePlayerAndCamera()
     UpdatePlayerAim();
 }
 
-// 自機・照準・飛行速度など、そのフレームで必要な値をまとめて射撃処理へ渡す。
+// 自機・照準・飛行速度など、そのフレームで必要な値をまとめて射撃処理へ渡す
 void GameRuntime::UpdatePlayerShooting()
 {
     const PlayerControl::ShotFrame frame{
@@ -365,12 +366,12 @@ void GameRuntime::UpdatePlayerShooting()
     };
     if (const auto shot = playerControl_.UpdateShooting(input_, projectiles_, frame)) {
         if (shot->fired) {
-            // フィーバー連射には通常の発射音を使い、単発のチャージショットには重い発射音を使う。
+            // フィーバー連射には通常の発射音を使い、単発のチャージショットには重い発射音を使う
             PlaySfx(shot->charged && !frame.fever ? "charge" : "shot");
             combatEffects_.PlayerShot(shot->muzzle, shot->charged, frame.fever);
             if (shot->charged) { hud_.FlashChargeShot(); }
         }
-        // 発射の入力に合わせ、単発のチャージショットで揺れを強める。
+        // 発射の入力に合わせ、単発のチャージショットで揺れを強める
         AddCameraShake(
             frame.fever ? 0.012f : (shot->charged ? 0.052f : 0.010f),
             frame.fever ? 2 : (shot->charged ? 6 : 2));
@@ -378,7 +379,7 @@ void GameRuntime::UpdatePlayerShooting()
     hud_.TickCharge();
 }
 
-// 自機が生存していて戦闘中なら自動発動を許可する。発動が通知されたフレームだけ専用の音と光を出す。
+// 自機が生存していて戦闘中なら自動発動を許可する　発動が通知されたフレームだけ専用の音と光を出す
 void GameRuntime::UpdateFever()
 {
     const bool canActivate = !isGameOver_ && !isGameClear_ && player_ && !player_->IsDead();
@@ -387,7 +388,7 @@ void GameRuntime::UpdateFever()
     }
 }
 
-// フィーバー開始の合図を効果音、HUDの光、自機の周囲のエフェクト、カメラの揺れで表示する。
+// フィーバー開始の合図を効果音、HUDの光、自機の周囲のエフェクト、カメラの揺れで表示する
 void GameRuntime::ShowFeverActivation()
 {
     PlaySfx("fever");
@@ -405,7 +406,7 @@ void GameRuntime::ShowFeverActivation()
 }
 
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_GUI)
-// 開発用の手動発動。戦闘が終わっていなければフィーバー状態を設定して演出を出す。
+// 開発用の手動発動　戦闘が終わっていなければフィーバー状態を設定して演出を出す
 void GameRuntime::ActivateFever()
 {
     if (isGameOver_ || isGameClear_) { return; }
@@ -415,27 +416,27 @@ void GameRuntime::ActivateFever()
 #endif
 
 #ifdef _DEBUG
-// 自動テストがゲージを加算する入口。練習課題や戦闘終了時の制限も通す。
+// 自動テストがゲージを加算する入口　練習課題や戦闘終了時の制限も通す
 void GameRuntime::AddFeverGauge(int amount)
 {
     if (CanEarnFever()) { rewards_.Fever().AddGauge(amount); }
 }
 #endif
 
-// 戦闘中にゲージを得られるか返す。練習ではフィーバーが許可された課題だけ有効。
+// 戦闘中にゲージを得られるか返す　練習ではフィーバーが許可された課題だけ有効
 bool GameRuntime::CanEarnFever() const
 {
     return !isGameOver_ && !isGameClear_ && (!IsTutorial() || tutorial_.AllowsFever());
 }
 
-// 戦闘中か、狙える通常敵がいるかを渡し、撃破チェインの猶予を更新する。
+// 戦闘中か、狙える通常敵がいるかを渡し、撃破チェインの猶予を更新する
 void GameRuntime::UpdateDefeatChain()
 {
     combatProgress_.Update(stageEnemies_.HasTargetableNormal(), !isGameOver_ && !isGameClear_);
 }
 
 
-// 配置表から敵を出し、ボスと通常敵の発射を処理する。通常敵には画面内で見えているかも渡す。
+// 配置表から敵を出し、ボスと通常敵の発射を処理する　通常敵には画面内で見えているかも渡す
 void GameRuntime::UpdateEnemyActions()
 {
     if (IsTutorial()) { UpdateTutorialAttack(); return; }
@@ -463,7 +464,7 @@ void GameRuntime::UpdateEnemyActions()
     }
 }
 
-// 攻撃コントローラの通知を、発射・形態移行・画面演出へつなぐ。
+// 攻撃コントローラの通知を、発射・形態移行・画面演出へつなぐ
 void GameRuntime::UpdateBossActions()
 {
     const Enemy* boss = stageEnemies_.Boss();
@@ -471,7 +472,7 @@ void GameRuntime::UpdateBossActions()
         boss && boss->CanShoot() && !bossPresentation_.BlocksAttacks(),
         boss ? boss->GetHp() : 0, boss ? boss->GetMaxHp() : 1,
         player_ ? player_->GetTranslate() : Math::Vector3{} });
-    // 第2形態の演出に入る前に、前の形態の敵弾を片づける。
+    // 第2形態の演出に入る前に、前の形態の敵弾を片づける
     if (events.phaseChanged) {
         bossPresentation_.BeginPhaseTransition();
         stageFlight_.SetCombatBeat("Boss phase 2");
@@ -486,7 +487,7 @@ void GameRuntime::UpdateBossActions()
         stageFlight_.SetCombatBeat(names[static_cast<int>(pattern)]);
         if (pattern == BossAttackController::Pattern::Charge) { AddCameraShake(0.08f, 18); }
     }
-    // 攻撃の判断を受け取り、実際の敵の銃口から既存の弾・照準計算で発射する。
+    // 攻撃の判断を受け取り、実際の敵の銃口から既存の弾・照準計算で発射する
     for (int index = 0; index < events.shotCount; ++index) {
         const auto& shot = events.shots[index];
         const auto origin = boss->GetBossMuzzlePosition(shot.muzzle == BossAttackController::Muzzle::Left ? -1.0f :
@@ -502,7 +503,7 @@ void GameRuntime::UpdateBossActions()
     }
 }
 
-// 弾と敵を進め、戦闘の表示と背景も更新する。直後の衝突判定は更新済みの位置を使う。
+// 弾と敵を進め、戦闘の表示と背景も更新する　直後の衝突判定は更新済みの位置を使う
 void GameRuntime::UpdateWorldEntities()
 {
     projectiles_.UpdatePlayerBullets();
@@ -514,11 +515,11 @@ void GameRuntime::UpdateWorldEntities()
     railScenery_.Update(stageFlight_.Distance());
 }
 
-// ボス撃破の爆発、結果音、画面表示の時計を進める。クリア記録は本編の結果表示が可能になった時点で保存する。
+// ボス撃破の爆発、結果音、画面表示の時計を進める　クリア記録は本編の結果表示が可能になった時点で保存する
 void GameRuntime::UpdateResultAndSceneObjects()
 {
     if (isGameOver_ && playerDefeatPresentation_.IsActive()) { return; }
-    // 撃破の最後の爆発が終わってからリザルトの音を鳴らす。
+    // 撃破の最後の爆発が終わってからリザルトの音を鳴らす
     if ((isGameClear_ || isGameOver_) && !bossPresentation_.IsDefeatPlaying() &&
         stageResults_.TryMarkSoundPlayed()) {
         PlaySfx(isGameClear_ ? "clear" : "fail");
@@ -535,20 +536,20 @@ void GameRuntime::UpdateResultAndSceneObjects()
     sceneObjects_.Update();
 }
 
-// エディタなどで選ばれた空の表示と画面効果の種類を、次の描画へ反映する。
+// エディタなどで選ばれた空の表示と画面効果の種類を、次の描画へ反映する
 void GameRuntime::SetRenderingOptions(bool showSkybox, int postEffectMode)
 {
     showSkybox_ = showSkybox;
     postEffectMode_ = postEffectMode;
 }
 
-// 自機が準備済みなら現在HPを返し、未初期化時は0を返す。
+// 自機が準備済みなら現在HPを返し、未初期化時は0を返す
 int GameRuntime::GetPlayerHp() const
 {
     return player_ ? player_->GetHp() : 0;
 }
 
-// 画面効果で深度から3D位置を復元するために、現在の投影行列を公開する。
+// 画面効果で深度から3D位置を復元するために、現在の投影行列を公開する
 const Math::Matrix4x4& GameRuntime::GetProjectionMatrix() const
 {
     static const Math::Matrix4x4 kIdentity = Math::MakeIdentity4x4();
@@ -556,7 +557,7 @@ const Math::Matrix4x4& GameRuntime::GetProjectionMatrix() const
     return camera_ ? camera_->GetProjectionMatrix() : kIdentity;
 }
 
-// エディタ内の表示範囲を受け取り、HUDと照準の座標基準にできるようにする。
+// エディタ内の表示範囲を受け取り、HUDと照準の座標基準にできるようにする
 void GameRuntime::SetHudViewportRect(
     bool isEnabled,
     const Math::Vector2& min,
@@ -567,7 +568,7 @@ void GameRuntime::SetHudViewportRect(
     hudViewportSize_ = size;
 }
 
-// ウィンドウ全体を基準にし、指定されたプレビュー領域やエディタ領域があれば優先する。左上と幅・高さを引数に返す。
+// ウィンドウ全体を基準にし、指定されたプレビュー領域やエディタ領域があれば優先する　左上と幅・高さを引数に返す
 void GameRuntime::GetEffectiveHudViewportRect(
     Math::Vector2& min,
     Math::Vector2& size) const
@@ -595,7 +596,7 @@ void GameRuntime::GetEffectiveHudViewportRect(
     }
 }
 
-// レール位置、速度、フィーバー、回避の時間など、速度演出に必要な状態を1フレーム分まとめる。
+// レール位置、速度、フィーバー、回避の時間など、速度演出に必要な状態を1フレーム分まとめる
 FlightSpeedEffects::Frame GameRuntime::BuildFlightSpeedEffectsFrame(bool useViewport) const
 {
     FlightSpeedEffects::Frame frame{};
@@ -609,17 +610,17 @@ FlightSpeedEffects::Frame GameRuntime::BuildFlightSpeedEffectsFrame(bool useView
     return frame;
 }
 
-// 背景に配置した速度の手がかりを更新する。本編の飛行中は進行方向に光の流れをそろえる。
+// 背景に配置した速度の手がかりを更新する　本編の飛行中は進行方向に光の流れをそろえる
 void GameRuntime::UpdateDepthCueEffects()
 {
     if (flightSpeedEffects_.WorldCueCount() == 0) { return; }
-    const float frameStep =
+    const float frameStep = // 60fps換算で進めるフレーム数
         dxCommon_ ? std::clamp(dxCommon_->GetDeltaTime() * 60.0f, 0.5f, 4.0f) : 1.0f;
     const bool alignStreaks = !IsTutorial() && !stageEntryPresentation_.IsTitleActive();
     flightSpeedEffects_.UpdateWorld(BuildFlightSpeedEffectsFrame(alignStreaks && camera_),
         frameStep, alignStreaks);
 }
-// 現在使う画面効果の番号を返す。標準設定では墜落中・敗北後・クリア後の見せ方を状態に合わせて切り替える。
+// 現在使う画面効果の番号を返す　標準設定では墜落中・敗北後・クリア後の見せ方を状態に合わせて切り替える
 int GameRuntime::GetPostEffectMode() const
 {
     if (isPostEffectBypassEnabled_) {
@@ -637,7 +638,7 @@ int GameRuntime::GetPostEffectMode() const
     return 12;
 }
 
-// 3D描画の順番をまとめる。先に影を作り、不透明な物体の後にガラス・弾の光・エフェクトを重ねる。
+// 3D描画の順番をまとめる　先に影を作り、不透明な物体の後にガラス・弾の光・エフェクトを重ねる
 void GameRuntime::Draw()
 {
     if (HasResultPresentation()) {
@@ -657,7 +658,7 @@ void GameRuntime::Draw()
             inProgress ? gameplayCamera_.MotionState().blurStrength : 0.0f,
             inProgress && !stageEntryPresentation_.IsTitleActive(), paused);
     }
-    // 墜落後の機体の破片も、残っている間は地面に影を落とす。
+    // 墜落後の機体の破片も、残っている間は地面に影を落とす
     std::array<Object3d*, PlayerDefeatPresentation::kDebrisCount> wreckage{};
     const size_t wreckageCount = playerDefeatPresentation_.CopyShadowCasters(wreckage);
     const GameplayShadows::Scene shadowScene{
@@ -684,7 +685,7 @@ void GameRuntime::Draw()
     playerFlightEffects_.DrawAfterimages();
     projectiles_.DrawBodies(camera_ ? &camera_->GetWorldMatrix() : nullptr);
     stageEnemies_.Draw();
-    // 不透明な背景・機体を描き終えてから、窓ガラスだけを合成する。
+    // 不透明な背景・機体を描き終えてから、窓ガラスだけを合成する
     railScenery_.Draw(ModelDrawPass::Transparent);
     if (camera_) { projectiles_.DrawGlows(camera_->GetWorldMatrix()); }
     DrawRiftObjects();
@@ -698,7 +699,7 @@ void GameRuntime::Draw()
 
 }
 
-// 銃口、弾種、照準位置、レール速度を発射側へ渡す。生成に成功したら銃口の演出を出し、ボス弾なら発射数も記録する。
+// 銃口、弾種、照準位置、レール速度を発射側へ渡す　生成に成功したら銃口の演出を出し、ボス弾なら発射数も記録する
 void GameRuntime::FireEnemyBullet(
     const Math::Vector3& position,
     EnemyBulletStyle style,
@@ -723,7 +724,7 @@ void GameRuntime::FireEnemyBullet(
 }
 
 #ifdef _DEBUG
-// 開発テスト用に、自機の進行距離を基準とした位置に敵を出す。
+// 開発テスト用に、自機の進行距離を基準とした位置に敵を出す
 Enemy* GameRuntime::SpawnStageEnemyForProbe(float x, float y, float leadDistance,
     Enemy::Behavior behavior, Enemy::EntryStyle entryStyle, int hp, float scale)
 {
@@ -731,7 +732,7 @@ Enemy* GameRuntime::SpawnStageEnemyForProbe(float x, float y, float leadDistance
 }
 #endif
 
-// 配置の進行が登場条件に届いたらボスを生成する。生成成功時に登場演出、射撃状態、画面表示をそろえる。
+// 配置の進行が登場条件に届いたらボスを生成する　生成成功時に登場演出、射撃状態、画面表示をそろえる
 void GameRuntime::SpawnBossEnemy()
 {
     if (IsTutorial() || isGameOver_ || isGameClear_ || !stageFlight_.Schedule().IsBossSpawnDue() ||
@@ -741,11 +742,11 @@ void GameRuntime::SpawnBossEnemy()
     bossAttack_.Reset();
     bossShotsFired_ = 0;
     stageFlight_.SetCombatBeat("Boss");
-    RequestBossRadio(); // 接近時に受信済みなら、入場時には繰り返さない。
+    RequestBossRadio(); // 接近時に受信済みなら、入場時には繰り返さない
     AddCameraShake(0.18f, 36);
 }
 
-// 現在の進行度で出せる敵を順に生成する。敵の出現状況は区間表示にも使う。
+// 現在の進行度で出せる敵を順に生成する　敵の出現状況は区間表示にも使う
 void GameRuntime::UpdateStageEnemyEvents()
 {
     if (IsTutorial() || isGameOver_ || isGameClear_ || stageEnemies_.BossSpawned()) { return; }
@@ -758,7 +759,7 @@ void GameRuntime::UpdateStageEnemyEvents()
     }
 }
 
-// 照準が使う表示領域と、敵を画面座標へ写すビュー投影行列をまとめて返す。
+// 照準が使う表示領域と、敵を画面座標へ写すビュー投影行列をまとめて返す
 PlayerControl::AimView GameRuntime::GetPlayerAimView() const
 {
     PlayerControl::AimView view;
@@ -767,7 +768,7 @@ PlayerControl::AimView GameRuntime::GetPlayerAimView() const
     return view;
 }
 
-// 今のカメラと表示領域で照準を更新し、有効な敵が狙えるか判定する。
+// 今のカメラと表示領域で照準を更新し、有効な敵が狙えるか判定する
 void GameRuntime::UpdatePlayerAim()
 {
     auto view = GetPlayerAimView();
@@ -775,7 +776,7 @@ void GameRuntime::UpdatePlayerAim()
 
     std::optional<Math::Vector2> cursor;
     if (input_) {
-        // エディタのマウス座標とゲームウィンドウ基準の座標を、表示先と同じ座標系にそろえる。
+        // エディタのマウス座標とゲームウィンドウ基準の座標を、表示先と同じ座標系にそろえる
         if (isEditorOverlayVisible_ && hasEditorOverlayViewportRect_) {
             const auto mouse = ImGui::GetMousePos();
             cursor = Math::Vector2{ mouse.x, mouse.y };
@@ -788,7 +789,7 @@ void GameRuntime::UpdatePlayerAim()
     playerControl_.UpdateAim(view, stageEnemies_.Active(), cursor);
 }
 
-// ワールド上の点をHUDの座標へ変換する。カメラがない場合や投影できない点ではfalseを返す。
+// ワールド上の点をHUDの座標へ変換する　カメラがない場合や投影できない点ではfalseを返す
 bool GameRuntime::TryProjectToScreen(
     const Math::Vector3& worldPosition,
     Math::Vector2& screenPosition) const
@@ -800,7 +801,7 @@ bool GameRuntime::TryProjectToScreen(
         viewportMin, viewportSize, screenPosition);
 }
 
-// 指定位置で撃破と同じ爆発演出を再生する。現在のチェイン段階で見た目を変える。
+// 指定位置で撃破と同じ爆発演出を再生する　現在のチェイン段階で見た目を変える
 void GameRuntime::AddEnemyHitEffect(
     const Math::Vector3& worldPosition,
     float strength, bool fever)
@@ -808,7 +809,7 @@ void GameRuntime::AddEnemyHitEffect(
     combatEffects_.EnemyDestroyed(worldPosition, strength, CombatResolver::HitEffectChainStyle(combatProgress_), fever);
 }
 
-// ジャスト回避の成立を受けて、報酬と演出を一緒に発生させる。
+// ジャスト回避の成立を受けて、報酬と演出を一緒に発生させる
 void GameRuntime::RewardJustDodge(const Math::Vector3& bulletPosition)
 {
     PlaySfx("dodge");
@@ -828,7 +829,7 @@ void GameRuntime::RewardJustDodge(const Math::Vector3& bulletPosition)
     AddCameraShake(0.045f, 5);
 }
 
-// チャージ、ボス命中、撃破の情報をもとに短いスローを開始し、対応するカメラの揺れを加える。
+// チャージ、ボス命中、撃破の情報をもとに短いスローを開始し、対応するカメラの揺れを加える
 void GameRuntime::TriggerPlayerImpactMoment(
     bool isCharged,
     bool isBossHit,
@@ -838,7 +839,7 @@ void GameRuntime::TriggerPlayerImpactMoment(
     AddCameraShake(shake.strength, shake.frames);
 }
 
-// 命中位置を画面へ写してHUDに印を出す。画面へ写せなかった場合は照準位置を使う。
+// 命中位置を画面へ写してHUDに印を出す　画面へ写せなかった場合は照準位置を使う
 void GameRuntime::TriggerHitConfirm(
     const Math::Vector3& worldPosition,
     bool isCharged,
@@ -850,7 +851,7 @@ void GameRuntime::TriggerHitConfirm(
     hud_.RecordHit(screen, isCharged, isBossHit, isDestroyed);
 }
 
-// 被弾位置を画面へ写し、敵弾が来た向きをHUDの被弾表示に渡す。
+// 被弾位置を画面へ写し、敵弾が来た向きをHUDの被弾表示に渡す
 void GameRuntime::TriggerPlayerDamageFeedback(
     const Math::Vector3& worldPosition,
     const Math::Vector3& incomingVelocity)
@@ -860,13 +861,13 @@ void GameRuntime::TriggerPlayerDamageFeedback(
     hud_.RecordDamage(screen, { incomingVelocity.x, incomingVelocity.y });
 }
 
-// 戦闘用エフェクトの経過時間を進め、表示の終わったものを再利用枠へ戻す。
+// 戦闘用エフェクトの経過時間を進め、表示の終わったものを再利用枠へ戻す
 void GameRuntime::UpdateHitEffects()
 {
     combatEffects_.Update(dxCommon_ ? dxCommon_->GetDeltaTime() : 1.0f / 60.0f);
 }
 
-// 自機の姿勢と回避状態を渡し、残像の発生と表示の終了を進める。
+// 自機の姿勢と回避状態を渡し、残像の発生と表示の終了を進める
 void GameRuntime::UpdatePlayerDodgeAfterimages()
 {
     PlayerFlightEffects::DodgeFrame frame{};
@@ -887,7 +888,7 @@ void GameRuntime::UpdatePlayerDodgeAfterimages()
     }
 }
 
-// 自機が生存中なら、噴射とチャージの光を現在の速度・機体姿勢・チャージ状態に合わせて更新する。
+// 自機が生存中なら、噴射とチャージの光を現在の速度・機体姿勢・チャージ状態に合わせて更新する
 void GameRuntime::UpdatePlayerFlightEffects()
 {
     if (!player_ || player_->IsDead()) { return; }
@@ -909,20 +910,20 @@ void GameRuntime::UpdatePlayerFlightEffects()
     playerFlightEffects_.UpdateFlight(frame);
 }
 
-// 更新済みの自機の噴射やチャージ効果を描く。
+// 更新済みの自機の噴射やチャージ効果を描く
 void GameRuntime::DrawPlayerFlightEffects()
 {
     if (player_ && !player_->IsDead()) { playerFlightEffects_.DrawFlight(); }
 }
 
-// リングの配置と加速の状態をリセットする。終了や再初期化で使う。
+// リングの配置と加速の状態をリセットする　終了や再初期化で使う
 void GameRuntime::ResetRifts()
 {
     ringGates_.Reset();
     rewards_.ResetRingNotice();
 }
 
-// ステージから届いた位置に、通過できるリングを1つ置く。
+// ステージから届いた位置に、通過できるリングを1つ置く
 void GameRuntime::SpawnRift(const Math::Vector3& position)
 {
     if (!TutorialAllowsRings() || isGameOver_ || isGameClear_ || !player_ ||
@@ -930,7 +931,7 @@ void GameRuntime::SpawnRift(const Math::Vector3& position)
     ringGates_.Spawn(position, stageFlight_.Distance(), stageFlight_.Speed());
 }
 
-// 前フレームから現在までの自機の移動を渡し、通過したリング分の報酬を適用する。
+// 前フレームから現在までの自機の移動を渡し、通過したリング分の報酬を適用する
 void GameRuntime::UpdateRifts(const Math::Vector3& previous, const Math::Vector3& current)
 {
     if (gameplayMenu_.IsPaused()) { return; }
@@ -940,7 +941,7 @@ void GameRuntime::UpdateRifts(const Math::Vector3& previous, const Math::Vector3
         return;
     }
     if (!TutorialAllowsRings()) {
-        // 練習の達成表示中も、通過後の開放と加速の余韻は進める。
+        // 練習の達成表示中も、通過後の開放と加速の余韻は進める
         ringGates_.Update(current, current, GetCinematicWorldTimeScale());
         return;
     }
@@ -949,7 +950,7 @@ void GameRuntime::UpdateRifts(const Math::Vector3& previous, const Math::Vector3
     for (int pass = 0; pass < passes; ++pass) { ApplyRingPassReward(current); }
 }
 
-// リングを通った1回分の加速・報酬・音と光を発生させる。
+// リングを通った1回分の加速・報酬・音と光を発生させる
 void GameRuntime::ApplyRingPassReward(const Math::Vector3& position)
 {
     ringGates_.StartBoost();
@@ -960,20 +961,20 @@ void GameRuntime::ApplyRingPassReward(const Math::Vector3& position)
     AddCameraShake(0.055f, 8);
 }
 
-// 現在の自機位置とフィーバー状態を使ってリングの3D表示を描く。
+// 現在の自機位置とフィーバー状態を使ってリングの3D表示を描く
 void GameRuntime::DrawRiftObjects()
 {
     if (!player_ || !camera_ || !dxCommon_) { return; }
     ringGates_.Draw(player_->GetTranslate(), rewards_.Fever().IsActive());
 }
 
-// 本編の戦闘中に、ボス接近の通信を出すよう演出側へ依頼する。
+// 本編の戦闘中に、ボス接近の通信を出すよう演出側へ依頼する
 void GameRuntime::RequestBossRadio()
 {
     if (CanShowBossRadio()) { bossPresentation_.RequestRadio(); }
 }
 
-// ポーズ中は通信の時計を止め、進行中は実時間で残り表示時間を減らす。
+// ポーズ中は通信の時計を止め、進行中は実時間で残り表示時間を減らす
 void GameRuntime::UpdateBossRadio(float deltaSeconds)
 {
     if (!gameplayMenu_.IsPaused()) {
@@ -981,7 +982,7 @@ void GameRuntime::UpdateBossRadio(float deltaSeconds)
     }
 }
 
-// 画面の周囲へ加速の線を重ねる。練習ではリング加速中に表示する。
+// 画面の周囲へ加速の線を重ねる　練習ではリング加速中に表示する
 void GameRuntime::DrawFlightSpeedOverlay()
 {
     if ((IsTutorial() && ringGates_.BoostStrength() <= 0.0f) || isGameOver_ || isGameClear_) { return; }
@@ -997,7 +998,7 @@ void GameRuntime::DrawFlightSpeedOverlay()
         streaks, *ImGui::GetForegroundDrawList());
 }
 
-// 自機、敵、スコアの現在値をHUD用に集める。表示側はこの時点の値を受け取って描く。
+// 自機、敵、スコアの現在値をHUD用に集める　表示側はこの時点の値を受け取って描く
 GameplayHud::Frame GameRuntime::BuildHudFrame() const
 {
     GameplayHud::Frame frame{};
@@ -1065,13 +1066,13 @@ GameplayHud::Frame GameRuntime::BuildHudFrame() const
     return frame;
 }
 
-// 戦闘中の表示値を集め、照準・ボス予告・スキルなどのHUDを画面へ重ねる。
+// 戦闘中の表示値を集め、照準・ボス予告・スキルなどのHUDを画面へ重ねる
 void GameRuntime::DrawHud()
 {
     if (gameplayMenu_.IsPaused() || !player_ || isGameOver_ || (isGameClear_ && !stageResults_.IsWaiting())) { return; }
     const auto frame = BuildHudFrame();
     auto* draw = ImGui::GetForegroundDrawList();
-    // 重なり順も表示の一部。背景演出→計器→練習案内→照準・フィードバックの順を保つ。
+    // 重なり順も表示の一部　背景演出→計器→練習案内→照準・フィードバックの順を保つ
     const auto* viewProjection = camera_ ? &camera_->GetViewProjectionMatrix() : nullptr;
     playerSkillPresentation_.DrawOverlay(*draw, frame.min, frame.size, viewProjection, playerSkill_);
     ImGui::PushFont(CombatHud::BattleFont(), 16.0f);
@@ -1093,7 +1094,7 @@ void GameRuntime::DrawHud()
     ImGui::PopFont();
 }
 
-// 操作ヘルプを開いているときに、現在の表示領域へ説明を描く。
+// 操作ヘルプを開いているときに、現在の表示領域へ説明を描く
 void GameRuntime::DrawControlsHelp()
 {
     if (!gameplayMenu_.IsControlsVisible()) { return; }
@@ -1102,7 +1103,7 @@ void GameRuntime::DrawControlsHelp()
     gameplayMenu_.DrawControls(min, size);
 }
 
-// メニューの切り替え演出中は操作を一時停止し、演出の終了まで現在の画面を表示する。
+// メニューの切り替え演出中は操作を一時停止し、演出の終了まで現在の画面を表示する
 bool GameRuntime::UpdateMenuAction()
 {
     if (gameplayMenu_.PendingAction() == GameplayMenu::Action::None) { return false; }
@@ -1114,11 +1115,11 @@ bool GameRuntime::UpdateMenuAction()
     if (gameplayMenu_.UpdateTransition() == GameplayMenu::Action::Resume) {
         DrawHud();
     }
-    // 完了フレームも世界は止める。次フレームから初めて敵・弾・入力を進める。
+    // 完了フレームも世界は止める　次フレームから初めて敵・弾・入力を進める
     return true;
 }
 
-// ポーズ中にHPやスコアを添えたメニューを表示する。
+// ポーズ中にHPやスコアを添えたメニューを表示する
 void GameRuntime::DrawPauseOverlay()
 {
     if (!gameplayMenu_.IsPaused()) { return; }
@@ -1127,13 +1128,13 @@ void GameRuntime::DrawPauseOverlay()
     gameplayMenu_.DrawPause(input_, min, size, combatProgress_.Score(), GetPlayerHp(), GetPlayerMaxHp());
 }
 
-// 本編クリア後の待ち時間が終わり、リザルト用の3D演出を描ける状態か返す。
+// 本編クリア後の待ち時間が終わり、リザルト用の3D演出を描ける状態か返す
 bool GameRuntime::HasResultPresentation() const
 {
     return isGameClear_ && !IsTutorial() && !stageResults_.IsWaiting() && stageResults_.HasClearPresentation();
 }
 
-// 結果が表示可能になってから、戦績・再挑戦などをリザルトへ渡す。練習では課題の結果画面を選ぶ。
+// 結果が表示可能になってから、戦績・再挑戦などをリザルトへ渡す　練習では課題の結果画面を選ぶ
 void GameRuntime::DrawResultOverlay()
 {
     if ((!isGameOver_ && !isGameClear_) || stageResults_.IsWaiting()) {
@@ -1175,13 +1176,13 @@ void GameRuntime::DrawResultOverlay()
     stageResults_.Draw(view, stats, isGameOver_);
 }
 
-// 敵が退場するときに参照を解除できるよう、敵を追っている照準・弾・スキルをまとめて渡す。
+// 敵が退場するときに参照を解除できるよう、敵を追っている照準・弾・スキルをまとめて渡す
 StageEnemies::TargetReferences GameRuntime::EnemyTargetReferences()
 {
     return { playerSkill_, projectiles_, playerControl_.Aim() };
 }
 
-// そのフレームの進行距離と時間倍率を敵へ渡す。逃走した敵が出たら撃破チェインを途切れさせる。
+// そのフレームの進行距離と時間倍率を敵へ渡す　逃走した敵が出たら撃破チェインを途切れさせる
 void GameRuntime::UpdateEnemies()
 {
     const StageEnemies::Frame frame{
@@ -1197,13 +1198,13 @@ void GameRuntime::UpdateEnemies()
     }
 }
 
-// スキルとジャスト回避などのスローを、敵や弾に使う共通の時間倍率にまとめる。
+// スキルとジャスト回避などのスローを、敵や弾に使う共通の時間倍率にまとめる
 float GameRuntime::GetCinematicWorldTimeScale() const
 {
     return playerCombatFeedback_.WorldTimeScale(playerSkill_.WorldTimeScale());
 }
 
-// 発動時にカメラや速度演出へ足す、短い加速の強さを返す。
+// 発動時にカメラや速度演出へ足す、短い加速の強さを返す
 float GameRuntime::GetFeverActivationKick() const
 {
     const float phase = std::clamp(static_cast<float>(FeverState::kActivationFlashFrames -
@@ -1211,7 +1212,7 @@ float GameRuntime::GetFeverActivationKick() const
     return rewards_.Fever().ActivationFlashFrames() > 0 ? std::sin(phase * std::numbers::pi_v<float>) : 0.0f;
 }
 
-// リングの加速、回避スローの解除、フィーバーなどのうち、最も強い値を速度演出に使う。
+// リングの加速、回避スローの解除、フィーバーなどのうち、最も強い値を速度演出に使う
 float GameRuntime::GetFlightBoostKick() const
 {
     if (isGameOver_ || isGameClear_) { return 0.0f; }
@@ -1220,13 +1221,13 @@ float GameRuntime::GetFlightBoostKick() const
         gameplayCamera_.BoostKick(GetFeverActivationKick(), stageFlight_.ReleaseKick())));
 }
 
-// 現在のモードでリザルトに表示する撃破対象の総数を返す。
+// 現在のモードでリザルトに表示する撃破対象の総数を返す
 int GameRuntime::GetTotalEnemyTargetCount() const
 {
     return stageFlight_.Schedule().EnemyCount();
 }
 
-// 自機の位置、レール速度、画面効果の強さをまとめ、現在モードの追従カメラを計算する。
+// 自機の位置、レール速度、画面効果の強さをまとめ、現在モードの追従カメラを計算する
 void GameRuntime::UpdateGameCamera()
 {
     if (!camera_ || !player_) { return; }
@@ -1256,7 +1257,7 @@ void GameRuntime::UpdateGameCamera()
     ApplyGameplayCameraPose();
 }
 
-// 計算したカメラ位置・回転・画角を実際のCameraへ設定し、描画用行列を更新する。
+// 計算したカメラ位置・回転・画角を実際のCameraへ設定し、描画用行列を更新する
 void GameRuntime::ApplyGameplayCameraPose()
 {
     if (!camera_) { return; }
@@ -1267,7 +1268,7 @@ void GameRuntime::ApplyGameplayCameraPose()
     camera_->Update();
 }
 
-// 揺れの強さと継続フレーム数をカメラへ伝える。
+// 揺れの強さと継続フレーム数をカメラへ伝える
 void GameRuntime::AddCameraShake(float power, int duration)
 {
     gameplayCamera_.AddShake(power, duration);

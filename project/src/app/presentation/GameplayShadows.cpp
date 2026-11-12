@@ -1,5 +1,5 @@
 // ===== GameplayShadows.cpp =====
-// 影を落とす機体を選んでシャドウマップを描き、接地感を出す影も表示する。
+// 影を落とす機体を選んでシャドウマップを描き、接地感を出す影も表示する
 
 #include "app/presentation/GameplayShadows.h"
 
@@ -17,7 +17,7 @@ namespace {
 constexpr float kContactShadowY = -2.82f;
 constexpr float kContactShadowHalfPi = 1.57079632679f;
 
-// 接地影を描く物体の位置、大きさ、透明度を更新して描画する。
+// 接地影を描く物体の位置、大きさ、透明度を更新して描画する
 void DrawContactShadowObject(
     Object3d& object,
     const Math::Vector3& position,
@@ -44,7 +44,7 @@ void DrawContactShadowObject(
 }
 }
 
-// 影を落とすステージ・機体・破片を光源側から描く。ここで作った深度は通常描画で参照する。
+// 影を落とすステージ・機体・破片を光源側から描く　ここで作った深度は通常描画で参照する
 void GameplayShadows::RenderMap(Object3dCommon& common, const Scene& scene) const
 {
     const Math::Vector3 shadowFocusCenter{
@@ -65,8 +65,8 @@ void GameplayShadows::RenderMap(Object3dCommon& common, const Scene& scene) cons
         }
     }
 
-    // 画面外の建物も道路へ影を落とすため、色描画のisVisibleとは別に範囲を判定する。
-    // 路面・窓ガラスは投影しない。描画数は初期化済みの街モデル数で上限が決まる。
+    // 画面外の建物も道路へ影を落とすため、色描画のisVisibleとは別に範囲を判定する
+    // 路面・窓ガラスは投影しない　描画数は初期化済みの街モデル数で上限が決まる
     for (const RailScenery::Object& scenery : scene.scenery.Objects()) {
         if ((scenery.isDefenseDistrict || scenery.isBossApron || scenery.isTrackside) && !scenery.isVisible) { continue; }
         if (scenery.object && scenery.castsShadow &&
@@ -92,7 +92,7 @@ void GameplayShadows::RenderMap(Object3dCommon& common, const Scene& scene) cons
     common.EndShadowPass();
 }
 
-// 機体の下に表示する接地影の描画枠を事前に用意する。
+// 機体の下に表示する接地影の描画枠を事前に用意する
 void GameplayShadows::PrepareContacts(Object3dCommon& common, Model* model)
 {
     if (!model) {
@@ -119,7 +119,7 @@ void GameplayShadows::Clear()
     contacts_ = {};
 }
 
-// 上空から見ても機体と地面の距離が分かるよう、地面に接地影を重ねる。
+// 上空から見ても機体と地面の距離が分かるよう、地面に接地影を重ねる
 void GameplayShadows::DrawContacts(Object3dCommon& common, const Scene& scene, float cameraClock)
 {
     if (!contacts_.front()) {
@@ -206,7 +206,7 @@ void GameplayShadows::DrawContacts(Object3dCommon& common, const Scene& scene, f
         }
     }
 
-    // 道路沿いの実際の建物に接地影を合わせる。広場の中央へ旧配置の影を残さない。
+    // 道路沿いの実際の建物に接地影を合わせる　広場の中央へ旧配置の影を残さない
     for (const RailScenery::Object& scenery : scene.scenery.Objects()) {
         if (!scenery.isBuilding || scenery.isBackRow || !scenery.isVisible) { continue; }
         const auto p = scenery.object->GetTranslate();

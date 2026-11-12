@@ -9,7 +9,7 @@ class Input;
 class Player;
 class ProjectileSystem;
 
-// 操作入力を機体の移動・照準・射撃へ反映する。演出は発射結果を受け取る側で行う。
+// 操作入力を機体の移動・照準・射撃へ反映する　演出は発射結果を受け取る側で行う
 class PlayerControl {
 public:
     struct AimView {
@@ -38,10 +38,11 @@ public:
 
     void Reset();
     void UpdateMovement(Player& player, Input* input, float timeScale, float controlStep, float railDistance) const;
+    // マウス位置が取れれば照準へ反映し、取れなければ画面中央を使う　投影行列がある場合は照準に近い敵を探す
     void UpdateAim(const AimView& view, const std::list<std::unique_ptr<Enemy>>& enemies,
         std::optional<Math::Vector2> cursor);
     Math::Vector3 AimDirection(const Math::Vector3& origin, const AimView& view) const;
-    // 値ありは発射要求。プールが満杯なら fired は false のままチャージを保持する。
+    // 値ありは発射要求　プールが満杯なら fired は false のままチャージを保持する
     std::optional<ShotResult> UpdateShooting(Input* input, ProjectileSystem& projectiles, const ShotFrame& frame);
 
     GameplayAim& Aim() { return aim_; }

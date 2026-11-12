@@ -1,5 +1,5 @@
 // ===== GameplayCamera.cpp =====
-// 自機を追うカメラの位置と画角を求め、加速や被弾による変化を加える。
+// 自機を追うカメラの位置と画角を求め、加速や被弾による変化を加える
 
 #include "app/presentation/GameplayCamera.h"
 #include "app/runtime/GameRuntimeMath.h"
@@ -23,7 +23,7 @@ constexpr float kJustDodgeCameraLowAngle = 0.18f;
 constexpr float kJustDodgeCameraFovTighten = 0.065f;
 }
 
-// 通常追従と表示用のカメラを初期化し、加速計算の基準になる速度も記録する。
+// 通常追従と表示用のカメラを初期化し、加速計算の基準になる速度も記録する
 void GameplayCamera::Reset(float railSpeed)
 {
     follow_ = display_ = Pose{};
@@ -34,14 +34,14 @@ void GameplayCamera::Reset(float railSpeed)
     ClearShake();
 }
 
-// 演出中の自機位置と時刻を追従カメラに覚えさせ、通常飛行へ戻った直後の位置差をそろえる。
+// 演出中の自機位置と時刻を追従カメラに覚えさせ、通常飛行へ戻った直後の位置差をそろえる
 void GameplayCamera::SynchronizePlayer(Math::Vector3 position, float clockFrames)
 {
     previousPlayer_ = position;
     clock_ = clockFrames;
 }
 
-// 出撃中の速度とブラーを引き継ぐ。指定があれば、通常追従のばねにも演出終了時の前進速度を渡す。
+// 出撃中の速度とブラーを引き継ぐ　指定があれば、通常追従のばねにも演出終了時の前進速度を渡す
 void GameplayCamera::SetCinematicMotion(float speed, float blur, bool seedSpring)
 {
     motion_.previousSpeed = speed;
@@ -53,7 +53,7 @@ void GameplayCamera::SetCinematicMotion(float speed, float blur, bool seedSpring
     }
 }
 
-// 揺れの強さとフレーム数を登録する。すでに強い揺れがある場合はその強さを保つ。
+// 揺れの強さとフレーム数を登録する　すでに強い揺れがある場合はその強さを保つ
 void GameplayCamera::AddShake(float power, int duration)
 {
     if (power <= 0.0f) { return; }
@@ -62,7 +62,7 @@ void GameplayCamera::AddShake(float power, int duration)
     shakeFrames_ = (std::max)(shakeFrames_, shakeDuration_);
 }
 
-// 画面揺れの強さと残り時間をまとめて解除する。
+// 画面揺れの強さと残り時間をまとめて解除する
 void GameplayCamera::ClearShake()
 {
     shakePower_ = 0.0f;
@@ -70,7 +70,7 @@ void GameplayCamera::ClearShake()
     shakeDuration_ = 1;
 }
 
-// 揺れの残り割合を返して残りフレームを1つ進める。揺れの終了後は0を返す。
+// 揺れの残り割合を返して残りフレームを1つ進める　揺れの終了後は0を返す
 float GameplayCamera::ConsumeShake()
 {
     if (shakeFrames_ <= 0) { shakePower_ = 0.0f; return 0.0f; }
@@ -79,31 +79,31 @@ float GameplayCamera::ConsumeShake()
     return rate;
 }
 
-// フィーバー発動、スロー解除、前進加速のうち最も強い値を、加速演出に使える0〜1で返す。
+// フィーバー発動、スロー解除、前進加速のうち最も強い値を、加速演出に使える0〜1で返す
 float GameplayCamera::BoostKick(float activationKick, float releaseKick) const
 {
     return std::clamp((std::max)(activationKick, (std::max)(releaseKick * 0.55f,
         (std::max)(motion_.acceleration, 0.0f) * 1.8f)), 0.0f, 1.0f);
 }
 
-// 練習と本編でカメラの追従設定を選び分ける。
+// 練習と本編でカメラの追従設定を選び分ける
 void GameplayCamera::Update(const Frame& frame, Mode mode)
 {
     if (mode == Mode::Flight) { UpdateFlight(frame); }
     else { UpdateTutorial(frame); }
 }
 
-// 自機の動き、区間の傾き、加速・被弾の演出を合成し、ばね補間で追従の姿勢を求める。
+// 自機の動き、区間の傾き、加速・被弾の演出を合成し、ばね補間で追従の姿勢を求める
 void GameplayCamera::UpdateFlight(const Frame& frame)
 {
-    const float frameStep = std::clamp(frame.deltaSeconds * 60.0f, 0.1f, 3.0f);
+    const float frameStep = std::clamp(frame.deltaSeconds * 60.0f, 0.1f, 3.0f); // 60fps換算で進めるフレーム数
     clock_ += frameStep;
     const auto position = frame.playerPosition;
     const float moveX = std::clamp(
         (position.x - previousPlayer_.x) / (0.205f * frameStep), -1.0f, 1.0f);
     const float moveY = std::clamp(
         (position.y - previousPlayer_.y) / (0.205f * frameStep), -1.0f, 1.0f);
-    // レール移動と慣性を分離。高速時でもカメラが際限なく取り残されない。
+    // レール移動と慣性を分離　高速時でもカメラが際限なく取り残されない
     follow_.position.z += position.z - previousPlayer_.z;
     previousPlayer_ = position;
     auto& motion = motion_;
@@ -124,8 +124,8 @@ void GameplayCamera::UpdateFlight(const Frame& frame)
     const float controlX = isFlying ? moveX : 0.0f;
     const float controlY = isFlying ? moveY : 0.0f;
 
-    // ばね＋減衰で追従。一定周期の揺れではなく、操作の開始・反転・停止で余韻が生まれる。
-    // 小分けに積分して低fps時も安定させる（固定回数、確保なし）。
+    // ばね＋減衰で追従　一定周期の揺れではなく、操作の開始・反転・停止で余韻が生まれる
+    // 小分けに積分して低fps時も安定させる（固定回数、確保なし）
     const auto spring = [frameStep](float& value, float& velocity, float target, float frequency, float damping) {
         const int steps = (std::max)(1, static_cast<int>(std::ceil(frameStep / 0.5f)));
         const float step = frameStep / static_cast<float>(steps);
@@ -167,11 +167,11 @@ void GameplayCamera::UpdateFlight(const Frame& frame)
 
     const float shakeRate = ConsumeShake();
     const float impact = shakePower_ * shakeRate;
-    // 微振動は最終表示だけへ加える。ばね状態に蓄積させず、通常飛行は1px前後に抑える。
+    // 微振動は最終表示だけへ加える　ばね状態に蓄積させず、通常飛行は1px前後に抑える
     const float wind = isFlying ? (speed * 0.35f + fever * 0.45f + burst * 0.30f) * worldScale : 0.0f;
     Math::Vector3 displayPosition = follow_.position;
     Math::Vector3 displayRotation = follow_.rotation;
-    // 短い加速の衝撃は表示だけへ加え、ばねや飛行位置に蓄積させない。
+    // 短い加速の衝撃は表示だけへ加え、ばねや飛行位置に蓄積させない
     displayPosition.z -= burst * 0.85f;
     displayPosition.x -= static_cast<float>(frame.dodgeDirection) * dodgePulse.contact * 0.085f;
     displayRotation.z += static_cast<float>(frame.dodgeDirection) * dodgePulse.contact * 0.012f;
@@ -182,10 +182,10 @@ void GameplayCamera::UpdateFlight(const Frame& frame)
     display_ = { displayPosition, displayRotation, follow_.fov + burst * 0.075f };
 }
 
-// 操作を確認しやすい練習用カメラに更新する。通常飛行とカメラの追従・画角の設定を切り替える。
+// 操作を確認しやすい練習用カメラに更新する　通常飛行とカメラの追従・画角の設定を切り替える
 void GameplayCamera::UpdateTutorial(const Frame& frame)
 {
-    const float frameStep =
+    const float frameStep = // 60fps換算で進めるフレーム数
         std::clamp(frame.deltaSeconds * 60.0f, 0.5f, 2.0f);
     clock_ += frameStep;
 

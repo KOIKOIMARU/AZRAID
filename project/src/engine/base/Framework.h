@@ -1,4 +1,4 @@
-// アプリ共通の初期化・更新・描画・終了を管理する。ゲーム固有の処理は派生クラスが担当する。
+// アプリ共通の初期化・更新・描画・終了を管理する　ゲーム固有の処理は派生クラスが担当する
 
 #pragma once
 #include <memory>
@@ -19,6 +19,7 @@ public:
 
     virtual void Initialize();
     virtual void Finalize();
+    // ウィンドウの終了要求を先に処理し、継続する場合は画面サイズと入力を更新する
     virtual void Update();
     virtual void Draw() = 0;
 

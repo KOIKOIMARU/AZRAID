@@ -1,5 +1,5 @@
 // ===== TitleScene.cpp =====
-// タイトルとステージ選択の入力・表示を担当し、出撃のタイミングで本編へ切り替える。
+// タイトルとステージ選択の入力・表示を担当し、出撃のタイミングで本編へ切り替える
 
 #include "engine/scene/TitleScene.h"
 #include "app/ui/CombatHud.h"
@@ -39,7 +39,7 @@ struct StageDestination {
     const char* name;
     SceneType scene;
 };
-// 実際に遊べる行き先だけを並べる。別ステージを追加するときの選択情報はここへ集約。
+// 実際に遊べる行き先だけを並べる　別ステージを追加するときの選択情報はここへ集約
 constexpr std::array<StageDestination, 1> kStageDestinations{{
     {"航空都市", SceneType::Game}
 }};
@@ -50,7 +50,7 @@ TitleScene::TitleScene(Screen screen, StageRecords* records, bool automaticDepar
     screen_(screen), stageRecords_(records), automaticDeparture_(automaticDeparture) {}
 TitleScene::~TitleScene() = default;
 
-// タイトルとステージ選択に共通する時刻、待機飛行、音、画面遷移の状態を初期化する。
+// タイトルとステージ選択に共通する時刻、待機飛行、音、画面遷移の状態を初期化する
 void TitleScene::Initialize()
 {
     elapsed_ = departureTime_ = 0.0f;
@@ -103,7 +103,7 @@ void TitleScene::Initialize()
     PrepareTitleComposition();
 }
 
-// タイトルで選んだ行き先を予約する。本編はステージ選択へ、練習はチュートリアルへ進む。
+// タイトルで選んだ行き先を予約する　本編はステージ選択へ、練習はチュートリアルへ進む
 void TitleScene::RequestStart(bool tutorial)
 {
     if (screen_ != Screen::Title || startRequested_) { return; }
@@ -113,7 +113,7 @@ void TitleScene::RequestStart(bool tutorial)
     if (sound_) { sound_->Play("confirm"); }
 }
 
-// 選択画面で出撃を受け付けられる時だけ、選択された行き先を予約して出撃演出を始める。
+// 選択画面で出撃を受け付けられる時だけ、選択された行き先を予約して出撃演出を始める
 bool TitleScene::ConfirmStageSelection()
 {
     if (screen_ != Screen::StageSelection || startRequested_ || !stageSelection_.CanConfirm()) { return false; }
@@ -124,21 +124,21 @@ bool TitleScene::ConfirmStageSelection()
     return true;
 }
 
-// ステージ紹介へ進む前の選択画面から、タイトルへ戻るよう予約する。
+// ステージ紹介へ進む前の選択画面から、タイトルへ戻るよう予約する
 void TitleScene::CancelStageSelection()
 {
     if (screen_ != Screen::StageSelection || stageSelection_.OverviewTime() >= 0.0f || !sceneManager_) { return; }
     sceneManager_->SetNextScene(SceneType::Title);
 }
 
-// 機体と背景の準備を進める。ステージ選択ではステージの先読みも完了してからtrueを返す。
+// 機体と背景の準備を進める　ステージ選択ではステージの先読みも完了してからtrueを返す
 bool TitleScene::InitializeStep()
 {
     PrepareBackdrop();
     if (!ship_) { return false; }
     if (screen_ != Screen::StageSelection) { UpdateBackdrop(); return true; }
     stageSelection_.PreparePortal(objectCommon_.get());
-    // 隙間の街は出撃先の本編から描く。選択画面を開く前に出撃先を準備する。
+    // 隙間の街は出撃先の本編から描く　選択画面を開く前に出撃先を準備する
     if (!sceneManager_ || !sceneManager_->PrepareSceneStep(SceneType::Game)) { return false; }
     if (camera_) { stageSelection_.UpdateCamera(*camera_, dxCommon_->GetPresentationAspectRatio()); }
     if (auto* preview = GetDeparturePreview()) { preview->UpdateStagePreview(stageSelection_.Elapsed()); }
@@ -156,7 +156,7 @@ const Math::Matrix4x4& TitleScene::GetStageProjectionMatrix() const
     return camera_->GetProjectionMatrix();
 }
 
-// 直前のタイトルのカメラと自機の時計を受け取り、開口部越しのプレビューを同じ演出につなぐ。
+// 直前のタイトルのカメラと自機の時計を受け取り、開口部越しのプレビューを同じ演出につなぐ
 void TitleScene::BeginStageReveal(const TitleScene& title)
 {
     if (!camera_ || !title.camera_ || !title.ship_ ||
@@ -168,7 +168,7 @@ void TitleScene::BeginStageReveal(const TitleScene& title)
     UpdateStagePortal();
 }
 
-// ステージ選択の演出時刻を進め、カメラと先読み済みのステージ表示を更新する。
+// ステージ選択の演出時刻を進め、カメラと先読み済みのステージ表示を更新する
 void TitleScene::AdvanceStagePresentation(float delta)
 {
     elapsed_ += delta;
@@ -178,7 +178,7 @@ void TitleScene::AdvanceStagePresentation(float delta)
     UpdateStagePortal();
 }
 
-// ステージ選択の準備と表示を進め、操作を受け付けられる状態で決定・戻るを処理する。
+// ステージ選択の準備と表示を進め、操作を受け付けられる状態で決定・戻るを処理する
 void TitleScene::UpdateStageSelection(float delta)
 {
     const bool gameReady = sceneManager_ && sceneManager_->PrepareSceneStep(requestedScene_);
@@ -209,7 +209,7 @@ void TitleScene::UpdateStageSelection(float delta)
             const float time = stageSelection_.OverviewTime();
             preview->UpdateStageOverview(time);
             preview->DrawTitleEntryHud();
-            // 練習からの自動出撃でも、目標と黒帯は本編と同じ時計で描く。
+            // 練習からの自動出撃でも、目標と黒帯は本編と同じ時計で描く
             preview->DrawStageBriefing(time);
         }
         UpdateStagePortal();
@@ -222,13 +222,13 @@ void TitleScene::UpdateStageSelection(float delta)
     DrawMenu(gameReady);
 }
 
-// 必要な機体モデルがそろった時点で、タイトルの機体、カメラ、排気の描画物を用意する。
+// 必要な機体モデルがそろった時点で、タイトルの機体、カメラ、排気の描画物を用意する
 void TitleScene::PrepareBackdrop()
 {
     if (ship_) { return; }
     Model* model = ModelManager::GetInstance()->FindModel(GameResources::kFreePlayerModelPath);
     if (!model || model->GetVertices().empty() || !ModelManager::GetInstance()->FindModel("effect_player_bullet_core")) { return; }
-    // 自機と環境光は本編と共有し、タイトルのカメラ・姿勢は独立させる。
+    // 自機と環境光は本編と共有し、タイトルのカメラ・姿勢は独立させる
     if (!objectCommon_) {
         camera_ = std::make_unique<Camera>();
         camera_->SetFovY(0.56f);
@@ -254,7 +254,7 @@ void TitleScene::PrepareBackdrop()
     ship_->SetLightingMode(1);
     ship_->SetColor({ 0.90f, 0.94f, 1.0f, 1.0f });
     ship_->SetDirectionalLightDirection({ -0.35f, -0.82f, 0.32f });
-    // 本編と同じ塗装・材質を残し、カメラと照明でタイトル専用の見せ方を作る。
+    // 本編と同じ塗装・材質を残し、カメラと照明でタイトル専用の見せ方を作る
     ship_->SetDirectionalLightIntensity(1.18f);
     ship_->SetEnvironmentCoefficient(0.045f);
     ship_->SetShininess(112.0f);
@@ -263,7 +263,7 @@ void TitleScene::PrepareBackdrop()
     ship_->SetSpecularColor({ 0.30f, 0.32f, 0.35f });
     ship_->SetShadowReceiveStrength(0.0f);
 
-    // タイトル専用の噴流。安定したObject3d描画でノズルへ接続する。
+    // タイトル専用の噴流　安定したObject3d描画でノズルへ接続する
     ModelManager::GetInstance()->CreatePlane("title_engine_plume",1.0f,1.0f,"resources/effects/title_engine_plume.png");
     for (size_t index = 0; index < exhaust_.size(); ++index) {
         auto& effect = exhaust_[index];
@@ -288,7 +288,7 @@ void TitleScene::PrepareTitleComposition()
     rift_->Initialize(dxCommon_);
 }
 
-// タイトルから続く出撃の時刻に合わせて、画面に映る機体と航跡を更新する。
+// タイトルから続く出撃の時刻に合わせて、画面に映る機体と航跡を更新する
 void TitleScene::UpdateDepartureFlight(float time)
 {
     if (!camera_ || !ship_) { return; }
@@ -334,7 +334,7 @@ void TitleScene::UpdateDepartureFlight(float time)
     wakePoints_.fill({});
 }
 
-// 遷移中は出撃の動き、待機中はタイトルの周回飛行に合わせて機体とカメラを更新する。
+// 遷移中は出撃の動き、待機中はタイトルの周回飛行に合わせて機体とカメラを更新する
 void TitleScene::UpdateBackdrop()
 {
     if (!camera_ || !ship_) { return; }
@@ -380,8 +380,8 @@ void TitleScene::UpdateBackdrop()
         UpdateFlightEffects(center,rotationMatrix,1.4f + strike.charge * 1.2f + wakeStrength * 2.2f,
             shipScale,arrivalFade);
         if (wakeStrength <= 0.001f) { wakePoints_.fill({}); return; }
-        // 過去の実飛行位置・ノズル姿勢を再評価し、通った道だけに航跡を残す。
-        // 遠方では左右が一点に収まるため、同じ固定領域を1本12点の滑らかな周回へ使う。
+        // 過去の実飛行位置・ノズル姿勢を再評価し、通った道だけに航跡を残す
+        // 遠方では左右が一点に収まるため、同じ固定領域を1本12点の滑らかな周回へ使う
         const bool orbitalWake = IsTitleOrbitalWake(flyby.phase,flyby.pattern);
         const size_t nozzleCount = orbitalWake ? 1 : 2;
         const size_t pointCount = orbitalWake ? wakePoints_.size() : 6;
@@ -416,7 +416,7 @@ void TitleScene::UpdateBackdrop()
     }
 }
 
-// 機体の位置と姿勢に合わせ、排気の向き・長さ・色と飛行エフェクトを更新する。
+// 機体の位置と姿勢に合わせ、排気の向き・長さ・色と飛行エフェクトを更新する
 void TitleScene::UpdateFlightEffects(const Math::Vector3& center, const Math::Matrix4x4& rotationMatrix,
     float thrust, float shipScale, float fade)
 {
@@ -427,7 +427,7 @@ void TitleScene::UpdateFlightEffects(const Math::Vector3& center, const Math::Ma
     const float pulse = 1.0f + 0.045f * std::sin(elapsed_ * 29.0f) + 0.025f * std::sin(elapsed_ * 43.0f);
     for (size_t index = 0; index < exhaust_.size(); ++index) {
         const int layer = static_cast<int>(index / 2);
-        // 本編で確認済みのノズル位置をタイトルの表示倍率へ換算する。
+        // 本編で確認済みのノズル位置をタイトルの表示倍率へ換算する
         const float ratio = shipScale / 1.26f;
         const auto nozzle = TitleNozzleOffset(index%2,shipScale,rotationMatrix);
         if (index < engines_.size()) {
@@ -457,7 +457,7 @@ void TitleScene::UpdateFlightEffects(const Math::Vector3& center, const Math::Ma
             plumeRotate=FlightRotation(RotateVector({0,0,1},camera_->GetWorldMatrix()),plumeAxis,0.0f);
             if (layer != 2) { plumeFade=Smooth(visibleLength/(length*0.15f)); }
         }
-        // UVの根元は下端から2%。板の向きと同じ軸で移し、ノズルへ固定する。
+        // UVの根元は下端から2%　板の向きと同じ軸で移し、ノズルへ固定する
         const float centerOffset=layer == 2 ? (screen_ == Screen::StageSelection ? 0.0f : 0.025f) : visibleLength*0.48f;
         auto& effect = exhaust_[index];
         effect->SetTranslate({ center.x + nozzle.x + plumeAxis.x * centerOffset,
@@ -482,7 +482,7 @@ void TitleScene::UpdateFlightEffects(const Math::Vector3& center, const Math::Ma
     }
 }
 
-// タイトルの飛行、ロードの状態、決定・戻るの入力をフレームごとに処理する。
+// タイトルの飛行、ロードの状態、決定・戻るの入力をフレームごとに処理する
 void TitleScene::Update()
 {
     if (transitionReview_) {
@@ -512,7 +512,7 @@ void TitleScene::Update()
             else if (input_->TriggerKey(DIK_H)) { showControls_ = true; }
         }
     }
-    // 導入後にモデルを準備。登場の時計は準備後から進め、読み込み時間で姿を飛ばさない。
+    // 導入後にモデルを準備　登場の時計は準備後から進め、読み込み時間で姿を飛ばさない
     const bool resourcesReady = elapsed_ >= 0.10f && GameScene::PreloadResourcesStep(dxCommon_, srvManager_);
     PrepareBackdrop();
     if (resourcesReady && sceneManager_ && !sceneManager_->IsScenePrepared(requestedScene_)) {
@@ -549,7 +549,7 @@ void TitleScene::Update()
         if (previewDepartureTime_ >= 0.0f) { departureTime_ = previewDepartureTime_; }
         if (auto* preview = requestedScene_ != SceneType::StageSelect ? GetDeparturePreview() : nullptr) {
             if (previousDeparture <= kDepartureOpenTime && ship_ && camera_) {
-                // 最後の切断姿勢を正確に評価。表示サイズとカメラ内の位置を本編へ渡す。
+                // 最後の切断姿勢を正確に評価　表示サイズとカメラ内の位置を本編へ渡す
                 UpdateDepartureFlight(kDepartureOpenTime);
                 const auto offset = RotateVector(modelCenter_,
                     Math::MakeAffineMatrix(ship_->GetScale(),ship_->GetRotate(),{}));
@@ -563,7 +563,7 @@ void TitleScene::Update()
         }
         if (auto* selection = GetStageReveal()) {
             if (previousDeparture <= kDepartureOpenTime) { UpdateDepartureFlight(kDepartureOpenTime); selection->BeginStageReveal(*this); }
-            // 面が開く間も機体は飛び続ける。開口幅は引き継ぎの完了まで保持する。
+            // 面が開く間も機体は飛び続ける　開口幅は引き継ぎの完了まで保持する
             selection->AdvanceStagePresentation(delta);
         }
         if (departureTime_ >= kDepartureDuration) { sceneManager_->SetNextScene(requestedScene_); }
@@ -575,7 +575,7 @@ void TitleScene::Update()
     }
 }
 
-// 基準画面の比率を保ってロゴとメニューを配置し、遷移と読込の進み具合を表示に反映する。
+// 基準画面の比率を保ってロゴとメニューを配置し、遷移と読込の進み具合を表示に反映する
 void TitleScene::DrawMenu(bool gameReady)
 {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -643,7 +643,7 @@ void TitleScene::DrawMenu(bool gameReady)
     if (showControls_ && MenuUi::Controls(viewport->Pos, viewport->Size)) { showControls_ = false; }
 }
 
-// ステージ選択の項目を描き、出撃演出の開始に合わせて表示を引っ込める。
+// ステージ選択の項目を描き、出撃演出の開始に合わせて表示を引っ込める
 void TitleScene::DrawStageSelection(ImDrawList* draw, ImVec2 origin, float scale, bool gameReady, float reveal)
 {
     if (automaticDeparture_) { return; }
@@ -659,7 +659,7 @@ void TitleScene::DrawStageSelection(ImDrawList* draw, ImVec2 origin, float scale
     };
     const int first = draw->VtxBuffer.Size;
     const auto& stage = kStageDestinations[static_cast<size_t>(selectedStage_)];
-    // ステージ名は切断面に残す。都市は斜めの開口部の奥にあり、メニューの背景と分ける。
+    // ステージ名は切断面に残す　都市は斜めの開口部の奥にあり、メニューの背景と分ける
     MenuUi::Heading(draw,p(86,72),108.0f*scale,IM_COL32(5,9,17,180),stage.name);
     MenuUi::Heading(draw,p(84,68),108.0f*scale,MenuUi::Paper,stage.name);
     for (int index=first;index<draw->VtxBuffer.Size;++index) {
@@ -701,13 +701,13 @@ void TitleScene::DrawStageSelection(ImDrawList* draw, ImVec2 origin, float scale
     opacity(first,entrance * overviewExit);
 }
 
-// タイトル背景、機体、ステージ選択の開口部を画面の状態に合わせて合成する。
+// タイトル背景、機体、ステージ選択の開口部を画面の状態に合わせて合成する
 void TitleScene::Draw()
 {
     GameScene* preview = GetDeparturePreview();
-    // 選択中から同じ本編を描き、決定後も街とカメラを引き継ぐ。
+    // 選択中から同じ本編を描き、決定後も街とカメラを引き継ぐ
     if (preview) {
-        // 不透明な入口を先に置き、自機・噴射・街は通常の深度で重ねる。
+        // 不透明な入口を先に置き、自機・噴射・街は通常の深度で重ねる
         stageSelection_.DrawPortal(rift_.get(), srvManager_, objectCommon_.get(), elapsed_, true);
         preview->Draw();
         return;
@@ -747,7 +747,7 @@ void TitleScene::Draw()
     }
 }
 
-// 機体を裂け目より手前に重ねるか、タイトルとステージ選択それぞれの飛行段階から判定する。
+// 機体を裂け目より手前に重ねるか、タイトルとステージ選択それぞれの飛行段階から判定する
 bool TitleScene::IsForegroundFlight() const
 {
     if (auto* selection=GetStageReveal()) { return selection->IsForegroundFlight(); }
@@ -766,7 +766,7 @@ bool TitleScene::IsForegroundFlight() const
         (passing || cutting);
 }
 
-// 手前に出る飛行区間で機体と排気を専用深度に描き、裂け目との重なりを作る。
+// 手前に出る飛行区間で機体と排気を専用深度に描き、裂け目との重なりを作る
 void TitleScene::DrawFlightOverlay()
 {
     if (auto* selection=GetStageReveal()) { selection->DrawFlightOverlay(); return; }
@@ -796,7 +796,7 @@ void TitleScene::DrawFlightOverlay()
     rift_->BindFlightTarget(false);
 }
 
-// 裂け目越しに表示できる段階なら、先読みしたゲームシーンを取得する。
+// 裂け目越しに表示できる段階なら、先読みしたゲームシーンを取得する
 GameScene* TitleScene::GetDeparturePreview() const
 {
     if (auto* selection=GetStageReveal()) { return selection->GetDeparturePreview(); }
@@ -804,7 +804,7 @@ GameScene* TitleScene::GetDeparturePreview() const
     return dynamic_cast<GameScene*>(sceneManager_->GetPreparedScene(requestedScene_));
 }
 
-// タイトルからステージ選択が見える段階になったら、先読み済みの選択シーンを取得する。
+// タイトルからステージ選択が見える段階になったら、先読み済みの選択シーンを取得する
 TitleScene* TitleScene::GetStageReveal() const
 {
     if (screen_ != Screen::Title || requestedScene_ != SceneType::StageSelect ||
@@ -812,7 +812,7 @@ TitleScene* TitleScene::GetStageReveal() const
     return dynamic_cast<TitleScene*>(sceneManager_->GetPreparedScene(SceneType::StageSelect));
 }
 
-// 切断や出撃の前景を描く。ステージ選択側の演出はStageSelectionPresentationへ渡す。
+// 切断や出撃の前景を描く　ステージ選択側の演出はStageSelectionPresentationへ渡す
 void TitleScene::DrawDepartureOverlay()
 {
     if (!rift_) { return; }
@@ -824,26 +824,26 @@ void TitleScene::DrawDepartureOverlay()
     if (!GetDeparturePreview() && !selection) { return; }
     TitleFlyby flyby = GetTitleFlyby(flybyElapsed_, ship_ != nullptr);
     flyby.energy = 0.0f;
-    // 本編だけに色補正・輪郭を適用し、タイトルの面へ奥の深度を写し込まない。
+    // 本編だけに色補正・輪郭を適用し、タイトルの面へ奥の深度を写し込まない
     rift_->Draw(elapsed_, departureTime_, flyby, engines_, wakePoints_, TitleRift::DrawMode::Reveal,
         selection ? &selection->stageSelection_.Seam() : nullptr);
 }
 
-// タイトル出発時に白フェードを使う設定の場合だけ、フェードの進行に合わせて画面を重ねる。
+// タイトル出発時に白フェードを使う設定の場合だけ、フェードの進行に合わせて画面を重ねる
 void TitleScene::DrawTransitionFade()
 {
     if (!rift_) { return; }
     if (screen_ == Screen::StageSelection) { return; }
     if (!whiteFadeEnabled_ || DepartureFade(departureTime_) <= 0.001f) { return; }
-    // ロゴ・自機・HUDより最後に合成し、画面全体を白へフェードさせてから開く。
+    // ロゴ・自機・HUDより最後に合成し、画面全体を白へフェードさせてから開く
     const TitleFlyby noWake{};
     rift_->Draw(elapsed_, departureTime_, noWake, engines_, wakePoints_, TitleRift::DrawMode::Fade);
 }
 
-// 機体と演出のリソースを破棄し、使っていたシャドウマップのディスクリプタを返却する。
+// 機体と演出のリソースを破棄し、使っていたシャドウマップのディスクリプタを返却する
 void TitleScene::Finalize()
 {
-    // フレーム終端のGPU完了待ち後にシーンが切り替わる。共有モデル・空は解放しない。
+    // フレーム終端のGPU完了待ち後にシーンが切り替わる　共有モデル・空は解放しない
     ship_.reset();
     stageSelection_.Clear();
     rift_.reset();

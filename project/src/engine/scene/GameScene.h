@@ -1,4 +1,4 @@
-// 本編と練習のシーン窓口。ゲーム中の処理をGameRuntimeへ渡し、出撃や結果からの切り替えを扱う。
+// 本編と練習のシーン窓口　ゲーム中の処理をGameRuntimeへ渡し、出撃や結果からの切り替えを扱う
 
 #pragma once
 
@@ -15,9 +15,11 @@ public:
     static int GetResourcePreloadStep();
     static int GetResourcePreloadStepCount();
     static const char* GetResourcePreloadLabel();
+    // リソース先読み直前の段階ミリ秒を返す
     static float GetResourcePreloadLastStepMs();
     static float GetResourcePreloadTotalMs();
 
+    // ゲーム本体に共通システムを渡して開始する　再挑戦の場合は短い出撃演出を使う
     void Initialize() override;
     void BeginInitialize() override;
     bool InitializeStep() override;
@@ -58,7 +60,7 @@ public:
 #endif
 
 private:
-    GameRuntime::PlayMode mode_; // SceneFactoryで指定する入場先。途中では切り替えない。
+    GameRuntime::PlayMode mode_; // SceneFactoryで指定する入場先　途中では切り替えない
     bool shortEntry_ = false;
     GameRuntime runtime_;
 };

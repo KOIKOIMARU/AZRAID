@@ -1,4 +1,4 @@
-// 自機弾と敵弾の準備・発射・更新・描画をまとめる。命中結果はCombatResolverが処理する。
+// 自機弾と敵弾の準備・発射・更新・描画をまとめる　命中結果はCombatResolverが処理する
 
 #pragma once
 
@@ -93,6 +93,6 @@ private:
     Assets assets_{};
     BulletPool playerPool_;
     BulletPool enemyPool_;
-    std::unordered_map<const Bullet*, const Enemy*> homingTargets_;
-    std::unordered_set<const Bullet*> dodgedBullets_;
+    std::unordered_map<const Bullet*, const Enemy*> homingTargets_; // 弾と追尾先の対応表で、弾の回収時や敵の破棄前に登録を外す
+    std::unordered_set<const Bullet*> dodgedBullets_; // ジャスト回避をすでに判定した敵弾の記録
 };

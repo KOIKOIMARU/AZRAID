@@ -1,12 +1,12 @@
 // ===== SceneFactory.cpp =====
-// 要求されたシーンの種類に応じて、タイトル・本編・エディタなどの実体を作る。
+// 要求されたシーンの種類に応じて、タイトル・本編・エディタなどの実体を作る
 
 #include "engine/scene/SceneFactory.h"
 #include "engine/scene/TitleScene.h"
 #include "engine/scene/GameScene.h"
 #include "engine/scene/EditorScene.h"
 
-// 画面の種類から対応するシーンを作り、必要な共有データを渡す。
+// 画面の種類から対応するシーンを作り、必要な共有データを渡す
 std::unique_ptr<BaseScene> SceneFactory::CreateScene(SceneType sceneType) {
     switch (sceneType) {
     case SceneType::Title:

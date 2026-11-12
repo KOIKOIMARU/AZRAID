@@ -1,4 +1,4 @@
-// 現在のシーンを所有し、次のシーンの準備と切り替えを管理する。
+// 現在のシーンを所有し、次のシーンの準備と切り替えを管理する
 
 #pragma once
 #include <memory>
@@ -28,6 +28,7 @@ public:
     bool IsMenuSceneLoading(SceneType sceneType) const {
         return hasNextScene_ && nextSceneMenuWipe_ && nextSceneType_ == sceneType;
     }
+    // 現在のシーンに終了処理を行い、所有権と切り替え予約を解除する
     void FinalizeCurrentScene();
     void FinalizeAllScenes();
 
@@ -57,7 +58,7 @@ private:
         std::unique_ptr<BaseScene> scene;
         bool ready = false;
     };
-    // 起動時に準備した本編を、タイトル・ステージ選択の準備で捨てない。
+    // 起動時に準備した本編を、タイトル・ステージ選択の準備で捨てない
     std::array<PreparedScene, static_cast<size_t>(SceneType::Count)> preparedScenes_{};
     SceneType nextSceneType_{};
     bool hasNextScene_ = false;

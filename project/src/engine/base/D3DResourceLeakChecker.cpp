@@ -1,5 +1,5 @@
 // ===== D3DResourceLeakChecker.cpp =====
-// Debug版の終了時に、解放されずに残ったDirectXのオブジェクトを報告する。
+// Debug版の終了時に、解放されずに残ったDirectXのオブジェクトを報告する
 
 #include "engine/base/D3DResourceLeakChecker.h"
 
@@ -12,7 +12,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-// デバッグビルドの終了時に、解放されずに残ったDirectX関連のオブジェクトを報告する。
+// デバッグビルドの終了時に、解放されずに残ったDirectX関連のオブジェクトを報告する
 D3DResourceLeakChecker::~D3DResourceLeakChecker()
 {
 #ifdef _DEBUG

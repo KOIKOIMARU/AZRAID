@@ -1,5 +1,5 @@
 // ===== GameplayMenu.cpp =====
-// ポーズと操作ガイドを表示し、再開や画面移動の操作を受け付ける。
+// ポーズと操作ガイドを表示し、再開や画面移動の操作を受け付ける
 
 #include "app/ui/GameplayMenu.h"
 
@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cstdio>
 
-// Esc・H・決定キーを、今のメニュー状態に応じて開く・閉じる・再開する操作へ変換する。
+// Esc・H・決定キーを、今のメニュー状態に応じて開く・閉じる・再開する操作へ変換する
 void GameplayMenu::HandleShortcuts(Input* input, bool canPause)
 {
     inputConsumed_ = false;
@@ -33,7 +33,7 @@ void GameplayMenu::HandleShortcuts(Input* input, bool canPause)
     }
 }
 
-// 画面の切り替えを予約し、演出の開始時刻を記録する。他の操作を処理中ならfalseを返す。
+// 画面の切り替えを予約し、演出の開始時刻を記録する　他の操作を処理中ならfalseを返す
 bool GameplayMenu::Begin(Action action)
 {
     if (action == Action::None || action_ != Action::None || sceneAction_ != Action::None) {
@@ -46,7 +46,7 @@ bool GameplayMenu::Begin(Action action)
     return true;
 }
 
-// 現在の操作ごとの演出時間で経過を割り、滑らかに変化する0〜1の進行度を返す。
+// 現在の操作ごとの演出時間で経過を割り、滑らかに変化する0〜1の進行度を返す
 float GameplayMenu::TransitionProgress() const
 {
     if (action_ == Action::None) { return 0.0f; }
@@ -56,7 +56,7 @@ float GameplayMenu::TransitionProgress() const
     return t * t * (3.0f - 2.0f * t);
 }
 
-// 画面演出が終わったところでポーズ・ヘルプの状態を変える。再挑戦などはシーンへの指示として残す。
+// 画面演出が終わったところでポーズ・ヘルプの状態を変える　再挑戦などはシーンへの指示として残す
 GameplayMenu::Action GameplayMenu::UpdateTransition()
 {
     const float progress = TransitionProgress();
@@ -91,7 +91,7 @@ GameplayMenu::Action GameplayMenu::UpdateTransition()
     return completed;
 }
 
-// 操作ヘルプの表示と「戻る」の入力を処理する。開閉中は位置と透明度を補間する。
+// 操作ヘルプの表示と「戻る」の入力を処理する　開閉中は位置と透明度を補間する
 void GameplayMenu::DrawControls(const Math::Vector2& min, const Math::Vector2& size)
 {
     const float scale = CombatHud::Scale(size);
@@ -126,7 +126,7 @@ void GameplayMenu::DrawControls(const Math::Vector2& min, const Math::Vector2& s
     MenuUi::Opacity(draw, first, visibility);
 }
 
-// ポーズ画面のHP・得点・選択肢を描く。決定した操作はBeginに渡して画面の切り替えを始める。
+// ポーズ画面のHP・得点・選択肢を描く　決定した操作はBeginに渡して画面の切り替えを始める
 void GameplayMenu::DrawPause(Input* input, const Math::Vector2& min, const Math::Vector2& size,
     int score, int hp, int maxHp)
 {
@@ -149,7 +149,7 @@ void GameplayMenu::DrawPause(Input* input, const Math::Vector2& min, const Math:
     const float t = TransitionProgress();
     const float closing = action_ == Action::Resume ? t : 0.0f;
     draw->AddRectFilled({ min.x, min.y }, { min.x + size.x, min.y + size.y }, IM_COL32(0, 0, 0, 88));
-    // 実際の機体を中央に残し、前傾したメニューが右から滑り込む。
+    // 実際の機体を中央に残し、前傾したメニューが右から滑り込む
     const float slide = (1.0f - enter) * 140 + closing * 560;
     draw->AddQuadFilled(p(840 + slide, -200), p(1500 + slide, -200), p(1500 + slide, 900),
         p(632 + slide, 900), CombatHud::SurfaceColor(IM_COL32(13, 19, 32, 244)));

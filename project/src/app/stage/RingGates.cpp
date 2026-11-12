@@ -1,5 +1,5 @@
 // ===== RingGates.cpp =====
-// リングの出現・描画と通過判定を担当し、通過後の加速を管理する。
+// リングの出現・描画と通過判定を担当し、通過後の加速を管理する
 
 #include "app/stage/RingGates.h"
 #include "engine/3d/Object3dCommon.h"
@@ -12,7 +12,7 @@ constexpr float kReleaseFrames = 26.0f;
 float Smooth(float value) { value = std::clamp(value, 0.0f, 1.0f); return value * value * (3.0f - 2.0f * value); }
 }
 
-// リングの枠と発光部に使う描画オブジェクトを、同時に表示できる数だけ用意する。
+// リングの枠と発光部に使う描画オブジェクトを、同時に表示できる数だけ用意する
 void RingGates::Initialize(Object3dCommon* common, Model* frame, Model* light, Model* rear, Model* flow)
 {
     Clear();
@@ -38,7 +38,7 @@ void RingGates::Initialize(Object3dCommon* common, Model* frame, Model* light, M
     }
 }
 
-// リングの描画枠と素材参照を解放する。
+// リングの描画枠と素材参照を解放する
 void RingGates::Clear()
 {
     Reset();
@@ -46,7 +46,7 @@ void RingGates::Clear()
     common_ = nullptr;
 }
 
-// リングの表示と加速状態を戻し、通過・出現の回数を初期化する。
+// リングの表示と加速状態を戻し、通過・出現の回数を初期化する
 void RingGates::Reset()
 {
     gates_ = {};
@@ -54,14 +54,14 @@ void RingGates::Reset()
     boostAge_ = -1.0f;
 }
 
-// 使用中のリングを閉じ、通過後に残る開放表示も解除する。
+// 使用中のリングを閉じ、通過後に残る開放表示も解除する
 void RingGates::Deactivate()
 {
     for (auto& gate : gates_) { gate.active = false; gate.releaseAge = -1.0f; }
     boostAge_ = -1.0f;
 }
 
-// 空いている枠にリングを配置し、前方距離と飛行速度から表示しておく時間を決める。
+// 空いている枠にリングを配置し、前方距離と飛行速度から表示しておく時間を決める
 bool RingGates::Spawn(const Math::Vector3& position, float railDistance, float railSpeed)
 {
     if (!common_) { return false; }
@@ -77,19 +77,19 @@ bool RingGates::Spawn(const Math::Vector3& position, float railDistance, float r
     return false;
 }
 
-// リング通過直後の加速を最初のフレームから始める。
+// リング通過直後の加速を最初のフレームから始める
 void RingGates::StartBoost() { boostAge_ = 0.0f; }
 
-// 通過直後に強くなり、その後ゆっくり0へ戻る加速の強さを返す。
+// 通過直後に強くなり、その後ゆっくり0へ戻る加速の強さを返す
 float RingGates::BoostStrength() const
 {
     if (boostAge_ < 0.0f) { return 0.0f; }
-    // 通過時に立ち上がり、後半は滑らかに巡航へ戻す。
+    // 通過時に立ち上がり、後半は滑らかに巡航へ戻す
     return (0.35f + 0.65f * Smooth(boostAge_ / 6.0f)) *
         (1.0f - Smooth((boostAge_ - 25.0f) / (kBoostFrames - 25.0f)));
 }
 
-// 前回と今回の自機位置を結ぶ線がリング面を横切ったか調べる。高速でも途中の通過を拾える。
+// 前回と今回の自機位置を結ぶ線がリング面を横切ったか調べる　高速でも途中の通過を拾える
 int RingGates::Update(const Math::Vector3& previous, const Math::Vector3& current, float frameStep)
 {
     const float step = (std::max)(frameStep, 0.0f);
@@ -117,7 +117,7 @@ int RingGates::Update(const Math::Vector3& previous, const Math::Vector3& curren
     return passes;
 }
 
-// 配置中のリングと通過後の開く演出を、自機からの距離やフィーバー状態に応じて描く。
+// 配置中のリングと通過後の開く演出を、自機からの距離やフィーバー状態に応じて描く
 void RingGates::Draw(const Math::Vector3& playerPosition, bool fever)
 {
     if (!common_) { return; }

@@ -5,7 +5,7 @@
 
 #include <optional>
 
-// レール上の移動と、敵配置に使うステージ進行を管理する。
+// レール上の移動と、敵配置に使うステージ進行を管理する
 class StageFlight {
 public:
     struct CameraBias {
@@ -16,15 +16,16 @@ public:
     };
 
     void Reset(bool tutorial);
-    // 今いる区間の速度とカメラ設定を反映する。区間イベントの消化はAdvanceの前に行う。
+    // 今いる区間の速度とカメラ設定を反映する　区間イベントの消化はAdvanceの前に行う
     void PrepareFrame(bool feverActive, float ringBoost);
     void Advance(float worldTimeScale, StageDirector::EnemyLoad load, bool feverActive, float ringBoost, bool bossSpawned);
-    // 出撃・再挑戦の間は演出側の位置だけを引き継ぐ。
+    // 出撃・再挑戦の間は演出側の位置だけを引き継ぐ
     void SetEntryDistance(float distance) { distance_ = distance; }
 
     const MainStage::RailEvent* TryConsumeRailEvent() { return director_.TryConsumeRailEvent(); }
     std::optional<Math::Vector3> TryConsumeGatePosition();
     const MainStage::EnemySpawn* TryConsumeEnemy(StageDirector::EnemyLoad load) { return director_.TryConsumeEnemy(load); }
+    // 本編でボス警告を始める進行度に達したか返す　警告を一度に絞る処理は演出側で行う
     bool IsBossWarningDue() const;
     void FinishStage();
     void SetCombatBeat(const char* name) { combatBeat_ = name; }
@@ -60,8 +61,8 @@ public:
 #endif
 
 private:
-    StageDirector director_;
-    float distance_ = 0.0f;
+    StageDirector director_; // 敵やイベントを出すタイミングを決める処理
+    float distance_ = 0.0f; // 次の敵の出現を待つ間も進む、自機のレール上の距離
     float speed_ = 0.115f;
     float targetSpeed_ = 0.115f;
     float previousWorldScale_ = 1.0f;

@@ -3,8 +3,8 @@
 #include "engine/base/Math.h"
 #include <array>
 
-// ボスの攻撃順・予備動作・固定照準・反撃時間を管理する。
-// 敵や弾を所有せず、この更新で必要になった発射要求だけを返す。
+// ボスの攻撃順・予備動作・固定照準・反撃時間を管理する
+// 敵や弾を所有せず、この更新で必要になった発射要求だけを返す
 class BossAttackController {
 public:
     enum class Pattern { Fan, Sweep, Charge, Crossfire, Rush, Count };
@@ -15,7 +15,7 @@ public:
 
     struct Input {
         bool present = false;
-        bool canAttack = false; // 入場・段階移行の演出中は呼び出し側で止める。
+        bool canAttack = false; // 入場・段階移行の演出中は呼び出し側で止める
         int hp = 0;
         int maxHp = 1;
         Math::Vector3 playerPosition{};
@@ -35,7 +35,7 @@ public:
 
     void Reset();
     Events Update(const Input& input);
-    // 勝敗確定時に予約攻撃と反撃判定を閉じる。段階・攻撃回数は結果の確認用に残す。
+    // 勝敗確定時に予約攻撃と反撃判定を閉じる　段階・攻撃回数は結果の確認用に残す
     void CancelAttack();
 
     int Phase() const { return phase_; }
@@ -53,12 +53,13 @@ public:
     int ShotIndex() const { return shotIndex_; }
     int AttackCount() const { return attackCount_; }
     const Math::Vector3& AimPoint() const { return aimPoint_; }
+    // 攻撃パターンと現在の形態から、予告を見せるフレーム数を返す
     int WindupFrames() const;
-    // レールに追従する基準位置からの移動先。敵側で補間し、攻撃の切り替えでも瞬間移動しない。
+    // レールに追従する基準位置からの移動先　敵側で補間し、攻撃の切り替えでも瞬間移動しない
     Math::Vector3 FlightOffset() const;
 
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_GUI)
-    // 単独の攻撃・ダメージ試験用。通常の進行からは呼ばない。
+    // 単独の攻撃・ダメージ試験用　通常の進行からは呼ばない
     void PrepareForDebug(int phase, Pattern nextPattern);
     void RequestNextForDebug();
     void OpenCounterForDebug(int frames);
@@ -78,5 +79,5 @@ private:
     int attackElapsed_ = 0;
     float flightClock_ = 0.0f;
     int nextPatternOverride_ = -1;
-    Math::Vector3 aimPoint_{}; // 予備動作の最後14更新と連射中は追い直さない。
+    Math::Vector3 aimPoint_{}; // 予備動作の最後14更新と連射中は追い直さない
 };

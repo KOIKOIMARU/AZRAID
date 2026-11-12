@@ -1,5 +1,5 @@
 // ===== CombatEffects.cpp =====
-// 命中や撃破の種類に応じて、火花や爆発の形・色・出し方を決める。
+// 命中や撃破の種類に応じて、火花や爆発の形・色・出し方を決める
 
 #include "app/combat/CombatEffects.h"
 
@@ -25,26 +25,26 @@ void CombatEffects::Clear()
     assets_ = {};
 }
 
-// 撃破時の演出を通常・フィーバーで切り替える。チェインの段階は発光や破片の見せ方に使う。
+// 撃破時の演出を通常・フィーバーで切り替える　チェインの段階は発光や破片の見せ方に使う
 void CombatEffects::EnemyDestroyed(const Math::Vector3& position, float strength, ChainStyle chain, bool fever)
 {
     if (fever) { FeverEnemyDestroyed(position, strength, chain); }
     else { NormalEnemyDestroyed(position, strength, chain); }
 }
 
-// 命中時の光を、通常弾とフィーバー弾で選び分ける。
+// 命中時の光を、通常弾とフィーバー弾で選び分ける
 void CombatEffects::EnemyImpact(const Math::Vector3& position, float strength, bool fever)
 {
     if (fever) { FeverEnemyImpact(position, strength); }
     else { NormalEnemyImpact(position, strength); }
 }
 
-// 爆発に使う輪、芯、斬撃などを同じ位置に重ね、描画枠へ登録する。
+// 爆発に使う輪、芯、斬撃などを同じ位置に重ね、描画枠へ登録する
 void CombatEffects::AddCombatBurstVisuals(Effect& effect, bool fever, ChainStyle chain)
 {
     const auto position = effect.worldPosition;
     const float seed = static_cast<float>(chain.count % 7) * 0.17f;
-    // 暗い爆心と短い閃光を重ね、明るい背景でも爆発の中心と方向を見せる。
+    // 暗い爆心と短い閃光を重ね、明るい背景でも爆発の中心と方向を見せる
     playback_.AddVisual(effect, assets_.disc, position, {
         .color = { 0.018f, 0.012f, 0.045f, 0.86f },
         .baseSize = 2.1f,
@@ -106,7 +106,7 @@ void CombatEffects::AddCombatBurstVisuals(Effect& effect, bool fever, ChainStyle
     }
 }
 
-// 通常時の撃破で、連続撃破の段階と強さに合わせて閃光や破片を広げる。
+// 通常時の撃破で、連続撃破の段階と強さに合わせて閃光や破片を広げる
 void CombatEffects::NormalEnemyDestroyed(
     const Math::Vector3& worldPosition,
     float strength, ChainStyle chain)
@@ -320,7 +320,7 @@ void CombatEffects::NormalEnemyDestroyed(
     playback_.Commit(std::move(effect));
 }
 
-// フィーバー中の撃破に使う光と破片を作り、チェイン段階に応じて強調する。
+// フィーバー中の撃破に使う光と破片を作り、チェイン段階に応じて強調する
 void CombatEffects::FeverEnemyDestroyed(
     const Math::Vector3& worldPosition,
     float strength, ChainStyle chain)
@@ -434,7 +434,7 @@ void CombatEffects::FeverEnemyDestroyed(
     playback_.Commit(std::move(effect));
 }
 
-// 通常弾の命中点に短い閃光と破片を配置し、当たった場所を見せる。
+// 通常弾の命中点に短い閃光と破片を配置し、当たった場所を見せる
 void CombatEffects::NormalEnemyImpact(
     const Math::Vector3& worldPosition,
     float strength)
@@ -517,7 +517,7 @@ void CombatEffects::NormalEnemyImpact(
     playback_.Commit(std::move(effect));
 }
 
-// フィーバー弾の命中点に強い発光と衝撃の輪を重ねる。
+// フィーバー弾の命中点に強い発光と衝撃の輪を重ねる
 void CombatEffects::FeverEnemyImpact(
     const Math::Vector3& worldPosition,
     float strength)
@@ -608,7 +608,7 @@ void CombatEffects::FeverEnemyImpact(
     playback_.Commit(std::move(effect));
 }
 
-// 敵弾が出た位置に短い発射光を出し、どこから撃たれたか見えるようにする。
+// 敵弾が出た位置に短い発射光を出し、どこから撃たれたか見えるようにする
 void CombatEffects::EnemyShot(const Math::Vector3& worldPosition)
 {
     Effect effect{};
@@ -640,7 +640,7 @@ void CombatEffects::EnemyShot(const Math::Vector3& worldPosition)
     playback_.Commit(std::move(effect));
 }
 
-// 自機弾の発射位置に、通常・チャージ・フィーバーに応じた光を出す。
+// 自機弾の発射位置に、通常・チャージ・フィーバーに応じた光を出す
 void CombatEffects::PlayerShot(
     const Math::Vector3& worldPosition,
     bool isCharged, bool fever)
@@ -705,7 +705,7 @@ void CombatEffects::PlayerShot(
     playback_.Commit(std::move(effect));
 }
 
-// リング通過位置に光を出し、通過したことを画面で示す。
+// リング通過位置に光を出し、通過したことを画面で示す
 void CombatEffects::RingCollected(const Math::Vector3& worldPosition)
 {
     Effect effect{};
@@ -714,7 +714,7 @@ void CombatEffects::RingCollected(const Math::Vector3& worldPosition)
     effect.strength = 0.48f;
     effect.type = EffectType::RewardCollect;
 
-    // 左右へ抜ける風の弧。視界の中央に取得アイコンや大きな閃光を置かない。
+    // 左右へ抜ける風の弧　視界の中央に取得アイコンや大きな閃光を置かない
     for (float side : { -1.0f, 1.0f }) {
         playback_.AddVisual(effect, assets_.arc, worldPosition, {
             .color = { 0.42f, 0.86f, 1.0f, 0.42f },
@@ -726,7 +726,7 @@ void CombatEffects::RingCollected(const Math::Vector3& worldPosition)
     playback_.Commit(std::move(effect));
 }
 
-// 自機の被弾位置を中心に、ダメージを受けた瞬間の閃光と火花を表示する。
+// 自機の被弾位置を中心に、ダメージを受けた瞬間の閃光と火花を表示する
 void CombatEffects::PlayerDamaged(const Math::Vector3& worldPosition)
 {
     Effect effect{};
@@ -791,7 +791,7 @@ void CombatEffects::PlayerDamaged(const Math::Vector3& worldPosition)
     playback_.Commit(std::move(effect));
 }
 
-// 回避中に弾が触れた位置へ、短いかすりの光を出す。
+// 回避中に弾が触れた位置へ、短いかすりの光を出す
 void CombatEffects::DodgeGraze(const Math::Vector3& worldPosition)
 {
     Effect effect{};
@@ -824,7 +824,7 @@ void CombatEffects::DodgeGraze(const Math::Vector3& worldPosition)
     playback_.Commit(std::move(effect));
 }
 
-// ジャスト回避時の自機と敵弾の位置を基準に、回避方向に沿う光を重ねる。
+// ジャスト回避時の自機と敵弾の位置を基準に、回避方向に沿う光を重ねる
 void CombatEffects::JustDodged(const Math::Vector3& playerPosition, const Math::Vector3& bulletPosition, int direction)
 {
     Effect effect{};
@@ -836,7 +836,7 @@ void CombatEffects::JustDodged(const Math::Vector3& playerPosition, const Math::
         .color = { 0.34f, 0.90f, 1.0f, 0.70f }, .baseSize = 1.05f, .growth = 1.6f,
         .spin = side * 0.25f, .aspectX = 1.7f, .aspectY = 0.50f,
         .velocity = { -side * 0.025f, 0.0f, -0.035f }, .lifeEnd = 0.78f, .roll = side * 0.32f });
-    // すれ違った弾の場所に細い閃光を残し、何を避けたのか読めるようにする。
+    // すれ違った弾の場所に細い閃光を残し、何を避けたのか読めるようにする
     playback_.AddVisual(effect, assets_.blade, bulletPosition, {
         .color = { 0.85f, 1.10f, 1.18f, 0.88f }, .baseSize = 0.80f, .growth = 0.8f,
         .aspectX = 0.075f, .aspectY = 3.2f, .lifeEnd = 0.30f, .roll = side * 1.15f });
@@ -851,14 +851,14 @@ void CombatEffects::JustDodged(const Math::Vector3& playerPosition, const Math::
     playback_.Commit(std::move(effect));
 }
 
-// チャージ弾の爆風が届く範囲を画面に示す。ダメージ判定はCombatResolverで行う。
+// チャージ弾の爆風が届く範囲を画面に示す　ダメージ判定はCombatResolverで行う
 void CombatEffects::ChargeSplash(const Math::Vector3& center, float radius)
 {
     Effect effect{};
     effect.worldPosition = center;
     effect.duration = 22;
     effect.type = EffectType::EnemyImpact;
-    // 薄い衝撃波だけを広げる。白い面で敵弾や後ろの狙撃機を隠さない。
+    // 薄い衝撃波だけを広げる　白い面で敵弾や後ろの狙撃機を隠さない
     playback_.AddVisual(effect, assets_.shock, center, {
         .color = { 1.50f, 0.86f, 0.20f, 0.78f },
         .baseSize = 0.85f,

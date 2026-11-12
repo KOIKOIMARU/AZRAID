@@ -1,5 +1,5 @@
 // ===== PlayerDodge.cpp =====
-// 回避入力を受け付けて横移動を進め、ジャスト回避が成立したかを確定する。
+// 回避入力を受け付けて横移動を進め、ジャスト回避が成立したかを確定する
 
 #include "app/player/PlayerDodge.h"
 
@@ -12,7 +12,7 @@ constexpr float kDistance = 4.4f;
 constexpr float kInputBufferDuration = 5.0f;
 }
 
-// 押した方向と入力の猶予を覚え、再使用が可能になった時点で回避を始める。
+// 押した方向と入力の猶予を覚え、再使用が可能になった時点で回避を始める
 bool PlayerDodge::UpdateInput(bool pressed, int horizontalInput, float controlStep)
 {
     cooldown_ = (std::max)(cooldown_ - controlStep, 0.0f);
@@ -23,7 +23,7 @@ bool PlayerDodge::UpdateInput(bool pressed, int horizontalInput, float controlSt
     }
     if (pressed) {
         inputBuffer_ = kInputBufferDuration;
-        // 再使用待ちでも、押した時点の方向で回避する。
+        // 再使用待ちでも、押した時点の方向で回避する
         bufferedDirection_ = lastHorizontalDirection_;
     }
     if (inputBuffer_ <= 0.0f || cooldown_ > 0.0f || IsActive()) {
@@ -38,7 +38,7 @@ bool PlayerDodge::UpdateInput(bool pressed, int horizontalInput, float controlSt
     return true;
 }
 
-// 今回の更新で増えた横移動量と機体のロール角を返す。回避が終わっていれば両方0。
+// 今回の更新で増えた横移動量と機体のロール角を返す　回避が終わっていれば両方0
 PlayerDodge::Step PlayerDodge::Advance(float controlStep)
 {
     if (!IsActive()) { return {}; }
@@ -46,7 +46,7 @@ PlayerDodge::Step PlayerDodge::Advance(float controlStep)
     remaining_ = (std::max)(remaining_ - controlStep, 0.0f);
     const float nextProgress = 1.0f - remaining_ / kDuration;
 
-    // イージングの差分を足すことで、フレーム間隔にかかわらず総移動距離を保つ。
+    // イージングの差分を足すことで、フレーム間隔にかかわらず総移動距離を保つ
     const auto distanceRate = [](float t) { return t * (2.0f - t); };
     return {
         static_cast<float>(direction_) * kDistance *
@@ -57,7 +57,7 @@ PlayerDodge::Step PlayerDodge::Advance(float controlStep)
     };
 }
 
-// 1回の回避につき、ジャスト回避の成立を一度だけ受け付ける。
+// 1回の回避につき、ジャスト回避の成立を一度だけ受け付ける
 bool PlayerDodge::TryConfirm()
 {
     if (!IsActive() || confirmed_) { return false; }

@@ -1,4 +1,4 @@
-// タイトルやステージ選択の切断面と航跡を、画面へ合成する描画処理。
+// タイトルやステージ選択の切断面と航跡を、画面へ合成する描画処理
 
 #pragma once
 
@@ -12,7 +12,7 @@
 class DirectXCommon;
 namespace TitleMotion { struct TitleFlyby; }
 
-// タイトル専用の断面と航跡。画像・中間描画面・追加SRVを使わず直接描く。
+// タイトル専用の断面と航跡　画像・中間描画面・追加SRVを使わず直接描く
 class TitleRift {
 public:
     enum class DrawMode { Background, StageBackground, Wake, StageWake, Reveal, Fade };
@@ -36,7 +36,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12PipelineState> wakePipeline_;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> departurePipeline_;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> flightDsvHeap_;
-    Microsoft::WRL::ComPtr<ID3D12Resource> flightDepth_; // DEPTH_WRITEのまま使う、タイトル専用の深度。
+    Microsoft::WRL::ComPtr<ID3D12Resource> flightDepth_; // DEPTH_WRITEのまま使う、タイトル専用の深度
     UINT flightWidth_ = 0;
     UINT flightHeight_ = 0;
 };

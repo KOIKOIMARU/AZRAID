@@ -1,5 +1,5 @@
 // ===== ImGuiManager.cpp =====
-// ImGuiの初期化とフレーム描画を担当し、UIで使うフォントやエディタの表示を用意する。
+// ImGuiの初期化とフレーム描画を担当し、UIで使うフォントやエディタの表示を用意する
 
 #include "engine/base/ImGuiManager.h"
 #include "engine/base/WinApp.h"
@@ -70,7 +70,7 @@ struct ViewportImageRect {
     bool isValid = false;
 };
 
-// エディタのツール番号を、ImGuizmoの移動・回転・拡縮操作に変換する。
+// エディタのツール番号を、ImGuizmoの移動・回転・拡縮操作に変換する
 ImGuizmo::OPERATION ToImGuizmoOperation(int gizmoMode)
 {
     if (gizmoMode == 1) {
@@ -82,7 +82,7 @@ ImGuizmo::OPERATION ToImGuizmoOperation(int gizmoMode)
     return ImGuizmo::TRANSLATE;
 }
 
-// 編集可能な選択物にだけギズモを出し、操作後の行列から位置・回転・拡縮を反映する。
+// 編集可能な選択物にだけギズモを出し、操作後の行列から位置・回転・拡縮を反映する
 void DrawTransformGizmo(
     const Math::Matrix4x4& viewMatrix,
     const Math::Matrix4x4& projectionMatrix,
@@ -143,7 +143,7 @@ void DrawTransformGizmo(
     selectedObject->SetScale({ scale[0], scale[1], scale[2] });
 }
 
-// 選択中のツールを強調表示し、押されたら編集中のツールを切り替える。
+// 選択中のツールを強調表示し、押されたら編集中のツールを切り替える
 bool DrawToolbarToolButton(
     const char* label,
     const char* tooltip,
@@ -173,7 +173,7 @@ bool DrawToolbarToolButton(
     return clicked;
 }
 
-// インスペクターの区切りと既定で開く見出しを描き、項目を描画するか返す。
+// インスペクターの区切りと既定で開く見出しを描き、項目を描画するか返す
 bool BeginInspectorComponent(const char* label)
 {
     ImGui::Separator();
@@ -188,7 +188,7 @@ bool MatchesProjectFilter(const char* text, const char* filter)
     return !filter || filter[0] == '\0' || std::strstr(text, filter);
 }
 
-// ImGuiがテクスチャに使う枠を共通ヒープから借り、CPUとGPU両方のハンドルを渡す。
+// ImGuiがテクスチャに使う枠を共通ヒープから借り、CPUとGPU両方のハンドルを渡す
 void AllocateImGuiSrvDescriptor(
     ImGui_ImplDX12_InitInfo* info,
     D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle,
@@ -202,7 +202,7 @@ void AllocateImGuiSrvDescriptor(
     *outGpuHandle = srvManager->GetGPUDescriptorHandle(srvIndex);
 }
 
-// ImGuiが使い終えたディスクリプタを、共通ヒープの空き枠へ戻す。
+// ImGuiが使い終えたディスクリプタを、共通ヒープの空き枠へ戻す
 void FreeImGuiSrvDescriptor(
     ImGui_ImplDX12_InitInfo* info,
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle,
@@ -218,7 +218,7 @@ void FreeImGuiSrvDescriptor(
 #endif
 }
 
-// 最後に描いたプレビュー画像の位置とサイズを返す。画像がなければfalseを返す。
+// 最後に描いたプレビュー画像の位置とサイズを返す　画像がなければfalseを返す
 bool ImGuiManager::GetLastViewportImageRect(
     Math::Vector2& min,
     Math::Vector2& size) const
@@ -232,7 +232,7 @@ bool ImGuiManager::GetLastViewportImageRect(
     return true;
 }
 
-// インスペクターで扱う配置物を保存用のデータにまとめ、保存結果をUIへ渡す。
+// インスペクターで扱う配置物を保存用のデータにまとめ、保存結果をUIへ渡す
 bool ImGuiManager::SaveInspectorTransforms(
     const ObjectInspectorSettings& inspector)
 {
@@ -274,7 +274,7 @@ bool ImGuiManager::SaveInspectorTransforms(
     return true;
 }
 
-// 保存した配置を名前で照合し、見つかった物体に変形を反映する。
+// 保存した配置を名前で照合し、見つかった物体に変形を反映する
 bool ImGuiManager::LoadInspectorTransforms(
     const ObjectInspectorSettings& inspector)
 {
@@ -321,7 +321,7 @@ bool ImGuiManager::LoadInspectorTransforms(
     return loadedCount > 0;
 }
 
-// ImGuiの描画環境を作り、Windowsの入力とDirectXの描画に接続する。
+// ImGuiの描画環境を作り、Windowsの入力とDirectXの描画に接続する
 void ImGuiManager::Initialize(
     [[maybe_unused]] WinApp* winApp,
     [[maybe_unused]] DirectXCommon* dxCommon,
@@ -362,9 +362,9 @@ void ImGuiManager::Initialize(
         &iconConfig,
         iconRanges);
 
-    // ライセンス同梱のフォントを使い、実行PCのインストール状況に依存させない。
-    // 和文はZen Kaku Gothic Newの二つの太さ、短い英字・数字はChakra Petch。
-    // 同じ参照サイズで読み込み、文字列の実測幅で配置する。
+    // ライセンス同梱のフォントを使い、実行PCのインストール状況に依存させない
+    // 和文はZen Kaku Gothic Newの二つの太さ、短い英字・数字はChakra Petch
+    // 同じ参照サイズで読み込み、文字列の実測幅で配置する
     hudFont_ = io.Fonts->AddFontFromFileTTF(
         "resources/fonts/ZenKakuGothicNew-Medium.ttf", 48.0f, nullptr,
         io.Fonts->GetGlyphRangesJapanese());
@@ -394,7 +394,7 @@ void ImGuiManager::Initialize(
 #endif
 }
 
-// Win32とDirectXの入力・描画状態を取り込み、ImGuiの新しいフレームを始める。
+// Win32とDirectXの入力・描画状態を取り込み、ImGuiの新しいフレームを始める
 void ImGuiManager::Begin() {
 #ifdef USE_IMGUI
     ImGui_ImplDX12_NewFrame();
@@ -409,7 +409,7 @@ void ImGuiManager::End() {
 #endif
 }
 
-// ImGuiで作った頂点を描画コマンドへ登録し、ゲーム画面の上にUIを重ねる。
+// ImGuiで作った頂点を描画コマンドへ登録し、ゲーム画面の上にUIを重ねる
 void ImGuiManager::Draw() {
 #ifdef USE_IMGUI
     ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
@@ -422,7 +422,7 @@ void ImGuiManager::Draw() {
 #endif
 }
 
-// フォントへの参照を外し、描画バックエンドとImGui・ImPlotのコンテキストを終了する。
+// フォントへの参照を外し、描画バックエンドとImGui・ImPlotのコンテキストを終了する
 void ImGuiManager::Finalize() {
 #ifdef USE_IMGUI
     hudFont_ = nullptr;
@@ -458,7 +458,7 @@ ImFont* ImGuiManager::GetCombatFont()
 }
 #endif
 
-// 編集ツールと設定パネルを描き、UIの入力をシーン操作の要求や設定値へ反映する。
+// 編集ツールと設定パネルを描き、UIの入力をシーン操作の要求や設定値へ反映する
 void ImGuiManager::ShowEditorController(EditorDebugSettings& settings)
 {
     auto& rendering = settings.rendering;
@@ -1116,7 +1116,7 @@ void ImGuiManager::ShowEditorController(EditorDebugSettings& settings)
 #endif
 }
 
-// ゲーム画像をビューポートに収め、ギズモや選択表示のために実際の画像領域を保存する。
+// ゲーム画像をビューポートに収め、ギズモや選択表示のために実際の画像領域を保存する
 void ImGuiManager::ShowViewport(
     D3D12_GPU_DESCRIPTOR_HANDLE textureHandle,
     const Math::Vector2& textureSize,

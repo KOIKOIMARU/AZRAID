@@ -1,4 +1,4 @@
-// 1発の弾が持つ位置・速度・寿命と、命中した相手の記録。弾の生成と回収はProjectileSystemが担当する。
+// 1発の弾の位置・速度・寿命と命中履歴を保持し、生成と回収はProjectileSystemが担当する
 
 #pragma once
 
@@ -36,6 +36,7 @@ public:
         int damage = 8,
         bool enemyVisual = false);
     void Update(float timeScale = 1.0f);
+    // 弾が表示中なら本体を描く　カメラが指定された場合は視点に合わせて姿勢を更新する
     void Draw(const Math::Matrix4x4* cameraWorld = nullptr);
     void DrawGlow(const Math::Matrix4x4& cameraWorld);
     struct TrailVisual {
@@ -43,7 +44,7 @@ public:
         Math::Vector3 rotate{};
         float length = 0.0f;
     };
-    // 射影後の頭と尾を結ぶ。正面方向の弾に架空の縦長の軌跡を付けない。
+    // 射影後の頭と尾を結ぶ　正面方向の弾に架空の縦長の軌跡を付けない
     static TrailVisual CalculateTrailVisual(const Math::Vector3& position,
         const Math::Vector3& velocity, float distance, const Math::Matrix4x4& cameraWorld);
     static Math::Vector3 CalculateBodyRotation(const Math::Vector3& velocity);
@@ -77,7 +78,7 @@ private:
     bool trailEnabled_ = false;
     bool sparkleEnabled_ = false;
     bool enemyVisual_ = false;
-    Math::Vector3 startTranslate_{};
+    Math::Vector3 startTranslate_{}; // 移動距離を測る基準になる発射位置
     Math::Vector3 translate_{};
     Math::Vector3 velocity_{ 0.0f, 0.0f, 0.5f };
     Math::Vector3 bodyBaseScale_{ 0.34f, 0.34f, 0.95f };
@@ -95,11 +96,11 @@ private:
     float maxTravelDistance_ = 90.0f;
     int age_ = 0;
     int lifeTimer_ = 180;
-    int initialLifeTimer_ = 180;
-    float lifeTimerFloat_ = 180.0f;
+    int initialLifeTimer_ = 180; // 発射時の寿命のフレーム数
+    float lifeTimerFloat_ = 180.0f; // 時間倍率を反映した寿命の残りフレーム数
     int damage_ = 8;
-    int remainingHits_ = 1;
-    std::array<const void*, 4> hitTargets_{};
+    int remainingHits_ = 1; // この弾があと何回命中できるか
+    std::array<const void*, 4> hitTargets_{}; // 同じ相手への連続ヒットを防ぐための命中履歴
     float homingStrength_ = 0.0f;
     bool homingEnabled_ = false;
     bool hasHomingTarget_ = false;

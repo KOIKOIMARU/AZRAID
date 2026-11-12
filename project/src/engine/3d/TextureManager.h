@@ -1,4 +1,4 @@
-// テクスチャの読み込み・GPUへの転送・名前による再利用を担当する。
+// テクスチャの読み込み・GPUへの転送・名前による再利用を担当する
 
 #pragma once
 #include <cstdint>
@@ -16,9 +16,10 @@ class TextureManager {
 public:
     static TextureManager* GetInstance();
 
-    // 画像をシェーダーから参照するための記述子を割り当てる管理クラスを受け取る。
+    // 画像をシェーダーから参照するための記述子を割り当てる管理クラスを受け取る
     void Initialize(DirectXCommon* dxCommon, SrvManager* srvManager);
 
+    // 同じ画像を二重に作らないよう登録状況を確認し、必要な場合は準備を完了させる
     void LoadTexture(const std::string& filePath, bool forceSrgb = true);
     bool PreloadTextureStep(const std::string& filePath, bool forceSrgb = true);
     bool IsTextureLoaded(const std::string& filePath) const { return textureDatas_.contains(filePath); }

@@ -1,5 +1,5 @@
 // ===== Logger.cpp =====
-// プログラム内のログをWindowsのデバッグ出力へ送る。
+// プログラム内のログをWindowsのデバッグ出力へ送る
 
 #include "engine/base/Logger.h"
 #include <Windows.h>

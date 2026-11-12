@@ -1,5 +1,5 @@
 // ===== ProjectileSystem.cpp =====
-// 自機弾と敵弾の発射、誘導、描画をまとめ、消えた弾をプールに戻す。
+// 自機弾と敵弾の発射、誘導、描画をまとめ、消えた弾をプールに戻す
 
 #include "app/combat/ProjectileSystem.h"
 
@@ -20,7 +20,7 @@ void ProjectileSystem::Initialize(Object3dCommon* common, const Assets& assets)
     assets_ = assets;
 }
 
-// シーン終了時に弾の実体と参照を解放し、次の初期化に備える。
+// シーン終了時に弾の実体と参照を解放し、次の初期化に備える
 void ProjectileSystem::Clear()
 {
     homingTargets_.clear();
@@ -31,7 +31,7 @@ void ProjectileSystem::Clear()
     common_ = nullptr;
 }
 
-// 使用中の自機弾と敵弾を終了させ、追尾とジャスト回避に使う参照を消す。
+// 使用中の自機弾と敵弾を終了させ、追尾とジャスト回避に使う参照を消す
 void ProjectileSystem::KillAll()
 {
     for (const auto& bullet : playerPool_.Active()) { bullet->Kill(); }
@@ -40,7 +40,7 @@ void ProjectileSystem::KillAll()
     dodgedBullets_.clear();
 }
 
-// すべての弾を空き枠へ戻し、以前の弾が使っていた記録を解除する。
+// すべての弾を空き枠へ戻し、以前の弾が使っていた記録を解除する
 void ProjectileSystem::RecycleAll()
 {
     homingTargets_.clear();
@@ -48,21 +48,21 @@ void ProjectileSystem::RecycleAll()
     RecycleEnemyBullets();
 }
 
-// 形態移行やボス撃破で残った敵弾をすべて回収し、回避の記録も消す。
+// 形態移行やボス撃破で残った敵弾をすべて回収し、回避の記録も消す
 void ProjectileSystem::RecycleEnemyBullets()
 {
     dodgedBullets_.clear();
     enemyPool_.RecycleAll();
 }
 
-// 退場する敵を追尾先と命中済み一覧から外す。敵の参照は削除前に解除する。
+// 退場する敵を追尾先と命中済み一覧から外す　敵の参照は削除前に解除する
 void ProjectileSystem::InvalidateTarget(const Enemy* enemy)
 {
     std::erase_if(homingTargets_, [enemy](const auto& item) { return item.second == enemy; });
     for (const auto& bullet : playerPool_.Active()) { bullet->ForgetHitTarget(enemy); }
 }
 
-// 自機弾の空き枠を1つ用意する。ここでモデルを準備しておき、発射時に再利用する。
+// 自機弾の空き枠を1つ用意する　ここでモデルを準備しておき、発射時に再利用する
 void ProjectileSystem::PreparePlayerBullet(float speed)
 {
     const Math::Vector3 offscreenPosition{ 0.0f, -1000.0f, -1000.0f };
@@ -92,7 +92,7 @@ void ProjectileSystem::PreparePlayerBullet(float speed)
     playerPool_.Prepare(std::move(bullet));
 }
 
-// 敵弾の空き枠を1つ用意する。ここでモデルを準備しておき、攻撃時に再利用する。
+// 敵弾の空き枠を1つ用意する　ここでモデルを準備しておき、攻撃時に再利用する
 void ProjectileSystem::PrepareEnemyBullet(float speed)
 {
     const Math::Vector3 offscreenPosition{ 0.0f, -1000.0f, -1000.0f };
@@ -122,7 +122,7 @@ void ProjectileSystem::PrepareEnemyBullet(float speed)
     enemyPool_.Prepare(std::move(bullet));
 }
 
-// 準備済みの弾を取り出し、通常・チャージ・フィーバーに応じて速度や描画、命中時の性質を設定する。
+// 準備済みの弾を取り出し、通常・チャージ・フィーバーに応じて速度や描画、命中時の性質を設定する
 Bullet* ProjectileSystem::FirePlayer(const PlayerShot& shot)
 {
     if (!assets_.body) { return nullptr; }
@@ -186,7 +186,7 @@ Bullet* ProjectileSystem::FirePlayer(const PlayerShot& shot)
         hitLimit = 3;
     }
 
-    // 巡航分を弾速にも引き継ぎ、加速中も敵へ届くまでの手応えを保つ。
+    // 巡航分を弾速にも引き継ぎ、加速中も敵へ届くまでの手応えを保つ
     if (!shot.tutorial) {
         velocity = velocity * 1.20f;
         velocity.x += aimDirection.x * shot.railSpeed;
@@ -250,7 +250,7 @@ Bullet* ProjectileSystem::FirePlayer(const PlayerShot& shot)
             Math::Vector3{ 0.17f, 0.17f, 1.0f } :
             Math::Vector3{ 0.092f, 0.092f, 1.0f });
     bullet->SetFeverShot(isFeverShot);
-    // フィーバーでも照準を合わせた敵だけ補正する。外れた弾が別の敵を探すことはしない。
+    // フィーバーでも照準を合わせた敵だけ補正する　外れた弾が別の敵を探すことはしない
     if (aimedTarget) {
         bullet->EnableHoming(
             isFeverShot ? 0.11f :
@@ -261,7 +261,7 @@ Bullet* ProjectileSystem::FirePlayer(const PlayerShot& shot)
     return bullet;
 }
 
-// 敵の攻撃種類から弾のモデル、色、速度、当たり判定を決め、銃口から発射する。
+// 敵の攻撃種類から弾のモデル、色、速度、当たり判定を決め、銃口から発射する
 Bullet* ProjectileSystem::FireEnemy(const EnemyShot& shot)
 {
     if (!assets_.body) { return nullptr; }
@@ -270,7 +270,7 @@ Bullet* ProjectileSystem::FireEnemy(const EnemyShot& shot)
     spawnPosition.z -= 1.0f;
     const EnemyStyle style = shot.style;
 
-    // 暗い縁と高熱の芯を一枚の不透明な弾頭で読む。芯の半径は当たり判定に揃える。
+    // 暗い縁と高熱の芯を一枚の不透明な弾頭で読む　芯の半径は当たり判定に揃える
     Math::Vector4 bodyColor{ 1.0f, 1.0f, 1.0f, 1.0f };
     Math::Vector3 bodyScale{ 1.20f, 1.20f, 1.0f };
     Math::Vector4 glowColor{ 0.60f, 0.35f, 0.26f, 0.22f };
@@ -389,7 +389,7 @@ Bullet* ProjectileSystem::FireEnemy(const EnemyShot& shot)
     return bullet;
 }
 
-// 追尾先が有効か確認し、自機弾を進める。寿命が切れた弾を回収する。
+// 追尾先が有効か確認し、自機弾を進める　寿命が切れた弾を回収する
 void ProjectileSystem::UpdatePlayerBullets()
 {
     for (auto iterator = playerPool_.Active().begin();
@@ -423,7 +423,7 @@ void ProjectileSystem::UpdatePlayerBullets()
     }
 }
 
-// 敵弾をワールドの時間倍率で進め、終了した弾とその回避記録を回収する。
+// 敵弾をワールドの時間倍率で進め、終了した弾とその回避記録を回収する
 void ProjectileSystem::UpdateEnemyBullets(float worldTimeScale)
 {
     for (auto iterator = enemyPool_.Active().begin();
@@ -439,14 +439,14 @@ void ProjectileSystem::UpdateEnemyBullets(float worldTimeScale)
     }
 }
 
-// 自機弾と敵弾の本体を描く。カメラがあれば視点に合わせた見え方を使う。
+// 自機弾と敵弾の本体を描く　カメラがあれば視点に合わせた見え方を使う
 void ProjectileSystem::DrawBodies(const Math::Matrix4x4* cameraWorld)
 {
     for (const auto& bullet : playerPool_.Active()) { bullet->Draw(); }
     for (const auto& bullet : enemyPool_.Active()) { bullet->Draw(cameraWorld); }
 }
 
-// 弾本体の後に、カメラの向きに合わせた光や軌跡を重ねる。
+// 弾本体の後に、カメラの向きに合わせた光や軌跡を重ねる
 void ProjectileSystem::DrawGlows(const Math::Matrix4x4& cameraWorld)
 {
     if (!common_) { return; }
@@ -474,7 +474,7 @@ void ProjectileSystem::DrawGlows(const Math::Matrix4x4& cameraWorld)
     common_->CommonDrawSetting();
 }
 
-// 画面上の照準を3Dの射線に直し、自機の銃口から狙う方向を求める。
+// 画面上の照準を3Dの射線に直し、自機の銃口から狙う方向を求める
 Math::Vector3 ProjectileSystem::AimDirection(const Math::Vector3& origin, const Math::Matrix4x4& viewProjection,
     const Math::Vector2& reticle, const Math::Vector2& viewportMin, const Math::Vector2& viewportSize, float aimDepth)
 {
@@ -500,8 +500,8 @@ Math::Vector3 ProjectileSystem::AimDirection(const Math::Vector3& origin, const 
     if (cameraRay.z <= 0.001f) {
         return { 0.0f, 0.0f, 1.0f };
     }
-    // カメラの視線と平行に撃つと、横移動した銃口からの弾道が照準を外れる。
-    // 敵が近くにいる場合はその深度、空中は45m先で照準へ収束させる。
+    // カメラの視線と平行に撃つと、横移動した銃口からの弾道が照準を外れる
+    // 敵が近くにいる場合はその深度、空中は45m先で照準へ収束させる
     const float rayDistance = (aimDepth - nearPoint.z) / cameraRay.z;
     const Math::Vector3 aimPoint{
         nearPoint.x + cameraRay.x * rayDistance,

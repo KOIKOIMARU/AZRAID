@@ -4,8 +4,8 @@
 
 namespace ScreenProjection {
 
-// ワールド座標を指定した表示領域の座標へ変換する。画面端の演出用に少し余白を含める。
-// カメラの後方や表示領域から大きく離れた点では、出力を変更せずfalseを返す。
+// ワールド座標を指定した表示領域の座標へ変換する　画面端の演出用に少し余白を含める
+// カメラの後方や表示領域から大きく離れた点では、出力を変更せずfalseを返す
 inline bool ToViewport(const Math::Vector3& worldPosition, const Math::Matrix4x4& viewProjection,
     const Math::Vector2& viewportMin, const Math::Vector2& viewportSize, Math::Vector2& screenPosition)
 {

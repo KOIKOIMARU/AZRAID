@@ -1,5 +1,5 @@
 // ===== StageRecords.cpp =====
-// クリア時のランクを判定し、ステージごとの記録を保存・読み込みする。
+// クリア時のランクを判定し、ステージごとの記録を保存・読み込みする
 
 #include "app/ui/StageRecords.h"
 
@@ -11,7 +11,7 @@
 #include <string>
 
 namespace {
-// ランクを比較用の数値に変換し、最高ランクを判定できるようにする。
+// ランクを比較用の数値に変換し、最高ランクを判定できるようにする
 int RankValue(char rank)
 {
     switch (rank) {
@@ -23,7 +23,7 @@ int RankValue(char rank)
 }
 }
 
-// ユーザーごとの保存先から戦績ファイルのパスを作る。保存先を取得できないときは代替パスを使う。
+// ユーザーごとの保存先から戦績ファイルのパスを作る　保存先を取得できないときは代替パスを使う
 std::filesystem::path StageRecords::DefaultPath()
 {
     std::array<wchar_t, 32768> local{};
@@ -31,11 +31,11 @@ std::filesystem::path StageRecords::DefaultPath()
     if (length > 0 && length < local.size()) {
         return std::filesystem::path(local.data()) / L"AZRAID" / L"record-v3.txt";
     }
-    // 環境変数がない場合も、実行場所に保存先を用意する。
+    // 環境変数がない場合も、実行場所に保存先を用意する
     return std::filesystem::current_path() / L"save" / L"record-v3.txt";
 }
 
-// 得点をS・Aの基準と比較し、今回のクリアランクを返す。
+// 得点をS・Aの基準と比較し、今回のクリアランクを返す
 char StageRecords::EvaluateRank(int score)
 {
     if (score >= kSScore) { return 'S'; }
@@ -43,7 +43,7 @@ char StageRecords::EvaluateRank(int score)
     return 'B';
 }
 
-// 保存データを読み、値の範囲や形式が正しいと確認してから現在の記録へ取り込む。
+// 保存データを読み、値の範囲や形式が正しいと確認してから現在の記録へ取り込む
 bool StageRecords::Load(const std::filesystem::path& path)
 {
     path_ = path;
@@ -67,7 +67,7 @@ bool StageRecords::Load(const std::filesystem::path& path)
     return true;
 }
 
-// 今回の得点とランクを最高記録と比較して保存する。更新の有無と保存結果を呼び出し元に返す。
+// 今回の得点とランクを最高記録と比較して保存する　更新の有無と保存結果を呼び出し元に返す
 StageRecords::ClearResult StageRecords::RecordClear(int score, char rank)
 {
     if (score < 0 || RankValue(rank) == 0) { return {}; }
@@ -77,12 +77,12 @@ StageRecords::ClearResult StageRecords::RecordClear(int score, char rank)
     if (RankValue(rank) > RankValue(next.bestRank)) { next.bestRank = rank; }
     if (next.clearCount < (std::numeric_limits<int>::max)()) { ++next.clearCount; }
     const bool saved = Save(next);
-    // 保存先へ書き込めない場合も、その起動中の記録は保持する。
+    // 保存先へ書き込めない場合も、その起動中の記録は保持する
     record_ = next;
     return { newBest, saved };
 }
 
-// 一時ファイルへ書き出してから置き換え、保存途中に失敗した場合に備える。
+// 一時ファイルへ書き出してから置き換え、保存途中に失敗した場合に備える
 bool StageRecords::Save(const Record& record)
 {
     if (path_.empty()) { return false; }
@@ -94,7 +94,7 @@ bool StageRecords::Save(const Record& record)
     if (invalidFile_) {
         auto backup = path_;
         backup += L".invalid";
-        // 以前の退避データがある場合は上書きしない。
+        // 以前の退避データがある場合は上書きしない
         if (!std::filesystem::copy_file(path_, backup, std::filesystem::copy_options::none, error)) { return false; }
         invalidFile_ = false;
     }
@@ -110,7 +110,7 @@ bool StageRecords::Save(const Record& record)
             return false;
         }
     }
-    // 完成したファイルを置き換える。途中で書込みが失敗しても、元の記録は壊さない。
+    // 完成したファイルを置き換える　途中で書込みが失敗しても、元の記録は壊さない
     if (!MoveFileExW(temporary.c_str(), path_.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
         std::filesystem::remove(temporary, error);
         return false;

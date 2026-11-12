@@ -1,4 +1,4 @@
-// ImGuiの初期化・フレーム描画と、開発用の編集画面に必要な処理をまとめる。
+// ImGuiの初期化・フレーム描画と、開発用の編集画面に必要な処理をまとめる
 
 #pragma once
 #include <cstdint>
@@ -105,11 +105,11 @@ public:
     void Finalize();
 
 #ifdef USE_IMGUI
-    // ゲーム表示用。エディタの標準フォントとは分け、数字は専用書体で読ませる。
+    // ゲーム表示用　エディタの標準フォントとは分け、数字は専用書体で読ませる
     static ImFont* GetHudFont();
     static ImFont* GetHudHeadingFont();
     static ImFont* GetHudNumberFont();
-    static ImFont* GetCombatFont(); // 戦闘・メニューで共有する和文書体。
+    static ImFont* GetCombatFont(); // 戦闘・メニューで共有する和文書体
 #endif
 
     void ShowEditorController(EditorDebugSettings& settings);
@@ -127,10 +127,10 @@ public:
 
 private:
 #ifdef USE_IMGUI
-    inline static ImFont* hudFont_ = nullptr; // アトラスが所有する日本語フォント。
-    inline static ImFont* hudHeadingFont_ = nullptr; // 同じ和文ファミリーの見出し用ウェイト。
-    inline static ImFont* hudNumberFont_ = nullptr; // アトラスが所有する英数字フォント。
-    inline static ImFont* combatFont_ = nullptr; // メニューと戦闘HUDで共有する本文書体。
+    inline static ImFont* hudFont_ = nullptr; // アトラスが所有する日本語フォント
+    inline static ImFont* hudHeadingFont_ = nullptr; // 同じ和文ファミリーの見出し用ウェイト
+    inline static ImFont* hudNumberFont_ = nullptr; // アトラスが所有する英数字フォント
+    inline static ImFont* combatFont_ = nullptr; // メニューと戦闘HUDで共有する本文書体
 #endif
     bool SaveInspectorTransforms(const ObjectInspectorSettings& inspector);
     bool LoadInspectorTransforms(const ObjectInspectorSettings& inspector);

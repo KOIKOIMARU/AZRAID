@@ -96,7 +96,7 @@ void CheckAllocationFailureAndReset()
     PlayerShooting shooting;
     shooting.FillCharge();
     Require(shooting.Update({ true, true }, false), "Charged fixture could not request fire");
-    // 確保失敗としてOnShotFiredを呼ばない。連射間隔を守り、蓄積済みチャージは残す。
+    // 確保失敗としてOnShotFiredを呼ばない　連射間隔を守り、蓄積済みチャージは残す
     for (int frame = 0; frame < 19; ++frame) { Require(!shooting.Update({ true, false }, false), "Failed allocation caused rapid retry"); }
     Require(shooting.Update({ true, false }, false) && shooting.ChargeFrames() == 100,
         "Failed allocation consumed charge or lost the next attempt");

@@ -1,4 +1,4 @@
-// 機種や入場経路を指定して敵を作る。機体モデルとテクスチャの選択もここで行う。
+// 機種や入場経路を指定して敵を作る　機体モデルとテクスチャの選択もここで行う
 
 #pragma once
 
@@ -15,6 +15,7 @@ class Object3dCommon;
 class StageEnemyFactory {
 public:
     void Prepare(ModelManager& models);
+    // 機種に対応するモデルとテクスチャを選び、指定位置・HP・スケールで敵を初期化する　モデルがなければnullptrを返す
     std::unique_ptr<Enemy> Create(Object3dCommon& common, const Math::Vector3& position,
         EnemyBehavior behavior, EnemyEntryStyle entryStyle, int maxHp, float scale) const;
 

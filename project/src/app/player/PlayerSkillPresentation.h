@@ -10,7 +10,7 @@ class Camera;
 class Model;
 struct ImDrawList;
 
-// スキルが確定した攻撃位置を使い、残像・斬撃・画面効果を再生する。
+// スキルが確定した攻撃位置を使い、残像・斬撃・画面効果を再生する
 class PlayerSkillPresentation {
 public:
     void Initialize(Object3dCommon& common, Model& ship);
@@ -35,9 +35,9 @@ private:
         Math::Vector3 from{};
         Math::Vector3 position{};
         float angle = 0.0f;
-        float age = -1.0f; // 60fps換算。負値は非表示。
+        float age = -1.0f; // 60fps換算　負値は非表示
     };
-    std::array<Slash, PlayerSkill::kMaxTargets> slashes_{}; // 起動時に確保して繰り返し使う。
+    std::array<Slash, PlayerSkill::kMaxTargets> slashes_{}; // 起動時に確保して繰り返し使う
     std::array<std::unique_ptr<Object3d>, 4> finisherVisuals_;
     Math::Vector3 finisherPosition_{};
     Math::Vector3 shipCenter_{};

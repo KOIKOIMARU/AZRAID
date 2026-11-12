@@ -73,7 +73,7 @@ int main()
                 }
             }
         }
-        // 停止中の微振動は追従の基準へ蓄積せず、揺れが終われば表示位置へ残らない。
+        // 停止中の微振動は追従の基準へ蓄積せず、揺れが終われば表示位置へ残らない
         camera.Reset(0.528f);
         camera.AdoptPose(launch);
         camera.SynchronizePlayer({}, 0.0f);
